@@ -11,7 +11,7 @@
 <meta property="og:url" content="http://freydom.com/2016/05/10/RecycleView-in-Android/index.html">
 <meta property="og:site_name" content="John Frey@BUPT">
 <meta property="og:description" content="An android recyclerView demo.">
-<meta property="og:updated_time" content="2016-05-10T10:44:27.066Z">
+<meta property="og:updated_time" content="2016-05-10T15:10:55.828Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RecycleView in Android">
 <meta name="twitter:description" content="An android recyclerView demo.">
@@ -95,12 +95,35 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>An android recyclerView demo.<br><a id="more"></a><br>Simple demo project using gradle as dependency controller. </p>
-
+        <p>An android recyclerView demo.<br><a id="more"></a></p>
+<h2 id="Features-1-Event-passing-from-adapter-to-activity"><a href="#Features-1-Event-passing-from-adapter-to-activity" class="headerlink" title="Features 1 : Event passing from adapter to activity"></a>Features 1 : Event passing from adapter to activity</h2><p>One way is to send otto messages,but a wiser way and the way I used here is to implement a interface declared in the adapter,then pass the activity handle to the adapter instance,then,when events are triggered,call the interface’s method,which will call the implemented method in the activity next.</p>
+<h3 id="interface-in-the-adapter"><a href="#interface-in-the-adapter" class="headerlink" title="interface in the adapter"></a>interface in the adapter</h3><pre><code>public static interface RecyclerViewImp {
+        void onItemClick(int position);
+        boolean onItemLongClick(int position);
+}
+</code></pre><h3 id="implement-the-interface"><a href="#implement-the-interface" class="headerlink" title="implement the interface"></a>implement the interface</h3><pre><code>public class RecyclerActivity extends Activity implements PersonAdapter.RecyclerViewImp
+</code></pre><h3 id="Pass-the-activity-into-the-adapter"><a href="#Pass-the-activity-into-the-adapter" class="headerlink" title="Pass the activity into the adapter"></a>Pass the activity into the adapter</h3><pre><code>adapter = new PersonAdapter(personList);
+adapter.setOnRecyclerViewListener(this);
+</code></pre><h3 id="When-event-is-triggered"><a href="#When-event-is-triggered" class="headerlink" title="When event is triggered"></a>When event is triggered</h3><pre><code>@Override
+    public void onClick(View v) {
+        if (null != recyclerViewImp) {
+            recyclerViewImp.onItemClick(this.getPosition());
+        }
+    }
+@Override
+    public boolean onLongClick(View v) {
+        if (null != recyclerViewImp) {
+            return recyclerViewImp.onItemLongClick(this.getPosition());
+        }
+        return false;
+    }
+</code></pre><p>##View codes on github:</p>
+<pre><code>https://github.com/JohnfyBUPT/RecyclerDemo
+</code></pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/10/RecycleView-in-Android/" data-id="cio1jl8w500024w80brhhgh2q" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/10/RecycleView-in-Android/" data-id="cio1kgbxh0002i48042ic6357" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Tech-thinking/">Tech thinking</a></li></ul>
