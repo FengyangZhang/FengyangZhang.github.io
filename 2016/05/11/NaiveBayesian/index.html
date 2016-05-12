@@ -11,10 +11,12 @@
 <meta property="og:url" content="http://freydom.com/2016/05/11/NaiveBayesian/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸@北邮">
 <meta property="og:description" content="An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.">
-<meta property="og:updated_time" content="2016-05-11T13:10:43.192Z">
+<meta property="og:image" content="http://freydom.com/pic/2016-05-11-NaiveBayesian/overview.png">
+<meta property="og:updated_time" content="2016-05-12T02:14:59.668Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="NaiveBayesian">
 <meta name="twitter:description" content="An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.">
+<meta name="twitter:image" content="http://freydom.com/pic/2016-05-11-NaiveBayesian/overview.png">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / 张枫旸@北邮" type="application/atom+xml">
   
@@ -97,12 +99,102 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p> An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.<br><a id="more"></a></p>
+<h2 id="Usage"><a href="#Usage" class="headerlink" title="Usage:"></a>Usage:</h2><p>This program is for the specific use of my android diary app <em>Whisper</em>,which is a private diary highlighting a function of judging if a diary is positive or not and giving the corresponding feedback.<br><a href="https://github.com/JohnfyBUPT/Whisper" target="_blank" rel="external">The diary app <em>“Whisper”</em> on Github</a><br>Codes on <em>Whisper</em> will fall a little behind this one.</p>
+<hr>
+<h2 id="Theory-foundation"><a href="#Theory-foundation" class="headerlink" title="Theory foundation:"></a>Theory foundation:</h2><p>Naive Bayes classifier is a simple and effective classify method based on Bayes theorem.</p>
+<h3 id="Bayes-theorem"><a href="#Bayes-theorem" class="headerlink" title="Bayes theorem:"></a>Bayes theorem:</h3><pre><code>P(A|B) = P(B|A) P(A) / P(B)
+</code></pre><p>Now let’s see A as a specific category C from a collection C1、C2、…、Cm,and see B as a combination of n features F1、F2、…Fn of a certain individual.<br>What we want to do is to deduct which class an individual belongs from his/her set of features.We now know how to apply Bayes theorem to classifying procedure,which is to calculate the maximum value of the expression below:</p>
+<pre><code>P(C|F1F2...Fn) = P(F1F2...Fn|C)P(C) / P(F1F2...Fn)
+</code></pre><p>From which P(F1F2…Fn) can be left out,for it has the same value when C changes.The question deteriorate into calculate the maximum of:</p>
+<pre><code>P(F1F2...Fn|C)P(C)
+</code></pre><h3 id="Naive-Bayes-theorem"><a href="#Naive-Bayes-theorem" class="headerlink" title="Naive Bayes theorem:"></a>Naive Bayes theorem:</h3><p>If we take a step further and assume all n features are independent,we are using Naive Bayesian theorem,and the question is simplified again:</p>
+<pre><code>P(F1F2...Fn|C)P(C) = P(F1|C)P(F2|C) ... P(Fn|C)P(C)
+</code></pre><p>We can get every <em>P</em> on the right side of the  equation from our training set,and the problem is solved.</p>
+<hr>
+<h2 id="Key-points-and-codes"><a href="#Key-points-and-codes" class="headerlink" title="Key points and codes:"></a>Key points and codes:</h2><h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview:"></a>Overview:</h3><p><img src="/pic/2016-05-11-NaiveBayesian/overview.png" alt="overview"></p>
+<h3 id="Train-data-to-dictionary"><a href="#Train-data-to-dictionary" class="headerlink" title="Train data to dictionary:"></a>Train data to dictionary:</h3><pre><code>for (List&lt;String&gt; data : trainData) {
+    for (String word : data) {
+        if (!vocabulary.contains(word)) {
+            vocabulary.add(word);
+        }
+    }
+}
+</code></pre><h3 id="Train-data-to-train-vectors"><a href="#Train-data-to-train-vectors" class="headerlink" title="Train data to train vectors:"></a>Train data to train vectors:</h3><pre><code>for (int i = 0; i &lt; trainData.get(j).size(); i++) {
+    if (vocabulary.contains(trainData.get(j).get(i))) {
+        temp[(vocabulary.indexOf(trainData.get(j).get(i)))]++;
+    }
+}
+for (int i = 0; i &lt; vocabulary.size(); i++) {
+    vec.set(i, temp[i]);
+}
+trainVector.add(vec);
+</code></pre><h3 id="Train-vectors-to-feature-vector"><a href="#Train-vectors-to-feature-vector" class="headerlink" title="Train vectors to feature vector:"></a>Train vectors to feature vector:</h3><pre><code>pAbusive = (double) (count) / trainDocNum;
+int[] p1Num = new int[wordsNum];
+laplace(p1Num, 1);
+int[] p0Num = new int[wordsNum];
+laplace(p0Num, 1);
+int p1Den = 2;
+int p0Den = 2;
+for (int i = 0; i &lt; trainDocNum; i++) {
+    if (trainDataClass.get(i) == 1) {
+        for (int j = 0; j &lt; wordsNum; j++) {
+            p1Num[j] += trainVector.get(i).get(j);
+        }
+        int countp1 = 0;
+        for (int j = 0; j &lt; trainVector.get(i).size(); j++) {
+            if (trainVector.get(i).get(j) == 1) {
+                countp1++;
+            }
+        }
+        p1Den += countp1;
+    } else {
+        for (int k = 0; k &lt; wordsNum; k++) {
+            p0Num[k] += trainVector.get(i).get(k);
+        }
+        int countp2 = 0;
+        for (int k = 0; k &lt; trainVector.get(i).size(); k++) {
+            if (trainVector.get(i).get(k) == 1) {
+                countp2++;
+            }
+        }
+        p0Den += countp2;
+    }
+}
+for (int m = 0; m &lt; wordsNum; m++) {
+    p1Vec.add(Math.log((double) (p1Num[m]) / p1Den));
+    p0Vec.add(Math.log((double) (p0Num[m]) / p0Den));
+}
+</code></pre><p>We used a function called laplace here, and we also set the denominator to a certain value in case the value is too small and cause unpredicted situation. </p>
+<h3 id="Classify-the-given-sentence"><a href="#Classify-the-given-sentence" class="headerlink" title="Classify the given sentence:"></a>Classify the given sentence:</h3><pre><code>for (int x = 0; x &lt; testVec.size(); x++) {
+    p0 += p0Vec.get(x) * testVec.get(x);
+    p1 += p1Vec.get(x) * testVec.get(x);
+
+}
+p1 += Math.log(pAbusive);
+p0 += Math.log(1 - pAbusive);
+if(p0 &gt; -0.4 || p1&gt;-1.4){
+    System.out.println(&quot;Neutral Words!&quot;);
+}
+else if (p1 &gt; p0) {
+    System.out.println(&quot;Positive Words!&quot;);
+}
+else if(p0 &gt; p1) {
+    System.out.println(&quot;Negative Words!&quot;);
+}
+</code></pre><p>Maybe you noticed that we used logarithm adding instead of probability multiply,FYI that’s to avoid overflow because the probability may be small.</p>
+<h3 id="No-need-to-train-everytime"><a href="#No-need-to-train-everytime" class="headerlink" title="No need to train everytime"></a>No need to train everytime</h3><p>I also append a store function so that we don’t need to train the raw data everytime,when there are history dictionary and feature vector,just parse the txt file and use it,making it a lot faster and convinient.</p>
+<hr>
+<h2 id="See-the-output"><a href="#See-the-output" class="headerlink" title="See the output:"></a>See the output:</h2><p>Take a simple sentence “Sad my friend is gone” for example,the algorithm will use the dictioary to convert this sentence to a vector and calculate p0 and p1 using the feature vector.And this is the console output:</p>
+<pre><code>p0=-29.07335725097412   p1=-34.40233568665568   pA=0.421406667326145
+Negative Words!
+[sad, my, friend, is, gone]
+</code></pre><hr>
 <h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/JohnfyBUPT/NaiveBayesian" target="_blank" rel="external">https://github.com/JohnfyBUPT/NaiveBayesian</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/11/NaiveBayesian/" data-id="cio2vosm10009a4807oycugux" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/11/NaiveBayesian/" data-id="cio2vzmj60009nc8007j936se" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/05/11/NaiveBayesian/#ds-thread" class="article-comment-link">Comments</a>
       

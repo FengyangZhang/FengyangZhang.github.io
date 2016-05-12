@@ -11,7 +11,7 @@
 <meta property="og:url" content="http://freydom.com/2016/05/10/RecycleView-in-Android/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸@北邮">
 <meta property="og:description" content="An android recyclerView demo.">
-<meta property="og:updated_time" content="2016-05-11T13:09:22.286Z">
+<meta property="og:updated_time" content="2016-05-11T13:14:08.631Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RecycleView in Android">
 <meta name="twitter:description" content="An android recyclerView demo.">
@@ -97,7 +97,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>An android recyclerView demo.<br><a id="more"></a></p>
-<h2 id="Features-1-Event-passing-from-adapter-to-activity"><a href="#Features-1-Event-passing-from-adapter-to-activity" class="headerlink" title="Features 1 : Event passing from adapter to activity"></a>Features 1 : Event passing from adapter to activity</h2><p>One way is to send otto messages,but a wiser way and the way I used here is to implement a interface declared in the adapter,then pass the activity handle to the adapter instance,then,when events are triggered,call the interface’s method,which will call the implemented method in the activity next.</p>
+<h2 id="Features-1-Event-passing-from-adapter-to-activity"><a href="#Features-1-Event-passing-from-adapter-to-activity" class="headerlink" title="Features 1 : Event passing from adapter to activity"></a>Features 1 : Event passing from adapter to activity</h2><p>One way is to send otto messages,but a wiser way and the way I used here is to implement an interface which is declared in the adapter,then pass the activity’s handle to the adapter instance,then,when events are triggered,call the interface’s method,which will then call the implemented method in the activity next.</p>
 <h3 id="interface-in-the-adapter"><a href="#interface-in-the-adapter" class="headerlink" title="interface in the adapter"></a>interface in the adapter</h3><pre><code>public static interface RecyclerViewImp {
         void onItemClick(int position);
         boolean onItemLongClick(int position);
@@ -123,7 +123,7 @@ adapter.setOnRecyclerViewListener(this);
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/10/RecycleView-in-Android/" data-id="cio2vosm10004a480c9yvqwme" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/10/RecycleView-in-Android/" data-id="cio2vzmir0004nc80ibix7d3j" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/05/10/RecycleView-in-Android/#ds-thread" class="article-comment-link">Comments</a>
       
