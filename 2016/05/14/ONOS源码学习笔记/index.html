@@ -11,7 +11,7 @@
 <meta property="og:url" content="http://freydom.com/2016/05/14/ONOS源码学习笔记/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
 <meta property="og:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
-<meta property="og:updated_time" content="2016-05-14T05:50:56.611Z">
+<meta property="og:updated_time" content="2016-05-14T09:31:27.148Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ONOS源码学习笔记（一）">
 <meta name="twitter:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
@@ -98,7 +98,7 @@
       
         <p>SDN控制器哪家强？学长强烈地安利了ONOS。<br><a id="more"></a><br>最近因为做一些SDN相关的东西，所以开始学习SDN。SDN，即软件定义网络，是一种新型的网络架构，核心思想是通过管控软件化，集中化，使网络变得更加开放、灵活、高效。具体来说，是将控制与转发流分隔开来，在控制面上为用户提供编程接口，在转发面上通过标准的协议接口（主要是Openflow协议）接收并执行转发策略。Openflow的关键技术又有Openfow交换机和Openflow控制器。</p>
 <pre><code>控制器是整个网络的大脑，通过增删交换机中的流表项动态地控制着转发策略。
-</code></pre><p>而控制器从不同量级又分为很多种，有轻量级的pox，也有如onos这样的组件很多的。我们不禁要问：ONOS好处都有啥？谁说对了就给–打住。经过浅析ONOS的源码，我发现ONOS的组件非常齐全；并且有很完备的web界面；通过maven生成OSGi bundle，便于添加组件；跑在karaf容器中，便于动态activate和deactivate组件。总之，是很好用的一款控制器–如果看懂了ONOS的为数众多的组件的作用和工作原理的话。下面以ONOS众兄弟中控制转发的一个：onos-app-fwd为基础看看ONOS操作一个转发流程用到了哪些东西。</p>
+</code></pre><p>而控制器从不同量级又分为很多种，有轻量级的POX，也有如ONOS这样的组件很多的。我们不禁要问：ONOS好处都有啥？谁说对了就给–打住。经过浅析ONOS的源码，我发现ONOS的组件非常齐全；并且有很完备的web界面；通过maven生成OSGi bundle，便于添加组件；跑在karaf容器中，便于动态activate和deactivate组件。总之，是很好用的一款控制器–如果看懂了ONOS的为数众多的组件的作用和工作原理的话。下面以ONOS众兄弟中控制转发的一个：onos-app-fwd为基础看看ONOS操作一个转发流程用到了哪些东西。</p>
 <hr>
 <h2 id="pom-xml"><a href="#pom-xml" class="headerlink" title="pom.xml"></a>pom.xml</h2><p>首先，在该组件的pom.xml中，组件的description为：</p>
 <pre><code>Reactive forwarding application using flow subsystem
@@ -161,17 +161,28 @@ if (matchIcmpFieldsEnabled == null) {
         log.info(&quot;Configured. Matching ICMP (v4 and v6) fields is {}&quot;,
                 matchIcmpFields ? &quot;enabled&quot; : &quot;disabled&quot;);
 }
-</code></pre><p>先通过属性的name获取属性，做一个空值判断，不为空就将值赋给该field，为什么需要这么麻烦，为什么不直接获取field的值呢？因为field已经初始化过了，而代码中也只对field进行过查询，没有重新赋值，什么情况下field可能变空值呢？暂时还不明白，此处打一个//TODO：</p>
+</code></pre><p>先通过属性的name获取属性，做一个空值判断，不为空就将值赋给该field，为什么需要这么麻烦，为什么不直接获取field的值呢？应该是有全局的考虑的，但是因为这些field已经初始化过了，而代码中也只对field进行过查询，没有重新赋值，而且这些field也只是组件的私有成员，什么情况下field可能变空值呢？暂时还不明白，此处打一个//TODO：</p>
 <hr>
-<h2 id="启动过程"><a href="#启动过程" class="headerlink" title="启动过程"></a>启动过程</h2><p>下面看一下该组件的启动过程，也就是@    Activate注解的函数activate(ComponentContext context)。过程中出现的@Reference组件下一节写。</p>
+<h2 id="启动过程"><a href="#启动过程" class="headerlink" title="启动过程"></a>启动过程</h2><p>下面看一下该组件的启动过程，也就是@    Activate注解的函数activate(ComponentContext context)。过程中出现了很多@Reference组件。</p>
 <h3 id="1-registerProperties-getClass"><a href="#1-registerProperties-getClass" class="headerlink" title="1.registerProperties(getClass())"></a>1.registerProperties(getClass())</h3><p>这个函数由一个ComponentConfigService的实现类调用，用途是注册该组件中用到的properties。并把它们给一个叫ComponentConfigManager的类存起来，所有的组件的properties都需要给这个类存起来。</p>
 <h3 id="2-registerApplication-“org-onosproject-fwd”"><a href="#2-registerApplication-“org-onosproject-fwd”" class="headerlink" title="2.registerApplication(“org.onosproject.fwd”)"></a>2.registerApplication(“org.onosproject.fwd”)</h3><p>接下来由CoreService接口的该方法获取appId并返回。app名字的格式是reverse DNS格式。</p>
-<h3 id="3-addProcessor-processor-PacketProcessor-director-2"><a href="#3-addProcessor-processor-PacketProcessor-director-2" class="headerlink" title="3.addProcessor(processor, PacketProcessor.director(2))"></a>3.addProcessor(processor, PacketProcessor.director(2))</h3><p>这个方法由packetService调用，第一个参数是一个PacketProcessor类的实例，第二个参数是一个优先级，此处赋的优先级是一个director优先级，排在advisor之后，observer之前。</p>
-<h3 id="4"><a href="#4" class="headerlink" title="4."></a>4.</h3>
+<h3 id="3-addProcessor-processor-PacketProcessor-director-2"><a href="#3-addProcessor-processor-PacketProcessor-director-2" class="headerlink" title="3.addProcessor(processor, PacketProcessor.director(2))"></a>3.addProcessor(processor, PacketProcessor.director(2))</h3><p>这个方法由PacketService调用，第一个参数是一个PacketProcessor类的实例，第二个参数是一个优先级，此处赋的优先级是一个director优先级，排在advisor之后，observer之前。这个processor对象被添加之后就开始处理交换机发来的PacketIn消息，具体的处理规则在process()函数中。</p>
+<h3 id="4-addListener-topologyListener"><a href="#4-addListener-topologyListener" class="headerlink" title="4.addListener(topologyListener)"></a>4.addListener(topologyListener)</h3><p>这个方法由TopologyService接口调用，传入一个TopologyListener的实例。这个listener监听拓扑的变动事件，一有事件就调用自己的event方法。</p>
+<h3 id="5-readComponentConfiguration-context"><a href="#5-readComponentConfiguration-context" class="headerlink" title="5.readComponentConfiguration(context)"></a>5.readComponentConfiguration(context)</h3><p>该方法中庸context的getProperties()方法获取了Properties并用上文提到过的方式对他们赋了值并进行了打印。这些Properties影响包的处理和流表的下发规则。</p>
+<h3 id="6-requestIntercepts"><a href="#6-requestIntercepts" class="headerlink" title="6.requestIntercepts()"></a>6.requestIntercepts()</h3><p>在这个方法中通过PacketService的requestPackets(TrafficSelector selector, PacketPriority priority, ApplicationId appId)方法声明了该组件处理什么类型的包的流表下发，priority可以是REACITVE（流表符合selector，但不匹配交换机中的流表项的包才送至控制器），也可以是CONTROL（所有符合selector的包都被送至控制器）</p>
+<p>做完这一套操作之后，这个组件就正式开始工作了。主要的方法是processor的process()方法和topologyListener的event()方法。</p>
+<hr>
+<h2 id="主要方法"><a href="#主要方法" class="headerlink" title="主要方法"></a>主要方法</h2><h3 id="PacketProcessor-process"><a href="#PacketProcessor-process" class="headerlink" title="PacketProcessor.process()"></a>PacketProcessor.process()</h3><p>在这个方法中定义了控制器对于交换机发上来的包的处理方法，根据各个property的取值，处理方式大致分为三种：</p>
+<h4 id="1-return"><a href="#1-return" class="headerlink" title="1.return"></a>1.return</h4><p>对property进行判断后对于处理过的包、控制包、Link-local包等等直接不做处理。</p>
+<h4 id="2-flood"><a href="#2-flood" class="headerlink" title="2.flood()"></a>2.flood()</h4><p>如果HostService找不到目的主机，或者路径不可达，下发流表让交换机向所有端口转发报文。</p>
+<h4 id="3-installRule-PacketContext-context-PortNumber-portNumber"><a href="#3-installRule-PacketContext-context-PortNumber-portNumber" class="headerlink" title="3.installRule(PacketContext context, PortNumber portNumber)"></a>3.installRule(PacketContext context, PortNumber portNumber)</h4><p>正常情况，让交换机向指定端口转发报文。</p>
+<p>单次转发操作最后在CorePacketContext的send()方法中完成；下发流表操作在FlowObjectiveService.forward()中完成。</p>
+<h3 id="TopologyListener-event"><a href="#TopologyListener-event" class="headerlink" title="TopologyListener.event()"></a>TopologyListener.event()</h3><p>这里面定义了拓扑变化时需要采取的举动。主要是当一条链路被移除时发出LINK_REMOVED消息时，应该将相关的流表项清除。具体的规则打个//TODO:</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cio6k1ab9000bh080j1pzvfbe" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cio6sf05p000bhw80x7u3ijpz" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/05/14/ONOS源码学习笔记/#ds-thread" class="article-comment-link">Comments</a>
       
