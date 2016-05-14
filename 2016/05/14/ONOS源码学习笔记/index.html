@@ -11,7 +11,7 @@
 <meta property="og:url" content="http://freydom.com/2016/05/14/ONOS源码学习笔记/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
 <meta property="og:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
-<meta property="og:updated_time" content="2016-05-14T09:33:40.746Z">
+<meta property="og:updated_time" content="2016-05-14T09:42:34.658Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ONOS源码学习笔记（一）">
 <meta name="twitter:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
@@ -150,18 +150,8 @@
 </tr>
 </tbody>
 </table>
-<p>这里需要对@Property特别关注一下，定义一个@Property时下面跟着一个跟name属性名字一样的field，这个field已经初始化为@Property注解中value的值，而代码中是这样获取该field的值的：</p>
-<pre><code>Boolean matchIcmpFieldsEnabled =
-            Tools.isPropertyEnabled(properties, &quot;matchIcmpFields&quot;);
-if (matchIcmpFieldsEnabled == null) {
-        log.info(&quot;Matching ICMP (v4 and v6) fields is not configured, &quot; +
-                 &quot;using current value of {}&quot;, matchIcmpFields);
-} else {
-        matchIcmpFields = matchIcmpFieldsEnabled;
-        log.info(&quot;Configured. Matching ICMP (v4 and v6) fields is {}&quot;,
-                matchIcmpFields ? &quot;enabled&quot; : &quot;disabled&quot;);
-}
-</code></pre><p>先通过属性的name获取属性，做一个空值判断，不为空就将值赋给该field，为什么需要这么麻烦，为什么不直接获取field的值呢？应该是有全局的考虑的，但是因为这些field已经初始化过了，而代码中也只对field进行过查询，没有重新赋值，而且这些field也只是组件的私有成员，什么情况下field可能变空值呢？暂时还不明白，此处打一个//TODO:</p>
+<p>这里需要对@Property特别关注一下，定义一个@Property时下面跟着一个跟name属性名字一样的field，这个field已经初始化为@Property注解中value的值，而代码中是这样获取该field的值的：<br>    <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Boolean matchIcmpFieldsEnabled =</span><br><span class="line">            Tools.isPropertyEnabled(properties, <span class="string">"matchIcmpFields"</span>);</span><br><span class="line"><span class="keyword">if</span> (matchIcmpFieldsEnabled == <span class="keyword">null</span>) &#123;</span><br><span class="line">        log.info(<span class="string">"Matching ICMP (v4 and v6) fields is not configured, "</span> +</span><br><span class="line">                 <span class="string">"using current value of &#123;&#125;"</span>, matchIcmpFields);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        matchIcmpFields = matchIcmpFieldsEnabled;</span><br><span class="line">        log.info(<span class="string">"Configured. Matching ICMP (v4 and v6) fields is &#123;&#125;"</span>,</span><br><span class="line">                matchIcmpFields ? <span class="string">"enabled"</span> : <span class="string">"disabled"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先通过属性的name获取属性，做一个空值判断，不为空就将值赋给该field，为什么需要这么麻烦，为什么不直接获取field的值呢？应该是有全局的考虑的，但是因为这些field已经初始化过了，而代码中也只对field进行过查询，没有重新赋值，而且这些field也只是组件的私有成员，什么情况下field可能变空值呢？暂时还不明白，此处打一个//TODO:</p>
 <hr>
 <h2 id="启动过程"><a href="#启动过程" class="headerlink" title="启动过程"></a>启动过程</h2><p>下面看一下该组件的启动过程，也就是@    Activate注解的函数activate(ComponentContext context)。过程中出现了很多@Reference组件。</p>
 <h3 id="1-registerProperties-getClass"><a href="#1-registerProperties-getClass" class="headerlink" title="1.registerProperties(getClass())"></a>1.registerProperties(getClass())</h3><p>这个函数由一个ComponentConfigService的实现类调用，用途是注册该组件中用到的properties。并把它们给一个叫ComponentConfigManager的类存起来，所有的组件的properties都需要给这个类存起来。</p>
@@ -169,7 +159,7 @@ if (matchIcmpFieldsEnabled == null) {
 <h3 id="3-addProcessor-processor-PacketProcessor-director-2"><a href="#3-addProcessor-processor-PacketProcessor-director-2" class="headerlink" title="3.addProcessor(processor, PacketProcessor.director(2))"></a>3.addProcessor(processor, PacketProcessor.director(2))</h3><p>这个方法由PacketService调用，第一个参数是一个PacketProcessor类的实例，第二个参数是一个优先级，此处赋的优先级是一个director优先级，排在advisor之后，observer之前。这个processor对象被添加之后就开始处理交换机发来的PacketIn消息，具体的处理规则在process()函数中。</p>
 <h3 id="4-addListener-topologyListener"><a href="#4-addListener-topologyListener" class="headerlink" title="4.addListener(topologyListener)"></a>4.addListener(topologyListener)</h3><p>这个方法由TopologyService接口调用，传入一个TopologyListener的实例。这个listener监听拓扑的变动事件，一有事件就调用自己的event方法。</p>
 <h3 id="5-readComponentConfiguration-context"><a href="#5-readComponentConfiguration-context" class="headerlink" title="5.readComponentConfiguration(context)"></a>5.readComponentConfiguration(context)</h3><p>该方法中庸context的getProperties()方法获取了Properties并用上文提到过的方式对他们赋了值并进行了打印。这些Properties影响包的处理和流表的下发规则。</p>
-<h3 id="6-requestIntercepts"><a href="#6-requestIntercepts" class="headerlink" title="6.requestIntercepts()"></a>6.requestIntercepts()</h3><p>在这个方法中通过PacketService的requestPackets(TrafficSelector selector, PacketPriority priority, ApplicationId appId)方法声明了该组件处理什么类型的包的流表下发，priority可以是REACITVE（流表符合selector，但不匹配交换机中的流表项的包才送至控制器），也可以是CONTROL（所有符合selector的包都被送至控制器）</p>
+<h3 id="6-requestIntercepts"><a href="#6-requestIntercepts" class="headerlink" title="6.requestIntercepts()"></a>6.requestIntercepts()</h3><p>在这个方法中通过PacketService的requestPackets(TrafficSelector selector, PacketPriority priority, ApplicationId appId)方法声明了该组件处理什么类型的包的流表下发，priority可以是REACTIVE（流表符合selector，但不匹配交换机中的流表项的包才送至控制器），也可以是CONTROL（所有符合selector的包都被送至控制器）</p>
 <p>做完这一套操作之后，这个组件就正式开始工作了。主要的方法是processor的process()方法和topologyListener的event()方法。</p>
 <hr>
 <h2 id="主要方法"><a href="#主要方法" class="headerlink" title="主要方法"></a>主要方法</h2><h3 id="PacketProcessor-process"><a href="#PacketProcessor-process" class="headerlink" title="PacketProcessor.process()"></a>PacketProcessor.process()</h3><p>在这个方法中定义了控制器对于交换机发上来的包的处理方法，根据各个property的取值，处理方式大致分为三种：</p>
@@ -182,7 +172,7 @@ if (matchIcmpFieldsEnabled == null) {
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cio6yh0uk000b5g800lx4ucor" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cio6yjbsc000buo80s33kip1i" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/05/14/ONOS源码学习笔记/#ds-thread" class="article-comment-link">Comments</a>
       

@@ -12,7 +12,7 @@
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
 <meta property="og:description" content="An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.">
 <meta property="og:image" content="http://freydom.com/pic/2016-05-11-NaiveBayesian/overview.png">
-<meta property="og:updated_time" content="2016-05-12T02:51:39.663Z">
+<meta property="og:updated_time" content="2016-05-14T09:39:38.767Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="NaiveBayesian">
 <meta name="twitter:description" content="An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.">
@@ -112,76 +112,28 @@
 </code></pre><p>We can get every <em>P</em> on the right side of the  equation from our training set,and the problem is solved.</p>
 <hr>
 <h2 id="Key-points-and-codes"><a href="#Key-points-and-codes" class="headerlink" title="Key points and codes:"></a>Key points and codes:</h2><h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview:"></a>Overview:</h3><p><img src="/pic/2016-05-11-NaiveBayesian/overview.png" alt="overview"></p>
-<h3 id="Train-data-to-dictionary"><a href="#Train-data-to-dictionary" class="headerlink" title="Train data to dictionary:"></a>Train data to dictionary:</h3><pre><code>for (List&lt;String&gt; data : trainData) {
-    for (String word : data) {
-        if (!vocabulary.contains(word)) {
-            vocabulary.add(word);
-        }
-    }
-}
-</code></pre><h3 id="Train-data-to-train-vectors"><a href="#Train-data-to-train-vectors" class="headerlink" title="Train data to train vectors:"></a>Train data to train vectors:</h3><pre><code>for (int i = 0; i &lt; trainData.get(j).size(); i++) {
-    if (vocabulary.contains(trainData.get(j).get(i))) {
-        temp[(vocabulary.indexOf(trainData.get(j).get(i)))]++;
-    }
-}
-for (int i = 0; i &lt; vocabulary.size(); i++) {
-    vec.set(i, temp[i]);
-}
-trainVector.add(vec);
-</code></pre><h3 id="Train-vectors-to-feature-vector"><a href="#Train-vectors-to-feature-vector" class="headerlink" title="Train vectors to feature vector:"></a>Train vectors to feature vector:</h3><pre><code>pAbusive = (double) (count) / trainDocNum;
-int[] p1Num = new int[wordsNum];
-laplace(p1Num, 1);
-int[] p0Num = new int[wordsNum];
-laplace(p0Num, 1);
-int p1Den = 2;
-int p0Den = 2;
-for (int i = 0; i &lt; trainDocNum; i++) {
-    if (trainDataClass.get(i) == 1) {
-        for (int j = 0; j &lt; wordsNum; j++) {
-            p1Num[j] += trainVector.get(i).get(j);
-        }
-        int countp1 = 0;
-        for (int j = 0; j &lt; trainVector.get(i).size(); j++) {
-            if (trainVector.get(i).get(j) == 1) {
-                countp1++;
-            }
-        }
-        p1Den += countp1;
-    } else {
-        for (int k = 0; k &lt; wordsNum; k++) {
-            p0Num[k] += trainVector.get(i).get(k);
-        }
-        int countp2 = 0;
-        for (int k = 0; k &lt; trainVector.get(i).size(); k++) {
-            if (trainVector.get(i).get(k) == 1) {
-                countp2++;
-            }
-        }
-        p0Den += countp2;
-    }
-}
-for (int m = 0; m &lt; wordsNum; m++) {
-    p1Vec.add(Math.log((double) (p1Num[m]) / p1Den));
-    p0Vec.add(Math.log((double) (p0Num[m]) / p0Den));
-}
-</code></pre><p>We used a function called laplace here, and we also set the denominator to a certain value in case the value is too small and cause unpredicted situation. </p>
-<h3 id="Classify-the-given-sentence"><a href="#Classify-the-given-sentence" class="headerlink" title="Classify the given sentence:"></a>Classify the given sentence:</h3><pre><code>for (int x = 0; x &lt; testVec.size(); x++) {
+<h3 id="Train-data-to-dictionary"><a href="#Train-data-to-dictionary" class="headerlink" title="Train data to dictionary:"></a>Train data to dictionary:</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">for</span> (List&lt;String&gt; data : trainData) &#123;</span><br><span class="line">	<span class="keyword">for</span> (String word : data) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!vocabulary.contains(word)) &#123;</span><br><span class="line">			vocabulary.add(word);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Train-data-to-train-vectors"><a href="#Train-data-to-train-vectors" class="headerlink" title="Train data to train vectors:"></a>Train data to train vectors:</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; trainData.get(j).size(); i++) &#123;</span><br><span class="line">	<span class="keyword">if</span> (vocabulary.contains(trainData.get(j).get(i))) &#123;</span><br><span class="line">		temp[(vocabulary.indexOf(trainData.get(j).get(i)))]++;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; vocabulary.size(); i++) &#123;</span><br><span class="line">	vec.set(i, temp[i]);</span><br><span class="line">&#125;</span><br><span class="line">trainVector.add(vec);</span><br></pre></td></tr></table></figure>
+<h3 id="Train-vectors-to-feature-vector"><a href="#Train-vectors-to-feature-vector" class="headerlink" title="Train vectors to feature vector:"></a>Train vectors to feature vector:</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">   pAbusive = (<span class="keyword">double</span>) (count) / trainDocNum;</span><br><span class="line"><span class="keyword">int</span>[] p1Num = <span class="keyword">new</span> <span class="keyword">int</span>[wordsNum];</span><br><span class="line">laplace(p1Num, <span class="number">1</span>);</span><br><span class="line"><span class="keyword">int</span>[] p0Num = <span class="keyword">new</span> <span class="keyword">int</span>[wordsNum];</span><br><span class="line">laplace(p0Num, <span class="number">1</span>);</span><br><span class="line"><span class="keyword">int</span> p1Den = <span class="number">2</span>;</span><br><span class="line"><span class="keyword">int</span> p0Den = <span class="number">2</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; trainDocNum; i++) &#123;</span><br><span class="line">	<span class="keyword">if</span> (trainDataClass.get(i) == <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; wordsNum; j++) &#123;</span><br><span class="line">			p1Num[j] += trainVector.get(i).get(j);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">int</span> countp1 = <span class="number">0</span>;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; trainVector.get(i).size(); j++) &#123;</span><br><span class="line">			<span class="keyword">if</span> (trainVector.get(i).get(j) == <span class="number">1</span>) &#123;</span><br><span class="line">				countp1++;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		p1Den += countp1;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; wordsNum; k++) &#123;</span><br><span class="line">			p0Num[k] += trainVector.get(i).get(k);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">int</span> countp2 = <span class="number">0</span>;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; trainVector.get(i).size(); k++) &#123;</span><br><span class="line">			<span class="keyword">if</span> (trainVector.get(i).get(k) == <span class="number">1</span>) &#123;</span><br><span class="line">				countp2++;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		p0Den += countp2;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> m = <span class="number">0</span>; m &lt; wordsNum; m++) &#123;</span><br><span class="line">	p1Vec.add(Math.log((<span class="keyword">double</span>) (p1Num[m]) / p1Den));</span><br><span class="line">	p0Vec.add(Math.log((<span class="keyword">double</span>) (p0Num[m]) / p0Den));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>We used a function called laplace here, and we also set the denominator to a certain value in case the value is too small and cause unpredicted situation. </p>
+<h3 id="Classify-the-given-sentence"><a href="#Classify-the-given-sentence" class="headerlink" title="Classify the given sentence:"></a>Classify the given sentence:</h3><pre><code class="java"><span class="keyword">for</span> (<span class="keyword">int</span> x = <span class="number">0</span>; x &lt; testVec.size(); x++) {
     p0 += p0Vec.get(x) * testVec.get(x);
     p1 += p1Vec.get(x) * testVec.get(x);
 
 }
 p1 += Math.log(pAbusive);
-p0 += Math.log(1 - pAbusive);
-if(p0 &gt; -0.4 || p1&gt;-1.4){
-    System.out.println(&quot;Neutral Words!&quot;);
+p0 += Math.log(<span class="number">1</span> - pAbusive);
+<span class="keyword">if</span>(p0 &gt; -<span class="number">0.4</span> || p1&gt;-<span class="number">1.4</span>){
+    System.out.println(<span class="string">"Neutral Words!"</span>);
 }
-else if (p1 &gt; p0) {
-    System.out.println(&quot;Positive Words!&quot;);
+<span class="keyword">else</span> <span class="keyword">if</span> (p1 &gt; p0) {
+    System.out.println(<span class="string">"Positive Words!"</span>);
 }
-else if(p0 &gt; p1) {
-    System.out.println(&quot;Negative Words!&quot;);
+<span class="keyword">else</span> <span class="keyword">if</span>(p0 &gt; p1) {
+    System.out.println(<span class="string">"Negative Words!"</span>);
 }
-</code></pre><p>Maybe you noticed that we used logarithm adding instead of probability multiply,FYI that’s to avoid overflow because the probability may be small.</p>
+</code></pre>
+<p>Maybe you noticed that we used logarithm adding instead of probability multiply,FYI that’s to avoid overflow because the probability may be small.</p>
 <h3 id="No-need-to-train-everytime"><a href="#No-need-to-train-everytime" class="headerlink" title="No need to train everytime"></a>No need to train everytime</h3><p>I also append a store function so that we don’t need to train the raw data everytime,when there are history dictionary and feature vector,just parse the txt file and use it,making it a lot faster and convinient.</p>
 <hr>
 <h2 id="See-the-output"><a href="#See-the-output" class="headerlink" title="See the output:"></a>See the output:</h2><p>Take a simple sentence “Sad my friend is gone” for example,the algorithm will use the dictioary to convert this sentence to a vector and calculate p0 and p1 using the feature vector.And this is the console output:</p>
@@ -196,7 +148,7 @@ Negative Words!
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/11/NaiveBayesian/" data-id="cio6yh0uk00095g80lzj2uq3t" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/11/NaiveBayesian/" data-id="cio6yjbrw0005uo804jnlpbm0" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/05/11/NaiveBayesian/#ds-thread" class="article-comment-link">Comments</a>
       
