@@ -11,7 +11,7 @@
 <meta property="og:url" content="http://freydom.com/2016/05/14/ONOS源码学习笔记/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
 <meta property="og:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
-<meta property="og:updated_time" content="2016-05-14T09:31:27.148Z">
+<meta property="og:updated_time" content="2016-05-14T09:33:40.746Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ONOS源码学习笔记（一）">
 <meta name="twitter:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
@@ -161,7 +161,7 @@ if (matchIcmpFieldsEnabled == null) {
         log.info(&quot;Configured. Matching ICMP (v4 and v6) fields is {}&quot;,
                 matchIcmpFields ? &quot;enabled&quot; : &quot;disabled&quot;);
 }
-</code></pre><p>先通过属性的name获取属性，做一个空值判断，不为空就将值赋给该field，为什么需要这么麻烦，为什么不直接获取field的值呢？应该是有全局的考虑的，但是因为这些field已经初始化过了，而代码中也只对field进行过查询，没有重新赋值，而且这些field也只是组件的私有成员，什么情况下field可能变空值呢？暂时还不明白，此处打一个//TODO：</p>
+</code></pre><p>先通过属性的name获取属性，做一个空值判断，不为空就将值赋给该field，为什么需要这么麻烦，为什么不直接获取field的值呢？应该是有全局的考虑的，但是因为这些field已经初始化过了，而代码中也只对field进行过查询，没有重新赋值，而且这些field也只是组件的私有成员，什么情况下field可能变空值呢？暂时还不明白，此处打一个//TODO:</p>
 <hr>
 <h2 id="启动过程"><a href="#启动过程" class="headerlink" title="启动过程"></a>启动过程</h2><p>下面看一下该组件的启动过程，也就是@    Activate注解的函数activate(ComponentContext context)。过程中出现了很多@Reference组件。</p>
 <h3 id="1-registerProperties-getClass"><a href="#1-registerProperties-getClass" class="headerlink" title="1.registerProperties(getClass())"></a>1.registerProperties(getClass())</h3><p>这个函数由一个ComponentConfigService的实现类调用，用途是注册该组件中用到的properties。并把它们给一个叫ComponentConfigManager的类存起来，所有的组件的properties都需要给这个类存起来。</p>
@@ -182,7 +182,7 @@ if (matchIcmpFieldsEnabled == null) {
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cio6sf05p000bhw80x7u3ijpz" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cio6yh0uk000b5g800lx4ucor" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/05/14/ONOS源码学习笔记/#ds-thread" class="article-comment-link">Comments</a>
       
