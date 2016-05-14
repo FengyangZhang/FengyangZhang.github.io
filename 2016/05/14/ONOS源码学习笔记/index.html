@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>I&#39;m invincible, you might say despicable | John Frey@BUPT / 张枫旸的博客</title>
+  <title>ONOS源码学习笔记（一） | John Frey@BUPT / 张枫旸的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Megadeth - Public Enemy No.1">
+  <meta name="description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="I'm invincible, you might say despicable">
-<meta property="og:url" content="http://freydom.com/2016/05/10/Megadeth/index.html">
+<meta property="og:title" content="ONOS源码学习笔记（一）">
+<meta property="og:url" content="http://freydom.com/2016/05/14/ONOS源码学习笔记/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
-<meta property="og:description" content="Megadeth - Public Enemy No.1">
-<meta property="og:updated_time" content="2016-05-11T02:39:53.396Z">
+<meta property="og:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
+<meta property="og:updated_time" content="2016-05-14T02:48:29.434Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="I'm invincible, you might say despicable">
-<meta name="twitter:description" content="Megadeth - Public Enemy No.1">
+<meta name="twitter:title" content="ONOS源码学习笔记（一）">
+<meta name="twitter:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / 张枫旸的博客" type="application/atom+xml">
   
@@ -74,10 +74,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-Megadeth" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-ONOS源码学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/05/10/Megadeth/" class="article-date">
-  <time datetime="2016-05-10T15:45:57.000Z" itemprop="datePublished">2016-05-10</time>
+    <a href="/2016/05/14/ONOS源码学习笔记/" class="article-date">
+  <time datetime="2016-05-14T01:44:34.000Z" itemprop="datePublished">2016-05-14</time>
 </a>
     
   </div>
@@ -88,7 +88,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      I&#39;m invincible, you might say despicable
+      ONOS源码学习笔记（一）
     </h1>
   
 
@@ -96,32 +96,28 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Megadeth - Public Enemy No.1<br><a id="more"></a></p>
-<p>Megadeth是我最爱的激流金属乐队，即使Dave的声音再变差也是。</p>
+        <p>SDN控制器哪家强？学长强烈地安利了ONOS。<br><a id="more"></a><br>最近因为做一些SDN相关的东西，所以开始学习SDN。SDN，即软件定义网络，是一种新型的网络架构，核心思想是通过管控软件化，集中化，使网络变得更加开放、灵活、高效。具体来说，是将控制与转发流分隔开来，在控制面上为用户提供编程接口，在转发面上通过标准的协议接口（主要是Openflow协议）接收并执行转发策略。Openflow的关键技术又有Openfow交换机和Openflow控制器。</p>
+<pre><code>控制器是整个网络的大脑，通过增删交换机中的流表项动态地控制着转发策略。
+</code></pre><p>而控制器从不同量级又分为很多种，有轻量级的pox，也有如onos这样的组件很多的。我们不禁要问：ONOS好处都有啥？谁说对了就给–打住。经过浅析ONOS的源码，我发现ONOS的组件非常齐全；并且有很完备的web界面；通过maven生成OSGi bundle，便于添加组件；跑在karaf容器中，便于动态activate和deactivate组件。总之，是很好用的一款控制器–如果看懂了ONOS的为数众多的组件的作用和工作原理的话。下面以ONOS众兄弟中控制转发的一个：onos-app-fwd为基础看看ONOS操作一个转发流程用到了哪些东西。</p>
 <hr>
-<p>从大二开始听Megadeth。第一首歌是Symphony of Destruction。简单粗暴的riff，华丽疾速的solo，沉稳有力的鼓点，以及神秘但具有政治讽刺意味的歌词，包括马大卫邪恶的唱腔，都是我前所未闻的，仿佛打开了新世界的大门。之后我就从<em>Killing is My Business,Rust in Peace,So Far,Countdown,Youthanasia</em>等等专辑一直听到现在的<em>Dystopia</em>。几乎没有哪首不对味。在接触Megadeth之前，还一直认为Metallica大概是最牛逼的激流金属，之后我几乎没再听过Metallica。</p>
+<p>首先，在该组件的pom.xml中，组件的description为：</p>
+<pre><code>Reactive forwarding application using flow subsystem
+</code></pre><p>这表明了组件的功能：主要是响应式的下发流表控制交换机转发。响应式表示控制器下发流表的动作是因为交换机收到不知道如何处理的包，向控制器上报而引起的。与之相对应有proactive forwarding，即控制器根据用户的configuration主动下发流表。</p>
 <hr>
-<p>记得看过一个纪录片，讲Megadeth是怎么发展起来的。里面包括了老马怎么被Metallica开除，怎么遇到Ellefson，以及Menza，以及帮助Megadeth成就巅峰的Marty Friedman。</p>
-<pre><code>Ellefson形容老马是一个“很酷”的人，还说老马仅仅在车库里随便地弹奏就写出了各种强大无比的riff。
-</code></pre><p>我想，人跟人的天赋确实是不一样的，想想老马吸毒酗酒这么多年，写起歌来还是毫不含糊，而我在练过几年琴写过几首歌之后，最后决定还是暂时放下这个爱好。</p>
-<hr>
-<p>Megadeth是挺可惜的，最豪华阵容的时候没有能够超过Metallica的人气，没有得到去莫斯科红场那次演出的机会（可能要怪老马的毒瘾）。如今老马确实老了，看老马的live发现他已经需要降一整个调甚至更多，</p>
-<pre><code>而且再也唱不出当年的标志性的“咬牙切齿”的高音，真的很难过。
-</code></pre><hr>
-<p>但是老马作为一个偶像确实是很合适的。年轻时叛逆，Megadeth后来的成功，以及他戒毒前后的转变等等标签都让他充满了魅力。可惜的是上次来北京的时候我没有买到票去观看，希望等我去了美国还能看到老马的演唱会。</p>
-<hr>
-<p>之前乐队还演过一次老马的Symphony of Destruction,我用一把吉他连riff带solo地糊弄过去了，现在想起来也是不认真。要是有机会，应该找个主音，好好再排一遍。</p>
-<pre><code>歌曲原名：Megadeth - Public Enemy No.1
-</code></pre>
+<p>其次，开始看源码的时候，会发现里面有大量Apache felix的注解(annotation)，主要为这几个：</p>
+<table border="1"><br><tr><br><td><em>Annotation</em></td><br><td><em>Usage</em></td><br><td><em>Attributes</em></td><br></tr><br><tr><br><td><em>Annotation</em></td><br><td><em>Usage</em></td><br><td><em>Attributes</em></td><br></tr><br><tr><br><td><em>Annotation</em></td><br><td><em>Usage</em></td><br><td><em>Attributes</em></td><br></tr><br><tr><br><td><em>Annotation</em></td><br><td><em>Usage</em></td><br><td><em>Attributes</em></td><br></tr><br></table>
+
+<p>haha</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/10/Megadeth/" data-id="cio6i422x00004k804q87dl9j" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cio6i423a00054k80k1tiwq7x" class="article-share-link">Share</a>
       
-        <a href="http://freydom.com/2016/05/10/Megadeth/#ds-thread" class="article-comment-link">Comments</a>
+        <a href="http://freydom.com/2016/05/14/ONOS源码学习笔记/#ds-thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Music-talk/">Music talk</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Tech-thinking/">Tech thinking</a></li></ul>
 
     </footer>
   </div>
@@ -129,19 +125,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2016/05/11/Game-of-Thrones-season-5/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Game of Thrones season 6
-        
-      </div>
-    </a>
   
-  
-    <a href="/2016/05/10/RecycleView-in-Android/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2016/05/11/NaiveBayesian/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">RecycleView in Android</div>
+      <div class="article-nav-title">NaiveBayesian</div>
     </a>
   
 </nav>
@@ -152,7 +139,7 @@
 
  <section id="comments">
    <!-- 多说评论框 start -->
-   <div class="ds-thread" data-thread-key="post-Megadeth" data-title="I&#39;m invincible, you might say despicable" data-url="http://freydom.com/2016/05/10/Megadeth/"></div>
+   <div class="ds-thread" data-thread-key="post-ONOS源码学习笔记" data-title="ONOS源码学习笔记（一）" data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/"></div>
    <!-- 多说评论框 end -->
    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
    <script type="text/javascript">
