@@ -11,7 +11,7 @@
 <meta property="og:url" content="http://freydom.com/2016/05/19/Java实践笔记-一/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
 <meta property="og:description" content="之前的程序改进过程中出现了一点问题，发现跟对于ArrayList的值传递方式的理解有关。">
-<meta property="og:updated_time" content="2016-05-19T04:26:00.637Z">
+<meta property="og:updated_time" content="2016-05-19T07:57:24.668Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java实践笔记一（ArrayList中的值传递）">
 <meta name="twitter:description" content="之前的程序改进过程中出现了一点问题，发现跟对于ArrayList的值传递方式的理解有关。">
@@ -104,13 +104,13 @@
 <p>程序输出是 hello world.<br>对于原始数据类型：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test2</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i1=<span class="number">5</span>;</span><br><span class="line">        <span class="keyword">int</span> i2=i;</span><br><span class="line">        i2=<span class="number">6</span>;</span><br><span class="line">        System.out.println(i1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>程序输出还是5，传递的是值。</p>
 <h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>于是情况就比较尴尬，如果按照原方法，似乎必须得保存这一百万句话转换出的向量在堆中（因为他们的引用还在大的List中）；如果不想新建这么多堆对象，就得避免List中存的引用全指向一个地址。暂时来说我想的方法是这样的：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; vec;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; trainData.size(); j++) &#123;</span><br><span class="line">    List&lt;Integer&gt; temp = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    vec = temp;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; vocabulary.size(); i++) &#123;</span><br><span class="line">	    vec.add(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; trainData.get(j).size(); i++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (vocabulary.contains(trainData.get(j).get(i))) &#123;</span><br><span class="line">		    vec.set(vocabulary.indexOf(trainData.get(j).get(i)),</span><br><span class="line">		    vec.get(vocabulary.indexOf(trainData.get(j).get(i)))+<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    trainVector.add(vec);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>这样每次new的对象用temp来引用，马上又将temp传给vec，真正在trainVector中引用的是vec，因此下次new的对象赋给temp后，之前的对象因为没有引用指向它，就会被回收，而trainVector中的引用全是不同地址的，不会再出现都指向一个地址的问题。</p>
+<p>这样每次new的对象用temp来引用，马上又将temp传给vec，真正在trainVector中引用的是vec，因此下次new的对象赋给temp后，之前的对象因为没有引用指向它，就会被回收，而trainVector中的引用全是不同地址的，不会再出现都指向一个地址的问题。<br>但是还是有堆栈溢出，似乎是由vec.add(0)引起的。后续再更新一下解决方法。</p>
 <pre><code>如果有别的办法，恳请不吝赐教，谢谢！
 </code></pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/19/Java实践笔记-一/" data-id="ciodt9rnd000d0880bws44776" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/19/Java实践笔记-一/" data-id="cioe08rln0005sw80w644nhqd" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/05/19/Java实践笔记-一/#ds-thread" class="article-comment-link">Comments</a>
       
