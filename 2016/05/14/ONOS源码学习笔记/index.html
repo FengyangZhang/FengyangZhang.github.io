@@ -5,16 +5,16 @@
   
   <title>ONOS源码学习笔记一（初看Reactive Forwarding模块） | John Frey@BUPT / 张枫旸的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
+  <meta name="description" content="SDN控制器哪家强？">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ONOS源码学习笔记一（初看Reactive Forwarding模块）">
 <meta property="og:url" content="http://freydom.com/2016/05/14/ONOS源码学习笔记/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
-<meta property="og:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
-<meta property="og:updated_time" content="2016-05-19T03:25:30.396Z">
+<meta property="og:description" content="SDN控制器哪家强？">
+<meta property="og:updated_time" content="2016-05-22T10:17:25.218Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ONOS源码学习笔记一（初看Reactive Forwarding模块）">
-<meta name="twitter:description" content="SDN控制器哪家强？学长强烈地安利了ONOS。">
+<meta name="twitter:description" content="SDN控制器哪家强？">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / 张枫旸的博客" type="application/atom+xml">
   
@@ -96,7 +96,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>SDN控制器哪家强？学长强烈地安利了ONOS。<br><a id="more"></a><br>最近因为做一些SDN相关的东西，所以开始学习SDN。SDN，即软件定义网络，是一种新型的网络架构，核心思想是通过管控软件化，集中化，使网络变得更加开放、灵活、高效。具体来说，是将控制与转发流分隔开来，在控制面上为用户提供编程接口，在转发面上通过标准的协议接口（主要是Openflow协议）接收并执行转发策略。Openflow的关键技术又有Openfow交换机和Openflow控制器。</p>
+        <p>SDN控制器哪家强？<br><a id="more"></a><br>最近因为做一些SDN相关的东西，所以开始学习SDN。SDN，即软件定义网络，是一种新型的网络架构，核心思想是通过管控软件化，集中化，使网络变得更加开放、灵活、高效。具体来说，是将控制与转发流分隔开来，在控制面上为用户提供编程接口，在转发面上通过标准的协议接口（主要是Openflow协议）接收并执行转发策略。Openflow的关键技术又有Openfow交换机和Openflow控制器。</p>
 <pre><code>控制器是整个网络的大脑，通过增删交换机中的流表项动态地控制着转发策略。
 </code></pre><p>而控制器从不同量级又分为很多种，有轻量级的POX，也有如ONOS这样的组件很多的。我们不禁要问：ONOS好处都有啥？谁说对了就给–打住。经过浅析ONOS的源码，我发现ONOS的组件非常齐全；并且有很完备的web界面；通过maven生成OSGi bundle，便于添加组件；跑在karaf容器中，便于动态activate和deactivate组件。总之，是很好用的一款控制器–如果看懂了ONOS的为数众多的组件的作用和工作原理的话。下面以ONOS众兄弟中控制转发的一个：onos-app-fwd为基础看看ONOS操作一个转发流程用到了哪些东西。</p>
 <hr>
@@ -172,7 +172,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cioe08rlw000bsw809mvbsy2z" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/05/14/ONOS源码学习笔记/" data-id="cioifn9pc0009co80fdsrk2iw" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/05/14/ONOS源码学习笔记/#ds-thread" class="article-comment-link">Comments</a>
       
@@ -257,6 +257,10 @@
       <ul>
         
           <li>
+            <a href="/2016/05/22/Fuerteventura/">Fuerteventura</a>
+          </li>
+        
+          <li>
             <a href="/2016/05/19/Java实践笔记-一/">Java实践笔记一（ArrayList中的值传递）</a>
           </li>
         
@@ -270,10 +274,6 @@
         
           <li>
             <a href="/2016/05/11/Game-of-Thrones-season-5/">Game of Thrones season 6</a>
-          </li>
-        
-          <li>
-            <a href="/2016/05/10/Megadeth/">I&#39;m invincible, you might say despicable</a>
           </li>
         
       </ul>
