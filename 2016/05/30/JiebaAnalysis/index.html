@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>结巴分词（Java版）的学习与修改 | John Frey@BUPT / 张枫旸的博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="对github上的结巴分词项目的Java移植版的源码学习与一些小的修改。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="结巴分词（Java版）的学习与修改">
+<meta property="og:url" content="http://freydom.com/2016/05/30/JiebaAnalysis/index.html">
+<meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
+<meta property="og:description" content="对github上的结巴分词项目的Java移植版的源码学习与一些小的修改。">
+<meta property="og:updated_time" content="2016-05-30T03:33:56.998Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="结巴分词（Java版）的学习与修改">
+<meta name="twitter:description" content="对github上的结巴分词项目的Java移植版的源码学习与一些小的修改。">
+  
+    <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / 张枫旸的博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">John Frey@BUPT / 张枫旸的博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Electronics&amp;Information Engineering junior, tech lover, music fanatic.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/about">About</a>
+        
+          <a class="main-nav-link" href="/tags/Music-talk/">Music talk</a>
+        
+          <a class="main-nav-link" href="/tags/Tech-thinking/">Tech thinking</a>
+        
+          <a class="main-nav-link" href="/tags/Free-thoughts/">Free thoughts</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="https://github.com/JohnfyBUPT" title="My Github"></a>
+        
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://freydom.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-JiebaAnalysis" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/05/30/JiebaAnalysis/" class="article-date">
+  <time datetime="2016-05-30T03:00:12.000Z" itemprop="datePublished">2016-05-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      结巴分词（Java版）的学习与修改
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>对github上的结巴分词项目的Java移植版的源码学习与一些小的修改。<br><a id="more"></a></p>
+<h2 id="起源"><a href="#起源" class="headerlink" title="起源"></a>起源</h2><p>最近发现一个很平常但是很多人没有加以思考的问题：为什么在文本编辑器和浏览器中对文本双击时会自动选中一个词组而不是只选中单字呢？背后的分词算法是怎么样的，为什么这么迅速？在github上我发现了一个比较火的分词算法–结巴分词，通过这个项目，我想应该能够对分词算法有一个更好的了解。</p>
+<h2 id="项目地址"><a href="#项目地址" class="headerlink" title="项目地址"></a>项目地址</h2><p>这是结巴分词原始版本(python编写)的项目地址：<br><a href="https://github.com/fxsjy/jieba" target="_blank" rel="external">https://github.com/fxsjy/jieba</a></p>
+<p>这是结巴分词Java移植版本的项目地址：<br><a href="https://github.com/huaban/jieba-analysis" target="_blank" rel="external">https://github.com/huaban/jieba-analysis</a></p>
+<p>需要使用结巴分词的朋友可以去这两个仓库fork一下。<br>本文主要对Java移植版本的代码进行学习。</p>
+<h2 id="测试示例与项目入口"><a href="#测试示例与项目入口" class="headerlink" title="测试示例与项目入口"></a>测试示例与项目入口</h2><p>如果你只是想使用结巴分词，只需要这几行代码就可以了：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">JiebaSegmenter segmenter = <span class="keyword">new</span> JiebaSegmenter();</span><br><span class="line">String[] sentences =</span><br><span class="line">       <span class="keyword">new</span> String[] &#123;<span class="string">"这是一个伸手不见五指的黑夜。我叫张枫旸，我爱北京邮电大学，我爱Java和Scala"</span>&#125;;</span><br><span class="line"><span class="keyword">for</span> (String sentence : sentences) &#123;</span><br><span class="line">    System.out.println(segmenter.process(sentence, JiebaSegmenter.SegMode.INDEX).toString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里我只在sentences里面加了一句话，当然你可以加入多句话。JiebaSegmenter的process方法是主要的调用接口，该方法接收的第二个参数可以是INDEX和SEARCH，分别代表的意义我们在之后再说。<br>run之后，结果是这样的：</p>
+<pre><code>main dict load finished, time elapsed 1092 ms
+model load finished, time elapsed 73 ms.
+[[这是, 0, 2], [一个, 2, 4], [伸手, 4, 6], [不见, 6, 8], [五指, 8, 10], [伸手不见五指, 4, 10], [的, 10, 11], [黑夜, 11, 13], [。, 13, 14], [我, 14, 15], [叫, 15, 16], [张枫, 16, 18], [旸, 18, 19], [，, 19, 20], [我, 20, 21], [爱, 21, 22], [北京, 22, 24], [邮电, 24, 26], [电大, 25, 27], [大学, 26, 28], [北京邮电大学, 22, 28], [，, 28, 29], [我, 29, 30], [爱, 30, 31], [java, 31, 35], [和, 35, 36], [scal, 36, 40], [a, 40, 41]]
+</code></pre><p>我们看到，除了scala这个词没有被分解对，其他的词都没有错误，所以说算法的准确性还是很高的，而且效率也不错，用python版本的应该还要快上不少，而且之前所说在浏览器和文本编辑器中的应用只需要处理很小的一个语块，所以应该非常快。<br>我们的疑惑解决了，现在可以看一看具体的算法了。</p>
+<h2 id="代码解析"><a href="#代码解析" class="headerlink" title="代码解析"></a>代码解析</h2><p>首先看看刚才提到的调用入口process方法，直接上代码（做了一些小的修改，原来的代码好像没怎么考虑代码的长度和美观，明明加半句话的判断就可以的事儿，非把一样的几十行代码粘了一遍，搞得我开始没看懂是干啥）。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> List&lt;SegToken&gt; <span class="title">process</span><span class="params">(String paragraph, SegMode mode)</span> </span>&#123;</span><br><span class="line">    List&lt;SegToken&gt; tokens = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">    <span class="keyword">int</span> offset = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; paragraph.length(); ++i) &#123;</span><br><span class="line">        <span class="keyword">char</span> ch = CharacterUtil.regularize(paragraph.charAt(i));</span><br><span class="line">        <span class="comment">//如果找到的是中文字符且不是最后一个，都加入处理语块中</span></span><br><span class="line">        <span class="keyword">if</span> (CharacterUtil.ccFind(ch) &amp;&amp; i!= paragraph.length()-<span class="number">1</span> )</span><br><span class="line">            sb.append(ch);</span><br><span class="line">        <span class="comment">//遇到标点符号或尾部，开始处理语块</span></span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (sb.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">//开始处理</span></span><br><span class="line">                <span class="comment">//SEARCH模式下，只处理一次句子，不对长的词句再次分解</span></span><br><span class="line">                <span class="keyword">if</span> (mode == SegMode.SEARCH) &#123;</span><br><span class="line">                    <span class="keyword">for</span> (String word : sentenceProcess(sb.toString())) &#123;</span><br><span class="line">                        tokens.add(<span class="keyword">new</span> SegToken(word, offset, offset += word.length()));</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//INDEX模式下，对长的词句不仅将其自身加入token，并且将其中的长度为2和3的词也加入token中</span></span><br><span class="line">                <span class="keyword">if</span> (mode == SegMode.INDEX) &#123;</span><br><span class="line">                    <span class="keyword">for</span> (String token : sentenceProcess(sb.toString())) &#123;</span><br><span class="line">                        <span class="keyword">if</span> (token.length() &gt; <span class="number">2</span>) &#123;</span><br><span class="line">                            String gram2;</span><br><span class="line">                            <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line">                            <span class="keyword">for</span> (; j &lt; token.length() - <span class="number">1</span>; ++j) &#123;</span><br><span class="line">                                gram2 = token.substring(j, j + <span class="number">2</span>);</span><br><span class="line">                                <span class="keyword">if</span> (wordDict.containsWord(gram2))</span><br><span class="line">                                    tokens.add(<span class="keyword">new</span> SegToken(gram2, offset + j, offset + j + <span class="number">2</span>));</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">if</span> (token.length() &gt; <span class="number">3</span>) &#123;</span><br><span class="line">                            String gram3;</span><br><span class="line">                            <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line">                            <span class="keyword">for</span> (; j &lt; token.length() - <span class="number">2</span>; ++j) &#123;</span><br><span class="line">                                gram3 = token.substring(j, j + <span class="number">3</span>);</span><br><span class="line">                                <span class="keyword">if</span> (wordDict.containsWord(gram3))</span><br><span class="line">                                    tokens.add(<span class="keyword">new</span> SegToken(gram3, offset + j, offset + j + <span class="number">3</span>));</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                        tokens.add(<span class="keyword">new</span> SegToken(token, offset, offset += token.length()));</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">                offset = i;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//将标点符号也加入token中</span></span><br><span class="line">            <span class="keyword">if</span> (wordDict.containsWord(paragraph.substring(i, i + <span class="number">1</span>))) &#123;</span><br><span class="line">                tokens.add(<span class="keyword">new</span> SegToken(paragraph.substring(i, i + <span class="number">1</span>), offset, ++offset));</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                tokens.add(<span class="keyword">new</span> SegToken(paragraph.substring(i, i + <span class="number">1</span>), offset, ++offset));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> tokens;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>关键的判断点我做了注释应该比较好看懂，INDEX和SEARCH模式的区别也在注释里，可以分情况使用。我们看到在开头创建了一个tokens列表，后面将分好的词存在这里面返回了，包括标点符号。那么tokens中的每个token是怎么分出来的呢？接下来进入下一步代码解析：JiebaSegmenter的sentenceProcess方法。</p>
+<h2 id="未完待续"><a href="#未完待续" class="headerlink" title="未完待续"></a>未完待续</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://freydom.com/2016/05/30/JiebaAnalysis/" data-id="ciotfjzq1000bfw80h8dpspp9" class="article-share-link">Share</a>
+      
+        <a href="http://freydom.com/2016/05/30/JiebaAnalysis/#ds-thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Tech-thinking/">Tech thinking</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2016/05/19/Java实践笔记-一/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Java实践笔记一（ArrayList中的值传递）</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+ <section id="comments">
+   <!-- 多说评论框 start -->
+   <div class="ds-thread" data-thread-key="post-JiebaAnalysis" data-title="结巴分词（Java版）的学习与修改" data-url="http://freydom.com/2016/05/30/JiebaAnalysis/"></div>
+   <!-- 多说评论框 end -->
+   <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+   <script type="text/javascript">
+   var duoshuoQuery = {short_name:'freydom'};
+     (function() {
+       var ds = document.createElement('script');
+       ds.type = 'text/javascript';ds.async = true;
+       ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+       ds.charset = 'UTF-8';
+       (document.getElementsByTagName('head')[0] 
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+     })();
+     </script>
+   <!-- 多说公共JS代码 end -->
+ </section>
+ </section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Free-thoughts/" style="font-size: 10px;">Free thoughts</a> <a href="/tags/Music-talk/" style="font-size: 15px;">Music talk</a> <a href="/tags/Tech-thinking/" style="font-size: 20px;">Tech thinking</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2016/05/30/JiebaAnalysis/">结巴分词（Java版）的学习与修改</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/19/Java实践笔记-一/">Java实践笔记一（ArrayList中的值传递）</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/14/ONOS源码学习笔记/">ONOS源码学习笔记一（初看Reactive Forwarding模块）</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/11/NaiveBayesian/">NaiveBayesian</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/11/Game-of-Thrones-season-5/">Game of Thrones season 6</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner" style="text-align:center;">
+	  <table width="100%" border="0">
+        <tr>
+          <td style="text-align:left">
+            Copyright &copy; 2014-2016 John Frey &nbsp; &nbsp;
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a><br>
+	        Theme Landscape
+		  </td>
+		  <td style="text-align:right">
+		    <div style="font-family: FontAwesome;font-size: 20px;">
+		    <a href="http://weibo.com/2826643047" title="微博" target="_blank">&#61834;</a>&nbsp;	
+			<a href="https://github.com/JohnfyBUPT" title="GitHub" target="_blank">&#61595;</a>&nbsp;
+			</div><br>
+		  </td>
+        </tr>
+      </table>
+    </div>
+</div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+    <a href="/tags/Music-talk/" class="mobile-nav-link">Music talk</a>
+  
+    <a href="/tags/Tech-thinking/" class="mobile-nav-link">Tech thinking</a>
+  
+    <a href="/tags/Free-thoughts/" class="mobile-nav-link">Free thoughts</a>
+  
+</nav>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
