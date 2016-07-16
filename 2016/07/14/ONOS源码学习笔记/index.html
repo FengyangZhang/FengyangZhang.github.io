@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Game of Thrones season 6 | John Frey@BUPT / 张枫旸的博客</title>
+  <title>ONOS学习笔记（在实时多媒体传输中流量调度） | John Frey@BUPT / 张枫旸的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="LOL some said that Martin is dead and the screenwriters are completely making up the upcoming stories.">
+  <meta name="description" content="一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Game of Thrones season 6">
-<meta property="og:url" content="http://freydom.com/2016/06/07/Game-of-Thrones-season-5/index.html">
+<meta property="og:title" content="ONOS学习笔记（在实时多媒体传输中流量调度）">
+<meta property="og:url" content="http://freydom.com/2016/07/14/ONOS源码学习笔记/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
-<meta property="og:description" content="LOL some said that Martin is dead and the screenwriters are completely making up the upcoming stories.">
-<meta property="og:image" content="http://i.lv3.hbo.com/assets/images/series/game-of-thrones/home/season-06/160223-s6-key-art-1280x467.jpg">
-<meta property="og:updated_time" content="2016-06-08T06:58:07.493Z">
+<meta property="og:description" content="一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。">
+<meta property="og:image" content="http://freydom.com/\pic\2016-05-14-ONOS源码学习笔记\SDN.gif">
+<meta property="og:updated_time" content="2016-07-16T02:49:22.914Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Game of Thrones season 6">
-<meta name="twitter:description" content="LOL some said that Martin is dead and the screenwriters are completely making up the upcoming stories.">
-<meta name="twitter:image" content="http://i.lv3.hbo.com/assets/images/series/game-of-thrones/home/season-06/160223-s6-key-art-1280x467.jpg">
+<meta name="twitter:title" content="ONOS学习笔记（在实时多媒体传输中流量调度）">
+<meta name="twitter:description" content="一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。">
+<meta name="twitter:image" content="http://freydom.com/\pic\2016-05-14-ONOS源码学习笔记\SDN.gif">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / 张枫旸的博客" type="application/atom+xml">
   
@@ -76,10 +76,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-Game-of-Thrones-season-5" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-ONOS源码学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/06/07/Game-of-Thrones-season-5/" class="article-date">
-  <time datetime="2016-06-07T03:42:39.000Z" itemprop="datePublished">2016-06-07</time>
+    <a href="/2016/07/14/ONOS源码学习笔记/" class="article-date">
+  <time datetime="2016-07-14T01:44:34.000Z" itemprop="datePublished">2016-07-14</time>
 </a>
     
   </div>
@@ -90,7 +90,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Game of Thrones season 6
+      ONOS学习笔记（在实时多媒体传输中流量调度）
     </h1>
   
 
@@ -98,18 +98,22 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>LOL some said that Martin is dead and the screenwriters are completely making up the upcoming stories.<br><a id="more"></a></p>
-<p><img src="http://i.lv3.hbo.com/assets/images/series/game-of-thrones/home/season-06/160223-s6-key-art-1280x467.jpg" alt="GoT"><br>I start to think that this show has grown to be some kind of too slow in plots developing.This maybe inevitable because when it comes to surprises,GoT has already given its audience enough.However,now the audience need a neat closing of this show which is neither too lengthy nor too boring.<br>As far as this season develops,I wonder maybe they want to have season 10 screened.</p>
+        <p>一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。</p>
+<h2 id=""><a href="#" class="headerlink" title=""></a><a id="more"></a></h2><h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>用户优先级是视频流播放中的一个重要问题。在现在的网络视频播放情景中，大多数在应用程序层面上实现，即用户根据不同的优先级（如VIP和非VIP）只可选择固定的服务，服务器依照数据库中对于用户优先级记录的存储告知用户从哪条链路上以多高的速率多大的带宽进行访问，甚至，更简单的方法是直接限制用户的下载速率。但是这样的处理方式不够灵活，如果能在网络层解决这个问题，对于用户和服务器来说都会简单一些，而且遇到需要变换的时候也会更加灵活。</p>
+<hr>
+<h2 id="应用内容"><a href="#应用内容" class="headerlink" title="应用内容"></a>应用内容</h2><p>出于以上考虑，基于新兴的SDN网络架构，我提出并仿真实现了一种多媒体数据实时传输中的流量分配方法，以设置用户优先级的方式让不同的用户按照不同路径访问服务器上多媒体资源，并得到不同的播放速率。<br>实验的网络拓扑由Mininet虚拟网络环境搭建，控制器使用较为成熟的ONOS控制器，应用层使用RTSP协议，交换机为虚拟的Open V Switch，搭建一个单服务器多用户的实时流媒体传输网络。</p>
+<hr>
+<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><h3 id="SDN网络架构"><a href="#SDN网络架构" class="headerlink" title="SDN网络架构"></a>SDN网络架构</h3><p>SDN，即软件定义网络，是一种新兴的网络架构，特点在于它是一种动态的，可管控的，性价比高的，适应性好的网络架构。如今，应用越来越要求网络的高带宽以及动态性能，SDN因此受到了广泛的关注。<br>SDN将网络控制和数据转发功能解耦，实现控制层的完全可编程，底层的设施对于应用和网络服务则完全透明。SDN的优点在于：<br>A.网络控制层是直接独立于转发功能编程的。<br>B.可以灵活地调整网络策略来适应变化的需求。<br>C.网络的智能全部集中在SDN控制器中，使得整个网络对于外界表现出一个单个逻辑交换机的特性。<br>D.网络是由管理员编程控制的，控制器以软件形式运行在服务器上。E.简化了网络设计和操作，因为指令全由控制器发出，跟底层设施的生产商无关，只要它们支持OpenFlow协议。<br>下图是SDN架构的一个示意图，如图可见，主要分为三层：应用层，控制层和基础设施层。控制层向基础设施层提供南向接口，向应用层提供北向接口。南向接口以OpenFlow为主，定义了控制层与数据转发层的交流方式。北向接口则由管理员编写，与使用何种控制器也有关。<br>简单地说，SDN将交换机的逻辑简化，支持OpenFlow协议的交换机维护着一个流表，当交换机收到报文而又没有哪条流表与这个报文的源地址和目的地址对应时，交换机会向控制器上发一个消息，控制器根据它对全局状态的分析下发流表指示交换机对这个数据包执行何种操作。<br><img src="\pic\2016-05-14-ONOS源码学习笔记\SDN.gif" alt="SDN三层网络架构"><br>&lt;未完待续&gt;</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/06/07/Game-of-Thrones-season-5/" data-id="ciqokds5b00095c80blpl4lru" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/07/14/ONOS源码学习笔记/" data-id="ciqokds5400055c80rmyinux9" class="article-share-link">Share</a>
       
-        <a href="http://freydom.com/2016/06/07/Game-of-Thrones-season-5/#ds-thread" class="article-comment-link">Comments</a>
+        <a href="http://freydom.com/2016/07/14/ONOS源码学习笔记/#ds-thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Free-thoughts/">Free thoughts</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Tech-thinking/">Tech thinking</a></li></ul>
 
     </footer>
   </div>
@@ -117,19 +121,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2016/07/14/ONOS源码学习笔记/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          ONOS学习笔记（在实时多媒体传输中流量调度）
-        
-      </div>
-    </a>
   
-  
-    <a href="/2016/05/30/JiebaAnalysis/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2016/06/07/Game-of-Thrones-season-5/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">结巴分词（Java版）的学习与详解</div>
+      <div class="article-nav-title">Game of Thrones season 6</div>
     </a>
   
 </nav>
@@ -140,7 +135,7 @@
 
  <section id="comments">
    <!-- 多说评论框 start -->
-   <div class="ds-thread" data-thread-key="post-Game-of-Thrones-season-5" data-title="Game of Thrones season 6" data-url="http://freydom.com/2016/06/07/Game-of-Thrones-season-5/"></div>
+   <div class="ds-thread" data-thread-key="post-ONOS源码学习笔记" data-title="ONOS学习笔记（在实时多媒体传输中流量调度）" data-url="http://freydom.com/2016/07/14/ONOS源码学习笔记/"></div>
    <!-- 多说评论框 end -->
    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
    <script type="text/javascript">
