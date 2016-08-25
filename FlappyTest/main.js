@@ -20,16 +20,6 @@ var _game;
 
 var _baseUrl = '';
 
-var _flapSound;
-
-var _numScoreSounds = 10,
-  _numHurtSounds = 9;
-
-var _scoreSounds = [],
-  _hurtSounds = [];
-
-var _currentScoreSound;
-
 var _bgColor = 0xDDEEFF,
   _background;
 
@@ -37,7 +27,7 @@ var _pipes,
   _pipeInvisibleLines,
   _pipesTimer;
 
-var _frog;
+var _player;
 
 var _ground;
 
@@ -130,22 +120,13 @@ function preload() {
   initLoadingText();
   _game.load.onFileComplete.add(showLoadingText);
 
-  _game.load.spritesheet('frog', _baseUrl + 'images/frog.png', 80, 64);
+  _game.load.spritesheet('player', _baseUrl + 'images/player.png', 80, 64);
   _game.load.spritesheet('clouds', _baseUrl + 'images/clouds.png', 128, 64);
 
   _game.load.image('pipe', _baseUrl + 'images/pipe.png');
   _game.load.image('ground', _baseUrl + 'images/ground.png');
 
   loadAudio('bgm', _baseUrl + 'sounds/bgm');
-  loadAudio('flap', _baseUrl + 'sounds/flap');
-
-  var i;
-  for (i = 1; i <= _numScoreSounds; i++) {
-    loadAudio('score' + i, _baseUrl + 'sounds/score' + i);
-  }
-  for (i = 1; i <= _numHurtSounds; i++) {
-    loadAudio('hurt' + i, _baseUrl + 'sounds/hurt' + i);
-  }
 }
 
 function o() {
@@ -228,17 +209,17 @@ function initBackground() {
 }
 
 function initPlayer() {
-  _frog = _game.add.sprite(0, 0, 'frog');
-  _frog.anchor.setTo(0.5, 0.5);
-  _frog.body.collideWorldBounds = true;
-  _frog.body.gravity.y = _gravity;
+  _player = _game.add.sprite(0, 0, 'player');
+  _player.anchor.setTo(0.5, 0.5);
+  _player.body.collideWorldBounds = true;
+  _player.body.gravity.y = _gravity;
 }
 
-function resetFrog() {
-  _frog.body.allowGravity = false;
-  _frog.angle = 0;
-  _frog.scale.setTo(1, 1);
-  _frog.reset(_game.world.width / 4, _game.world.height / 2);
+function resetplayer() {
+  _player.body.allowGravity = false;
+  _player.angle = 0;
+  _player.scale.setTo(1, 1);
+  _player.reset(_game.world.width / 4, _game.world.height / 2);
 }
 
 function initGround() {
@@ -284,43 +265,11 @@ function doInitSounds(result, keyPrefix, l) {
 
 
 function initSounds() {
-  doInitSounds(_scoreSounds, 'score', _numScoreSounds);
-  doInitSounds(_hurtSounds, 'hurt', _numHurtSounds);
-
-  _flapSound = _game.add.audio('flap', 0.5);
-
   _bgm = _game.add.audio('bgm', 0.5);
   _bgm.onStop.add(function() {
     if (_playBgm)
       _bgm.play();
   });
-}
-
-function randomPlaySound(list, count) {
-  var sound;
-  if (count == 1) {
-    sound = list[0];
-    sound.play();
-  } else if (count > 1) {
-    sound = list[Math.floor(Math.random() * count)];
-    sound.play();
-  }
-  return sound;
-}
-
-function playScoreSound() {
-  _currentScoreSound = randomPlaySound(_scoreSounds, _numScoreSounds);
-}
-
-function playHurtSound() {
-  if (_currentScoreSound)
-    _currentScoreSound.stop();
-  randomPlaySound(_hurtSounds, _numHurtSounds);
-}
-
-function playFlapSound() {
-  if (!_flapSound.isPlaying)
-    _flapSound.play();
 }
 
 function playBgm() {
@@ -356,41 +305,40 @@ function updateGround() {
 }
 
 function updatePlayer() {
-  // Make frog dive
-  var dvy = _flap + _frog.body.velocity.y;
-  _frog.angle = (90 * dvy / _flap) - 180;
-  if (_frog.angle < 0) {
-    _frog.angle = 0;
+  // Make player dive
+  var dvy = _flap + _player.body.velocity.y;
+  _player.angle = (90 * dvy / _flap) - 180;
+  if (_player.angle < 0) {
+    _player.angle = 0;
   }
 
   if (_gameOver) {
-    _frog.scale.setTo(1, -1);
-    _frog.angle = -20;
+    _player.scale.setTo(1, -1);
+    _player.angle = -20;
   }
 }
 
 function updatePlayer2() {
-  _frog.y = (_game.world.height / 2) + 8 * Math.cos(_game.time.now / 200);
+  _player.y = (_game.world.height / 2) + 8 * Math.cos(_game.time.now / 200);
 }
 
 function checkCollision() {
-  if (_frog.body.bottom >= _game.world.bounds.bottom) {
+  if (_player.body.bottom >= _game.world.bounds.bottom) {
     setGameOver();
     return;
   }
-  if (_game.physics.overlap(_frog, _pipes)) {
+  if (_game.physics.overlap(_player, _pipes)) {
     setGameOver();
     return;
   }
   // Add score
-  _game.physics.overlap(_frog, _pipeInvisibleLines, addScore);
+  _game.physics.overlap(_player, _pipeInvisibleLines, addScore);
 }
 
 function addScore(_, inv) {
   _pipeInvisibleLines.remove(inv);
   _score += 1;
   showScore();
-  playScoreSound();
 }
 
 function showScore() {
@@ -401,7 +349,6 @@ function setGameOver() {
   _gameOver = true;
   stopPipes();
   showGameOver();
-  playHurtSound();
 }
 
 function showGameOver() {
@@ -545,7 +492,7 @@ function initTexts() {
 function start() {
   _totalTimeElapsedText.renderable = false;
 
-  _frog.body.allowGravity = true;
+  _player.body.allowGravity = true;
   startPipes();
   _gameStarted = true;
 
@@ -557,8 +504,7 @@ function flap() {
     start();
   }
   if (!_gameOver) {
-    _frog.body.velocity.y = -_flap;
-    playFlapSound();
+    _player.body.velocity.y = -_flap;
   }
 }
 
@@ -595,7 +541,7 @@ function reset() {
 
   hideGameOver();
 
-  resetFrog();
+  resetplayer();
   resetPipes();
 
   showScore();
@@ -649,7 +595,7 @@ function render() {
 
   _game.debug.renderSpriteBody(_tryAgainSprite);
   _game.debug.renderSpriteBody(_playBgmSprite);
-  _game.debug.renderSpriteBody(_frog);
+  _game.debug.renderSpriteBody(_player);
 
   _pipes.forEachAlive(function(pipe) {
     _game.debug.renderSpriteBody(pipe);
@@ -681,12 +627,6 @@ function init(options) {
 
   if (typeof options.flapKeyCode !== 'undefined')
     _flapKeyCode = options.flapKeyCode;
-
-  if (typeof options.numScoreSounds !== 'undefined')
-    _numScoreSounds = options.numScoreSounds;
-
-  if (typeof options.numHurtSounds !== 'undefined')
-    _numHurtSounds = options.numHurtSounds;
 
   if (typeof options.baseUrl !== 'undefined')
     _baseUrl = options.baseUrl;
