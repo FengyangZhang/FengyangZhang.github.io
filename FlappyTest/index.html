@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+    <head>
+        <title>FlappyTest</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no" />
+        <meta name="apple-mobile-web-app-title" content="Flappy Frog" /> 
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <link rel="apple-touch-icon" href="icons/Icon-App-60x60@2x.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-App-60x60@3x.png" />
+        <link rel="apple-touch-icon" sizes="76x76" href="icons/Icon-App-76x76@1x.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="icons/Icon-App-76x76@2x.png" />
+        <link rel="apple-touch-icon" sizes="58x58" href="icons/Icon-App-29x29@2x.png" />
+        <style>
+            body {
+                background: #0;
+                margin: 0;
+                padding: 0;
+                text-align: center;
+                overflow: hidden;
+            }
+            #screen {
+                display: inline-block;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="screen"></div>
+        <script src="phaser.min.js"></script>
+        <script src="main.js"></script>
+        <script>
+            initGame({
+                feedback: '举报作者',
+                feedbackFunc: function() {
+                    window.open('http://freydom.com/');
+                },
+                parent: document.querySelector('#screen')
+            });
+        </script>
+    </body>
+</html>
