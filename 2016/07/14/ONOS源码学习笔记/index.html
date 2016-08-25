@@ -12,7 +12,7 @@
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
 <meta property="og:description" content="一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。">
 <meta property="og:image" content="http://freydom.com/\pic\2016-05-14-ONOS源码学习笔记\SDN.gif">
-<meta property="og:updated_time" content="2016-07-16T02:49:22.914Z">
+<meta property="og:updated_time" content="2016-08-25T12:28:42.486Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ONOS学习笔记（在实时多媒体传输中流量调度）">
 <meta name="twitter:description" content="一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。">
@@ -98,8 +98,9 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。</p>
-<h2 id=""><a href="#" class="headerlink" title=""></a><a id="more"></a></h2><h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>用户优先级是视频流播放中的一个重要问题。在现在的网络视频播放情景中，大多数在应用程序层面上实现，即用户根据不同的优先级（如VIP和非VIP）只可选择固定的服务，服务器依照数据库中对于用户优先级记录的存储告知用户从哪条链路上以多高的速率多大的带宽进行访问，甚至，更简单的方法是直接限制用户的下载速率。但是这样的处理方式不够灵活，如果能在网络层解决这个问题，对于用户和服务器来说都会简单一些，而且遇到需要变换的时候也会更加灵活。</p>
+        <p>一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。<br><a id="more"></a></p>
+<hr>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>用户优先级是视频流播放中的一个重要问题。在现在的网络视频播放情景中，大多数在应用程序层面上实现，即用户根据不同的优先级（如VIP和非VIP）只可选择固定的服务，服务器依照数据库中对于用户优先级记录的存储告知用户从哪条链路上以多高的速率多大的带宽进行访问，甚至，更简单的方法是直接限制用户的下载速率。但是这样的处理方式不够灵活，如果能在网络层解决这个问题，对于用户和服务器来说都会简单一些，而且遇到需要变换的时候也会更加灵活。</p>
 <hr>
 <h2 id="应用内容"><a href="#应用内容" class="headerlink" title="应用内容"></a>应用内容</h2><p>出于以上考虑，基于新兴的SDN网络架构，我提出并仿真实现了一种多媒体数据实时传输中的流量分配方法，以设置用户优先级的方式让不同的用户按照不同路径访问服务器上多媒体资源，并得到不同的播放速率。<br>实验的网络拓扑由Mininet虚拟网络环境搭建，控制器使用较为成熟的ONOS控制器，应用层使用RTSP协议，交换机为虚拟的Open V Switch，搭建一个单服务器多用户的实时流媒体传输网络。</p>
 <hr>
@@ -108,7 +109,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/07/14/ONOS源码学习笔记/" data-id="ciqokds5400055c80rmyinux9" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/07/14/ONOS源码学习笔记/" data-id="cisab21ld0005zo80vuicataq" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/07/14/ONOS源码学习笔记/#ds-thread" class="article-comment-link">Comments</a>
       
