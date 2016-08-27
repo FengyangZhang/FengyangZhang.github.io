@@ -1,6 +1,6 @@
 (function(){
 
-var TEXT_LOADING = 'Loading...\n\n';
+var TEXT_LOADING = 'Loading...\nTiny changes from game Flappy Frog.\nhttps://github.com/tusenpo/FlappyFrog';
 var TEXT_SCORE = '%s';
 var TEXT_GAME_OVER = '游戏结束';
 var TEXT_TRY_AGAIN = '再试一次';
@@ -139,7 +139,7 @@ function spawnPipe(pipeY, flipped) {
     pipeY + (flipped ? -o() : o()) / 2,
     'pipe'
   );
-  pipe.body.allowGravity = false;
+  pipe.body.allowGravity = true;
 
   // Flip pipe! *GASP*
   pipe.scale.setTo(2, flipped ? -2 : 2);
@@ -147,7 +147,7 @@ function spawnPipe(pipeY, flipped) {
 
   // Move to the left
   pipe.body.velocity.x = -_speed;
-
+  pipe.body.velocity.y = _speed / 2;
   return pipe;
 }
 
@@ -194,6 +194,7 @@ function stopPipes() {
 
   _pipes.forEachAlive(function(pipe) {
     pipe.body.velocity.x = 0;
+    pipe.body.velocity.y = 0;
   });
 
   _pipeInvisibleLines.forEach(function(inv) {
@@ -655,7 +656,7 @@ function init(options) {
       render: render
     },
     false,
-    false
+    true
   );
 }
 
