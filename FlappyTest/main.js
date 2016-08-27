@@ -27,6 +27,9 @@ var _pipes,
   _pipeInvisibleLines,
   _pipesTimer;
 
+var _enemies,
+  _enemiesTimer;
+
 var _player;
 
 var _ground;
@@ -125,6 +128,7 @@ function preload() {
 
   _game.load.image('pipe', _baseUrl + 'images/pipe.png');
   _game.load.image('ground', _baseUrl + 'images/ground.png');
+  _game.load.image('enemy', _baseUrl + 'images/enemy.png', 80, 64)
 
   loadAudio('bgm', _baseUrl + 'sounds/bgm');
 }
@@ -171,10 +175,38 @@ function spawnPipes() {
   _pipesTimer.start();
 }
 
+function spawnEnemy(enemyY, flipped) {
+  var enemy = _enemies.create(
+    _game.width,
+    enemyY,
+    'enemy'
+  );
+  enemy.body.allowGravity = true;
+
+  enemy.body.velocity.x = -_speed * 1.8;
+  return enemy;
+}
+
+function spawnEnemies() {
+  _enemiesTimer.stop();
+
+  var enemyY = ((_game.height - 16 - o() / 2) / 2) + (Math.random() > 0.5 ? -1 : 1) * Math.random() * _game.height / 6;
+  // Bottom pipe
+  var enemy = spawnEnemy(enemyY);
+  // Top pipe (flipped)
+  spawnEnemy(enemyY, true);
+
+  _enemiesTimer.add(1 / _spawnRate);
+  _enemiesTimer.start();
+}
 
 function initPipes() {
   _pipes = _game.add.group();
   _pipeInvisibleLines = _game.add.group();
+}
+
+function initEnemies() {
+  _enemies = _game.add.group();
 }
 
 function resetPipes() {
@@ -182,11 +214,22 @@ function resetPipes() {
   _pipeInvisibleLines.removeAll();
 }
 
+function resetEnemies() {
+  _enemies.removeAll();
+}
+
 function startPipes() {
   _pipesTimer = new Phaser.Timer(_game);
   _pipesTimer.onEvent.add(spawnPipes);
   _pipesTimer.add(2);
   _pipesTimer.start();
+}
+
+function startEnemies() {
+  _enemiesTimer = new Phaser.Timer(_game);
+  _enemiesTimer.onEvent.add(spawnEnemies);
+  _enemiesTimer.add(0);
+  _enemiesTimer.start();
 }
 
 function stopPipes() {
@@ -199,6 +242,14 @@ function stopPipes() {
 
   _pipeInvisibleLines.forEach(function(inv) {
     inv.body.velocity.x = 0;
+  });
+}
+
+function stopEnemies() {
+  _enemiesTimer.stop();
+
+  _enemies.forEachAlive(function(enemy) {
+    enemy.body.velocity.x = 0;
   });
 }
 
@@ -301,6 +352,11 @@ function updatePipes() {
   _pipesTimer.update();
 }
 
+function updateEnemies() {
+  removeOffscreenObjs(_enemies);
+  _enemiesTimer.update();
+}
+
 function updateGround() {
   _ground.tilePosition.x -= _game.time.physicsElapsed * _speed / 2;
 }
@@ -329,6 +385,10 @@ function checkCollision() {
     return;
   }
   if (_game.physics.overlap(_player, _pipes)) {
+    setGameOver();
+    return;
+  }
+  if (_game.physics.overlap(_player, _enemies)) {
     setGameOver();
     return;
   }
@@ -495,6 +555,7 @@ function start() {
 
   _player.body.allowGravity = true;
   startPipes();
+  startEnemies();
   _gameStarted = true;
 
   _startTime = _game.time.now;
@@ -544,6 +605,7 @@ function reset() {
 
   resetplayer();
   resetPipes();
+  resetEnemies();
 
   showScore();
 }
@@ -554,6 +616,7 @@ function create() {
 
   initBackground();
   initPipes();
+  initEnemies();
   initPlayer();
   initGround();
   initTexts();
@@ -581,6 +644,7 @@ function update() {
       checkCollision();
     }
     updatePipes();
+    updateEnemies();
   } else {
     updatePlayer2();
   }
@@ -600,6 +664,9 @@ function render() {
 
   _pipes.forEachAlive(function(pipe) {
     _game.debug.renderSpriteBody(pipe);
+  });
+  _enemies.forEachAlive(function(enemy) {
+    _game.debug.renderSpriteBody(enemy);
   });
   _pipeInvisibleLines.forEach(function(inv) {
     _game.debug.renderSpriteBody(inv);
