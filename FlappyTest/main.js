@@ -183,7 +183,7 @@ function spawnEnemy(enemyY, flipped) {
   );
   enemy.body.allowGravity = true;
 
-  enemy.body.velocity.x = -_speed * 1.8;
+  enemy.body.velocity.x = -_speed * 1.6;
   return enemy;
 }
 
@@ -349,11 +349,20 @@ function updateClouds() {
 
 function updatePipes() {
   removeOffscreenObjs(_pipes);
+
   _pipesTimer.update();
 }
 
 function updateEnemies() {
   removeOffscreenObjs(_enemies);
+  _enemies.forEachAlive(function(enemy) {
+    if (_gameOver) {
+    enemy.body.velocity.x = 0;
+    enemy.scale.setTo(1, -1);
+    enemy.angle = -20;
+    enemy.body.gravity.y = _gravity;
+  }
+  });
   _enemiesTimer.update();
 }
 
@@ -409,6 +418,7 @@ function showScore() {
 function setGameOver() {
   _gameOver = true;
   stopPipes();
+  stopEnemies();
   showGameOver();
 }
 
