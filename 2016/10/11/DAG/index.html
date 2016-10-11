@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>ONOS学习笔记（在实时多媒体传输中流量调度） | John Frey@BUPT / 张枫旸的博客</title>
+  <title>DAG | John Frey@BUPT / 张枫旸的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。">
+  <meta name="description" content="关于自然语言处理中常用的DAG（有向无环图）使用的一点微小的理解。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ONOS学习笔记（在实时多媒体传输中流量调度）">
-<meta property="og:url" content="http://freydom.com/2016/07/14/ONOS源码学习笔记/index.html">
+<meta property="og:title" content="DAG">
+<meta property="og:url" content="http://freydom.com/2016/10/11/DAG/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
-<meta property="og:description" content="一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。">
-<meta property="og:image" content="http://freydom.com/\pic\2016-05-14-ONOS源码学习笔记\SDN.gif">
-<meta property="og:updated_time" content="2016-08-25T12:28:42.486Z">
+<meta property="og:description" content="关于自然语言处理中常用的DAG（有向无环图）使用的一点微小的理解。">
+<meta property="og:image" content="http://freydom.com/pic/2016-05-30-JiebaAnalysis/dag.png">
+<meta property="og:updated_time" content="2016-10-11T12:47:36.656Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="ONOS学习笔记（在实时多媒体传输中流量调度）">
-<meta name="twitter:description" content="一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。">
-<meta name="twitter:image" content="http://freydom.com/\pic\2016-05-14-ONOS源码学习笔记\SDN.gif">
+<meta name="twitter:title" content="DAG">
+<meta name="twitter:description" content="关于自然语言处理中常用的DAG（有向无环图）使用的一点微小的理解。">
+<meta name="twitter:image" content="http://freydom.com/pic/2016-05-30-JiebaAnalysis/dag.png">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / 张枫旸的博客" type="application/atom+xml">
   
@@ -76,10 +76,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-ONOS源码学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-DAG" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/07/14/ONOS源码学习笔记/" class="article-date">
-  <time datetime="2016-07-14T01:44:34.000Z" itemprop="datePublished">2016-07-14</time>
+    <a href="/2016/10/11/DAG/" class="article-date">
+  <time datetime="2016-10-11T11:23:48.000Z" itemprop="datePublished">2016-10-11</time>
 </a>
     
   </div>
@@ -90,7 +90,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      ONOS学习笔记（在实时多媒体传输中流量调度）
+      DAG
     </h1>
   
 
@@ -98,24 +98,34 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>一个尾小的实现在实时多媒体传输中进行流量调度的ONOS组件。<br><a id="more"></a></p>
-<hr>
-<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>用户优先级是视频流播放中的一个重要问题。在现在的网络视频播放情景中，大多数在应用程序层面上实现，即用户根据不同的优先级（如VIP和非VIP）只可选择固定的服务，服务器依照数据库中对于用户优先级记录的存储告知用户从哪条链路上以多高的速率多大的带宽进行访问，甚至，更简单的方法是直接限制用户的下载速率。但是这样的处理方式不够灵活，如果能在网络层解决这个问题，对于用户和服务器来说都会简单一些，而且遇到需要变换的时候也会更加灵活。</p>
-<hr>
-<h2 id="应用内容"><a href="#应用内容" class="headerlink" title="应用内容"></a>应用内容</h2><p>出于以上考虑，基于新兴的SDN网络架构，我提出并仿真实现了一种多媒体数据实时传输中的流量分配方法，以设置用户优先级的方式让不同的用户按照不同路径访问服务器上多媒体资源，并得到不同的播放速率。<br>实验的网络拓扑由Mininet虚拟网络环境搭建，控制器使用较为成熟的ONOS控制器，应用层使用RTSP协议，交换机为虚拟的Open V Switch，搭建一个单服务器多用户的实时流媒体传输网络。</p>
-<hr>
-<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><h3 id="SDN网络架构"><a href="#SDN网络架构" class="headerlink" title="SDN网络架构"></a>SDN网络架构</h3><p>SDN，即软件定义网络，是一种新兴的网络架构，特点在于它是一种动态的，可管控的，性价比高的，适应性好的网络架构。如今，应用越来越要求网络的高带宽以及动态性能，SDN因此受到了广泛的关注。<br>SDN将网络控制和数据转发功能解耦，实现控制层的完全可编程，底层的设施对于应用和网络服务则完全透明。SDN的优点在于：<br>A.网络控制层是直接独立于转发功能编程的。<br>B.可以灵活地调整网络策略来适应变化的需求。<br>C.网络的智能全部集中在SDN控制器中，使得整个网络对于外界表现出一个单个逻辑交换机的特性。<br>D.网络是由管理员编程控制的，控制器以软件形式运行在服务器上。E.简化了网络设计和操作，因为指令全由控制器发出，跟底层设施的生产商无关，只要它们支持OpenFlow协议。<br>下图是SDN架构的一个示意图，如图可见，主要分为三层：应用层，控制层和基础设施层。控制层向基础设施层提供南向接口，向应用层提供北向接口。南向接口以OpenFlow为主，定义了控制层与数据转发层的交流方式。北向接口则由管理员编写，与使用何种控制器也有关。<br>简单地说，SDN将交换机的逻辑简化，支持OpenFlow协议的交换机维护着一个流表，当交换机收到报文而又没有哪条流表与这个报文的源地址和目的地址对应时，交换机会向控制器上发一个消息，控制器根据它对全局状态的分析下发流表指示交换机对这个数据包执行何种操作。<br><img src="\pic\2016-05-14-ONOS源码学习笔记\SDN.gif" alt="SDN三层网络架构"><br>&lt;未完待续&gt;</p>
-
+        <p>关于自然语言处理中常用的DAG（有向无环图）使用的一点微小的理解。<br><a id="more"></a><br>最近又开始做自然语言处理的一些微小的工作。有一次处理的句子中含有“手术”这两个字，我查看了“手”、“术”和“手术”在字典中各自的频率之后发现，“手”字的频率高出“手术”很多，分词算法怎么是决定把“手术”作为一个整体分出来的?<br>要做到这一点，要做的就是根据字典里收录的词，把所有分词可能都列出来，再从中找一个最可能的组合。比如这句话“一个伸手不见五指的黑夜”。可以分成以下几种：</p>
+<pre><code>1.一、个、伸、手、不、见、五、指、的、黑、夜。
+2.一个、伸、手、不、见、五、指、的、黑、夜。
+3.一个、伸手、不、见、五、指、的、黑、夜。
+4......
+......
+</code></pre><p>差不多就是这样，那么以什么格式存储这些信息比较合适呢？本着最精简的原则，我们只看最少需要什么。首先，一个字具体是什么我们并不关心，我们只需要知道字的位置在哪，因此肯定是要将具体的字词用他们在句中的index表示。比如“一”字现在就是0，“夜”字现在就是10。其次，我们还需要知道词的位置在哪，每个字都可能是词的首部，所以我们只需要词的尾部。那么需要存储的信息就是一系列二元组，每个二元组的第一项是一个字的index，第二项是该字所有可组成词的词尾的index的集合。就是这样的一个集合。那么现在上面的信息被精炼成如下：</p>
+<pre><code>{(0,[0, 1]),(1,[1]),(2,[2, 3, 5, 7]),(3,[3]),(4,[4, 5]),(5,[5]),(6,[6, 7]),(7,[7]),(8,[8]),(9,[9, 10]),(10,[10])}
+</code></pre><p>图像化一点也就是下图所示的信息：<br><img src="/pic/2016-05-30-JiebaAnalysis/dag.png" alt="DAG示意图"><br>这种格式已经很接近我们要的东西，但是我们最想看到的其实是这些二元组的第二项都只有一个数字，这样从0出发，就只有唯一的一条路线到达10。要做到这一点我们需要额外的信息，也就是每个词的统计频率。知道这些频率之后,我们有很多方式去计算概率最大的一条路线，比如我们可以从头开始将每种可能都单独计算一遍。这样当然行得通，但是不难发现有很多信息被重复计算过不止一遍。因此从头开始算显然不是最聪明的办法，从尾开始才是最好的。<br>如何计算？首先，为这个DAG中的每个节点维护一个freq值，表示此点作为词头而有后面的句子的概率。这个freq值计算如下：</p>
+<pre><code>freq(index) = dfreq(index, tail) + freq(tail + 1)
+</code></pre><p>dfreq(index, tail)指以index为词头，tail为词尾的词在字典中的频率。index遍历DAG获得，tail遍历每个index对应的词尾集合获得。如果一个index对应多个tail，依次按上面公式算，最后选最大的那个即可。每算完一个点，将得到的freq值和tail的值记录下来，直到算到第一个点结束。结果是这样的：</p>
+<pre><code>10 [tail=10, freq=-9.635810961320582]
+9  [tail=10, freq=-11.362565600239641]
+8  [tail=8, freq=-16.62501610127819]
+......
+0  [tail=1, freq=-36.451496005714255]
+</code></pre><p>最后，从第一个点开始，我们可以得到且仅可以得到一条最大概率的路径，这就是我们对这个句子进行分词的结果。</p>
+<pre><code>[0, 1],[2, 7],[8, 8],[9, 10]
+[一个],[伸手不见五指],[的],[黑夜]
+</code></pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/07/14/ONOS源码学习笔记/" data-id="cita3c9f9000bw880kqg8qoqg" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/10/11/DAG/" data-id="ciu5egsi4000e4w80aama4r74" class="article-share-link">Share</a>
       
-        <a href="http://freydom.com/2016/07/14/ONOS源码学习笔记/#ds-thread" class="article-comment-link">Comments</a>
+        <a href="http://freydom.com/2016/10/11/DAG/#ds-thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Tech-thinking/">Tech thinking</a></li></ul>
-
     </footer>
   </div>
   
@@ -136,7 +146,7 @@
 
  <section id="comments">
    <!-- 多说评论框 start -->
-   <div class="ds-thread" data-thread-key="post-ONOS源码学习笔记" data-title="ONOS学习笔记（在实时多媒体传输中流量调度）" data-url="http://freydom.com/2016/07/14/ONOS源码学习笔记/"></div>
+   <div class="ds-thread" data-thread-key="post-DAG" data-title="DAG" data-url="http://freydom.com/2016/10/11/DAG/"></div>
    <!-- 多说评论框 end -->
    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
    <script type="text/javascript">
@@ -172,7 +182,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li></ul>
     </div>
   </div>
 
@@ -185,7 +195,7 @@
       <ul>
         
           <li>
-            <a href="/2016/07/14/ONOS源码学习笔记/">ONOS学习笔记（在实时多媒体传输中流量调度）</a>
+            <a href="/2016/10/11/DAG/">DAG</a>
           </li>
         
           <li>
