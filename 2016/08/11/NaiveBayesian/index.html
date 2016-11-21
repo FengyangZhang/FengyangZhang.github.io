@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>NaiveBayesian | John Frey@BUPT / 张枫旸的博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NaiveBayesian">
+<meta property="og:url" content="http://freydom.com/2016/08/11/NaiveBayesian/index.html">
+<meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
+<meta property="og:description" content="An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.">
+<meta property="og:image" content="http://freydom.com/pic/2016-05-11-NaiveBayesian/overview.png">
+<meta property="og:updated_time" content="2016-11-21T05:32:29.684Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="NaiveBayesian">
+<meta name="twitter:description" content="An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.">
+<meta name="twitter:image" content="http://freydom.com/pic/2016-05-11-NaiveBayesian/overview.png">
+  
+    <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / 张枫旸的博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">John Frey@BUPT / 张枫旸的博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Electronic Information Engineering senior.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/about">About</a>
+        
+          <a class="main-nav-link" href="/tags/Music/">Music</a>
+        
+          <a class="main-nav-link" href="/tags/Technology/">Technology</a>
+        
+          <a class="main-nav-link" href="/tags/Free-thoughts/">Free thoughts</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="https://github.com/JohnfyBUPT" title="My Github"></a>
+        
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://freydom.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-NaiveBayesian" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/08/11/NaiveBayesian/" class="article-date">
+  <time datetime="2016-08-11T13:01:30.000Z" itemprop="datePublished">2016-08-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      NaiveBayesian
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p> An implementation of a simple machine learning algorithm–Naive Bayesian algorithm in order to judge if a given list of string is abusive or not.<br><a id="more"></a></p>
+<h2 id="Usage"><a href="#Usage" class="headerlink" title="Usage:"></a>Usage:</h2><p>This program is for the specific use of my android diary app <em>Whisper</em>,which is a private diary highlighting a function of judging if a diary is positive or not and giving the corresponding feedback.<br><a href="https://github.com/JohnfyBUPT/Whisper" target="_blank" rel="external">The diary app <em>“Whisper”</em> on Github</a><br>Codes on <em>Whisper</em> will fall a little behind this one.</p>
+<hr>
+<h2 id="Theory-foundation"><a href="#Theory-foundation" class="headerlink" title="Theory foundation:"></a>Theory foundation:</h2><p>Naive Bayes classifier is a simple and effective classify method based on Bayes theorem.</p>
+<h3 id="Bayes-theorem"><a href="#Bayes-theorem" class="headerlink" title="Bayes theorem:"></a>Bayes theorem:</h3><pre><code>P(A|B) = P(B|A) P(A) / P(B)
+</code></pre><p>Now let’s see A as a specific category C from a collection C1、C2、…、Cm,and see B as a combination of n features F1、F2、…Fn of a certain individual.<br>What we want to do is to deduct which class an individual belongs from his/her set of features.We now know how to apply Bayes theorem to classifying procedure,which is to calculate the maximum value of the expression below:</p>
+<pre><code>P(C|F1F2...Fn) = P(F1F2...Fn|C)P(C) / P(F1F2...Fn)
+</code></pre><p>From which P(F1F2…Fn) can be left out,for it has the same value when C changes.The question deteriorate into calculate the maximum of:</p>
+<pre><code>P(F1F2...Fn|C)P(C)
+</code></pre><h3 id="Naive-Bayes-theorem"><a href="#Naive-Bayes-theorem" class="headerlink" title="Naive Bayes theorem:"></a>Naive Bayes theorem:</h3><p>If we take a step further and assume all n features are independent,we are using Naive Bayesian theorem,and the question is simplified again:</p>
+<pre><code>P(F1F2...Fn|C)P(C) = P(F1|C)P(F2|C) ... P(Fn|C)P(C)
+</code></pre><p>We can get every <em>P</em> on the right side of the  equation from our training set,and the problem is solved.</p>
+<hr>
+<h2 id="Key-points-and-codes"><a href="#Key-points-and-codes" class="headerlink" title="Key points and codes:"></a>Key points and codes:</h2><h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview:"></a>Overview:</h3><p><img src="/pic/2016-05-11-NaiveBayesian/overview.png" alt="overview"></p>
+<h3 id="Train-data-to-dictionary"><a href="#Train-data-to-dictionary" class="headerlink" title="Train data to dictionary:"></a>Train data to dictionary:</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">for</span> (List&lt;String&gt; data : trainData) &#123;</span><br><span class="line">	<span class="keyword">for</span> (String word : data) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!vocabulary.contains(word)) &#123;</span><br><span class="line">			vocabulary.add(word);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Train-data-to-train-vectors"><a href="#Train-data-to-train-vectors" class="headerlink" title="Train data to train vectors:"></a>Train data to train vectors:</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; trainData.get(j).size(); i++) &#123;</span><br><span class="line">	<span class="keyword">if</span> (vocabulary.contains(trainData.get(j).get(i))) &#123;</span><br><span class="line">		temp[(vocabulary.indexOf(trainData.get(j).get(i)))]++;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; vocabulary.size(); i++) &#123;</span><br><span class="line">	vec.set(i, temp[i]);</span><br><span class="line">&#125;</span><br><span class="line">trainVector.add(vec);</span><br></pre></td></tr></table></figure>
+<h3 id="Train-vectors-to-feature-vector"><a href="#Train-vectors-to-feature-vector" class="headerlink" title="Train vectors to feature vector:"></a>Train vectors to feature vector:</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">   pAbusive = (<span class="keyword">double</span>) (count) / trainDocNum;</span><br><span class="line"><span class="keyword">int</span>[] p1Num = <span class="keyword">new</span> <span class="keyword">int</span>[wordsNum];</span><br><span class="line">laplace(p1Num, <span class="number">1</span>);</span><br><span class="line"><span class="keyword">int</span>[] p0Num = <span class="keyword">new</span> <span class="keyword">int</span>[wordsNum];</span><br><span class="line">laplace(p0Num, <span class="number">1</span>);</span><br><span class="line"><span class="keyword">int</span> p1Den = <span class="number">2</span>;</span><br><span class="line"><span class="keyword">int</span> p0Den = <span class="number">2</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; trainDocNum; i++) &#123;</span><br><span class="line">	<span class="keyword">if</span> (trainDataClass.get(i) == <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; wordsNum; j++) &#123;</span><br><span class="line">			p1Num[j] += trainVector.get(i).get(j);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">int</span> countp1 = <span class="number">0</span>;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; trainVector.get(i).size(); j++) &#123;</span><br><span class="line">			<span class="keyword">if</span> (trainVector.get(i).get(j) == <span class="number">1</span>) &#123;</span><br><span class="line">				countp1++;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		p1Den += countp1;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; wordsNum; k++) &#123;</span><br><span class="line">			p0Num[k] += trainVector.get(i).get(k);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">int</span> countp2 = <span class="number">0</span>;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; trainVector.get(i).size(); k++) &#123;</span><br><span class="line">			<span class="keyword">if</span> (trainVector.get(i).get(k) == <span class="number">1</span>) &#123;</span><br><span class="line">				countp2++;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		p0Den += countp2;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> m = <span class="number">0</span>; m &lt; wordsNum; m++) &#123;</span><br><span class="line">	p1Vec.add(Math.log((<span class="keyword">double</span>) (p1Num[m]) / p1Den));</span><br><span class="line">	p0Vec.add(Math.log((<span class="keyword">double</span>) (p0Num[m]) / p0Den));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>We used a function called laplace here, and we also set the denominator to a certain value in case the value is too small and cause unpredicted situation. </p>
+<h3 id="Classify-the-given-sentence"><a href="#Classify-the-given-sentence" class="headerlink" title="Classify the given sentence:"></a>Classify the given sentence:</h3><pre><code class="java"><span class="keyword">for</span> (<span class="keyword">int</span> x = <span class="number">0</span>; x &lt; testVec.size(); x++) {
+    p0 += p0Vec.get(x) * testVec.get(x);
+    p1 += p1Vec.get(x) * testVec.get(x);
+
+}
+p1 += Math.log(pAbusive);
+p0 += Math.log(<span class="number">1</span> - pAbusive);
+<span class="keyword">if</span>(p0 &gt; -<span class="number">0.4</span> || p1&gt;-<span class="number">1.4</span>){
+    System.out.println(<span class="string">"Neutral Words!"</span>);
+}
+<span class="keyword">else</span> <span class="keyword">if</span> (p1 &gt; p0) {
+    System.out.println(<span class="string">"Positive Words!"</span>);
+}
+<span class="keyword">else</span> <span class="keyword">if</span>(p0 &gt; p1) {
+    System.out.println(<span class="string">"Negative Words!"</span>);
+}
+</code></pre>
+<p>Maybe you noticed that we used logarithm adding instead of probability multiply,FYI that’s to avoid overflow because the probability may be small.</p>
+<h3 id="No-need-to-train-everytime"><a href="#No-need-to-train-everytime" class="headerlink" title="No need to train everytime"></a>No need to train everytime</h3><p>I also append a store function so that we don’t need to train the raw data everytime,when there are history dictionary and feature vector,just parse the txt file and use it,making it a lot faster and convinient.</p>
+<hr>
+<h2 id="See-the-output"><a href="#See-the-output" class="headerlink" title="See the output:"></a>See the output:</h2><p>Take a simple sentence “Sad my friend is gone” for example,the algorithm will use the dictioary to convert this sentence to a vector and calculate p0 and p1 using the feature vector.And this is the console output:</p>
+<pre><code>p0=-29.07335725097412   p1=-34.40233568665568   pA=0.421406667326145
+Negative Words!
+[sad, my, friend, is, gone]
+</code></pre><hr>
+<h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/JohnfyBUPT/NaiveBayesian" target="_blank" rel="external">https://github.com/JohnfyBUPT/NaiveBayesian</a></p>
+<hr>
+<h2 id="Reference："><a href="#Reference：" class="headerlink" title="Reference："></a>Reference：</h2><p><a href="http://blog.csdn.net/tanhongguang1/article/details/45016421" target="_blank" rel="external">机器学习笔记：朴素贝叶斯方法（Naive Bayes）原理和实现 </a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://freydom.com/2016/08/11/NaiveBayesian/" data-id="civrmzzs40005v4wcrd283rxd" class="article-share-link">Share</a>
+      
+        <a href="http://freydom.com/2016/08/11/NaiveBayesian/#ds-thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/09/10/Whisper/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Whisper
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/07/10/RecycleView-in-Android/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">RecycleView in Android</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+ <section id="comments">
+   <!-- 多说评论框 start -->
+   <div class="ds-thread" data-thread-key="post-NaiveBayesian" data-title="NaiveBayesian" data-url="http://freydom.com/2016/08/11/NaiveBayesian/"></div>
+   <!-- 多说评论框 end -->
+   <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+   <script type="text/javascript">
+   var duoshuoQuery = {short_name:'freydom'};
+     (function() {
+       var ds = document.createElement('script');
+       ds.type = 'text/javascript';ds.async = true;
+       ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+       ds.charset = 'UTF-8';
+       (document.getElementsByTagName('head')[0] 
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+     })();
+     </script>
+   <!-- 多说公共JS代码 end -->
+ </section>
+ </section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Free-thoughts/" style="font-size: 10px;">Free thoughts</a> <a href="/tags/Music/" style="font-size: 15px;">Music</a> <a href="/tags/Technology/" style="font-size: 20px;">Technology</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2016/11/02/Scala-Closure/">Programming Notes(Scala Closure)</a>
+          </li>
+        
+          <li>
+            <a href="/2016/10/11/DAG/">DAG</a>
+          </li>
+        
+          <li>
+            <a href="/2016/09/10/Whisper/">Whisper</a>
+          </li>
+        
+          <li>
+            <a href="/2016/08/11/NaiveBayesian/">NaiveBayesian</a>
+          </li>
+        
+          <li>
+            <a href="/2016/07/10/RecycleView-in-Android/">RecycleView in Android</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner" style="text-align:center;">
+	  <table width="100%" border="0">
+        <tr>
+          <td style="text-align:left">
+            Copyright &copy; 2014-2016 John Frey &nbsp; &nbsp;
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a><br>
+	        Theme Landscape
+		  </td>
+		  <td style="text-align:right">
+		    <div style="font-family: FontAwesome;font-size: 20px;">
+		    <a href="http://weibo.com/2826643047" title="微博" target="_blank">&#61834;</a>&nbsp;	
+			<a href="https://github.com/JohnfyBUPT" title="GitHub" target="_blank">&#61595;</a>&nbsp;
+			</div><br>
+		  </td>
+        </tr>
+      </table>
+    </div>
+</div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+    <a href="/tags/Music/" class="mobile-nav-link">Music</a>
+  
+    <a href="/tags/Technology/" class="mobile-nav-link">Technology</a>
+  
+    <a href="/tags/Free-thoughts/" class="mobile-nav-link">Free thoughts</a>
+  
+</nav>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

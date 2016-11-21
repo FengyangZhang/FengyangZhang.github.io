@@ -3,20 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>DAG | John Frey@BUPT / 张枫旸的博客</title>
+  <title>RecycleView in Android | John Frey@BUPT / 张枫旸的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="关于自然语言处理中常用的DAG（有向无环图）使用的一点微小的理解。">
+  <meta name="description" content="An android recyclerView demo.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="DAG">
-<meta property="og:url" content="http://freydom.com/2016/10/11/DAG/index.html">
+<meta property="og:title" content="RecycleView in Android">
+<meta property="og:url" content="http://freydom.com/2016/07/10/RecycleView-in-Android/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / 张枫旸的博客">
-<meta property="og:description" content="关于自然语言处理中常用的DAG（有向无环图）使用的一点微小的理解。">
-<meta property="og:image" content="http://freydom.com/pic/2016-05-30-JiebaAnalysis/dag.png">
-<meta property="og:updated_time" content="2016-11-02T11:55:57.213Z">
+<meta property="og:description" content="An android recyclerView demo.">
+<meta property="og:updated_time" content="2016-11-21T05:32:17.475Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="DAG">
-<meta name="twitter:description" content="关于自然语言处理中常用的DAG（有向无环图）使用的一点微小的理解。">
-<meta name="twitter:image" content="http://freydom.com/pic/2016-05-30-JiebaAnalysis/dag.png">
+<meta name="twitter:title" content="RecycleView in Android">
+<meta name="twitter:description" content="An android recyclerView demo.">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / 张枫旸的博客" type="application/atom+xml">
   
@@ -76,10 +74,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-DAG" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-RecycleView-in-Android" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/10/11/DAG/" class="article-date">
-  <time datetime="2016-10-11T11:23:48.000Z" itemprop="datePublished">2016-10-11</time>
+    <a href="/2016/07/10/RecycleView-in-Android/" class="article-date">
+  <time datetime="2016-07-10T05:10:00.000Z" itemprop="datePublished">2016-07-10</time>
 </a>
     
   </div>
@@ -90,7 +88,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      DAG
+      RecycleView in Android
     </h1>
   
 
@@ -98,32 +96,20 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>关于自然语言处理中常用的DAG（有向无环图）使用的一点微小的理解。<br><a id="more"></a><br>最近又开始做自然语言处理的一些微小的工作。有一次处理的句子中含有“手术”这两个字，我查看了“手”、“术”和“手术”在字典中各自的频率之后发现，“手”字的频率高出“手术”很多，分词算法怎么是决定把“手术”作为一个整体分出来的?<br>要做到这一点，要做的就是根据字典里收录的词，把所有分词可能都列出来，再从中找一个最可能的组合。比如这句话“一个伸手不见五指的黑夜”。可以分成以下几种：</p>
-<pre><code>1.一、个、伸、手、不、见、五、指、的、黑、夜。
-2.一个、伸、手、不、见、五、指、的、黑、夜。
-3.一个、伸手、不、见、五、指、的、黑、夜。
-4......
-......
-</code></pre><p>差不多就是这样，那么以什么格式存储这些信息比较合适呢？本着最精简的原则，我们只看最少需要什么。首先，一个字具体是什么我们并不关心，我们只需要知道字的位置在哪，因此肯定是要将具体的字词用他们在句中的index表示。比如“一”字现在就是0，“夜”字现在就是10。其次，我们还需要知道词的位置在哪，每个字都可能是词的首部，所以我们只需要词的尾部。那么需要存储的信息就是一系列二元组，每个二元组的第一项是一个字的index，第二项是该字所有可组成词的词尾的index的集合。就是这样的一个集合。那么现在上面的信息被精炼成如下：</p>
-<pre><code>{(0,[0, 1]),(1,[1]),(2,[2, 3, 5, 7]),(3,[3]),(4,[4, 5]),(5,[5]),(6,[6, 7]),(7,[7]),(8,[8]),(9,[9, 10]),(10,[10])}
-</code></pre><p>图像化一点也就是下图所示的信息：<br><img src="/pic/2016-05-30-JiebaAnalysis/dag.png" alt="DAG示意图"><br>这种格式已经很接近我们要的东西，但是我们最想看到的其实是这些二元组的第二项都只有一个数字，这样从0出发，就只有唯一的一条路线到达10。要做到这一点我们需要额外的信息，也就是每个词的统计频率。知道这些频率之后,我们有很多方式去计算概率最大的一条路线，比如我们可以从头开始将每种可能都单独计算一遍。这样当然行得通，但是不难发现有很多信息被重复计算过不止一遍。因此从头开始算显然不是最聪明的办法，从尾开始才是最好的。<br>如何计算？首先，为这个DAG中的每个节点维护一个freq值，表示此点作为词头而有后面的句子的概率。这个freq值计算如下：</p>
-<pre><code>freq(index) = dfreq(index, tail) + freq(tail + 1)
-</code></pre><p>dfreq(index, tail)指以index为词头，tail为词尾的词在字典中的频率。index遍历DAG获得，tail遍历每个index对应的词尾集合获得。如果一个index对应多个tail，依次按上面公式算，最后选最大的那个即可。每算完一个点，将得到的freq值和tail的值记录下来，直到算到第一个点结束。结果是这样的：</p>
-<pre><code>10 [tail=10, freq=-9.635810961320582]
-9  [tail=10, freq=-11.362565600239641]
-8  [tail=8, freq=-16.62501610127819]
-......
-0  [tail=1, freq=-36.451496005714255]
-</code></pre><p>最后，从第一个点开始，我们可以得到且仅可以得到一条最大概率的路径，这就是我们对这个句子进行分词的结果。</p>
-<pre><code>[0, 1],[2, 7],[8, 8],[9, 10]
-[一个],[伸手不见五指],[的],[黑夜]
-</code></pre>
+        <p>An android recyclerView demo.<br><a id="more"></a></p>
+<h2 id="Features-1-Event-passing-from-adapter-to-activity"><a href="#Features-1-Event-passing-from-adapter-to-activity" class="headerlink" title="Features 1 : Event passing from adapter to activity"></a>Features 1 : Event passing from adapter to activity</h2><p>One way is to send otto messages,but a wiser way and the way I used here is to implement an interface which is declared in the adapter,then pass the activity’s handle to the adapter instance,then,when events are triggered,call the interface’s method,which will then call the implemented method in the activity next.</p>
+<h3 id="interface-in-the-adapter"><a href="#interface-in-the-adapter" class="headerlink" title="interface in the adapter"></a>interface in the adapter</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">interface</span> <span class="title">RecyclerViewImp</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">onItemClick</span><span class="params">(<span class="keyword">int</span> position)</span></span>;</span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">onItemLongClick</span><span class="params">(<span class="keyword">int</span> position)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="implement-the-interface"><a href="#implement-the-interface" class="headerlink" title="implement the interface"></a>implement the interface</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RecyclerActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> <span class="keyword">implements</span> <span class="title">PersonAdapter</span>.<span class="title">RecyclerViewImp</span></span></span><br></pre></td></tr></table></figure>
+<h3 id="Pass-the-activity-into-the-adapter"><a href="#Pass-the-activity-into-the-adapter" class="headerlink" title="Pass the activity into the adapter"></a>Pass the activity into the adapter</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adapter = <span class="keyword">new</span> PersonAdapter(personList);</span><br><span class="line">adapter.setOnRecyclerViewListener(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="When-event-is-triggered"><a href="#When-event-is-triggered" class="headerlink" title="When event is triggered"></a>When event is triggered</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != recyclerViewImp) &#123;</span><br><span class="line">            recyclerViewImp.onItemClick(<span class="keyword">this</span>.getPosition());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onLongClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != recyclerViewImp) &#123;</span><br><span class="line">            <span class="keyword">return</span> recyclerViewImp.onItemLongClick(<span class="keyword">this</span>.getPosition());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/JohnfyBUPT/RecyclerDemo" target="_blank" rel="external">https://github.com/JohnfyBUPT/RecyclerDemo</a></p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/10/11/DAG/" data-id="civrmzzso000gv4wcqb4yk8a1" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/07/10/RecycleView-in-Android/" data-id="civrmzzrv0002v4wcj4bm2ysb" class="article-share-link">Share</a>
       
-        <a href="http://freydom.com/2016/10/11/DAG/#ds-thread" class="article-comment-link">Comments</a>
+        <a href="http://freydom.com/2016/07/10/RecycleView-in-Android/#ds-thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
@@ -134,19 +120,19 @@
     
 <nav id="article-nav">
   
-    <a href="/2016/11/02/Scala-Closure/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2016/08/11/NaiveBayesian/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Newer</strong>
       <div class="article-nav-title">
         
-          Programming Notes(Scala Closure)
+          NaiveBayesian
         
       </div>
     </a>
   
   
-    <a href="/2016/09/10/Whisper/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2016/06/07/Game-of-Thrones-season-5/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Whisper</div>
+      <div class="article-nav-title">Game of Thrones season 6</div>
     </a>
   
 </nav>
@@ -157,7 +143,7 @@
 
  <section id="comments">
    <!-- 多说评论框 start -->
-   <div class="ds-thread" data-thread-key="post-DAG" data-title="DAG" data-url="http://freydom.com/2016/10/11/DAG/"></div>
+   <div class="ds-thread" data-thread-key="post-RecycleView-in-Android" data-title="RecycleView in Android" data-url="http://freydom.com/2016/07/10/RecycleView-in-Android/"></div>
    <!-- 多说评论框 end -->
    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
    <script type="text/javascript">
