@@ -390,6 +390,7 @@ body {
   float: left;
   margin-left: -15px;
 }
+.nav-icon-social,
 .nav-icon,
 .main-nav-link {
   float: left;
@@ -404,9 +405,22 @@ body {
   display: block;
   padding: 20px 15px;
 }
+.nav-icon-social:hover,
 .nav-icon:hover,
 .main-nav-link:hover {
   opacity: 1;
+}
+.nav-icon-social {
+  font-family: FontAwesome;
+  text-align: center;
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  right: 35px;
+  top: 0px;
+  padding: 10px 23px;
+  position: relative;
+  cursor: pointer;
 }
 .nav-icon {
   font-family: FontAwesome;
