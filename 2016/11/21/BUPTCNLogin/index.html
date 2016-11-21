@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Tag: Music | John Frey@BUPT / Fengyang Zhang&#39;s blog</title>
+  <title>BUPTCNLogin | John Frey@BUPT / Fengyang Zhang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="John Frey(or Chinese name as Fengyang Zhang)&apos;s website.">
-<meta property="og:type" content="website">
-<meta property="og:title" content="John Frey@BUPT / Fengyang Zhang's blog">
-<meta property="og:url" content="http://freydom.com/tags/Music/index.html">
+  <meta name="description" content="An automatic login script written in Python to save the labor to manually login to BUPT Campus Network for you.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUPTCNLogin">
+<meta property="og:url" content="http://freydom.com/2016/11/21/BUPTCNLogin/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / Fengyang Zhang's blog">
-<meta property="og:description" content="John Frey(or Chinese name as Fengyang Zhang)&apos;s website.">
+<meta property="og:description" content="An automatic login script written in Python to save the labor to manually login to BUPT Campus Network for you.">
+<meta property="og:updated_time" content="2016-11-21T07:19:37.158Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="John Frey@BUPT / Fengyang Zhang's blog">
-<meta name="twitter:description" content="John Frey(or Chinese name as Fengyang Zhang)&apos;s website.">
+<meta name="twitter:title" content="BUPTCNLogin">
+<meta name="twitter:description" content="An automatic login script written in Python to save the labor to manually login to BUPT Campus Network for you.">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / Fengyang Zhang&#39;s blog" type="application/atom+xml">
   
@@ -71,60 +72,86 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2016" class="archive-year">2016</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2016/05/10/Megadeth/" class="archive-article-date">
-  <time datetime="2016-05-10T15:45:57.000Z" itemprop="datePublished">May 10</time>
+        <section id="main"><article id="post-BUPTCNLogin" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/11/21/BUPTCNLogin/" class="article-date">
+  <time datetime="2016-11-21T06:53:07.000Z" itemprop="datePublished">2016-11-21</time>
 </a>
-      
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2016/05/10/Megadeth/">I&#39;m invincible, you might say despicable</a>
+    <h1 class="article-title" itemprop="name">
+      BUPTCNLogin
     </h1>
   
 
-    </header>
-  </div>
-</article>
-  
+      </header>
     
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2016/05/09/Paranoid-Android/" class="archive-article-date">
-  <time datetime="2016-05-09T08:33:21.000Z" itemprop="datePublished">May 9</time>
-</a>
+    <div class="article-entry" itemprop="articleBody">
       
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2016/05/09/Paranoid-Android/">I might be paranoid, but not an android.</a>
-    </h1>
-  
+        <p>An automatic login script written in Python to save the labor to manually login to BUPT Campus Network for you.<br><a id="more"></a></p>
+<h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/JohnfyBUPT/BUPTCNLogin" target="_blank" rel="external">https://github.com/JohnfyBUPT/BUPTCNLogin</a></p>
+<p>It is currently just a toy script that post a table to a server, and the server address should be specified by the user. The intuition is very simple, I read the post request that I send to the server after manually typed in username and password, and I decide that do it automatically everytime you start the machine is more convinient. </p>
+<p>However this is not that convinient, because very often when we connect to a wlan, we do not know whether it requires additional login steps to actually get connected to the outer Internet. Moreover, even when we know that it does, we can’t find where to type in our information, because the login web page may not pop out automatically, or they may take a while to pop out. In the current project, I assumed that the user has already known the login address, but what if he doesn’t? Wouldn’t it be better if we can automatically help him find the address and login for him?</p>
+<p>Then the process can be divided into two steps: </p>
+<pre><code>1. Find the server address. 
+2. Post the login table. 
+</code></pre><p>The first step will largely depend on the method the wifi provider chooses to redirect you to the login page, or his method of <strong>Captive Portal</strong>. Currently there are two ways to do this.</p>
+<h3 id="1-DNS-hold-up"><a href="#1-DNS-hold-up" class="headerlink" title="1. DNS hold up."></a>1. DNS hold up.</h3><p>When you send DNS packets, they rewrite the destination to their server, and provide you with their page. If you type in IP address instead of domain name, you will probably get a 404.</p>
+<h3 id="2-HTTP-redirect"><a href="#2-HTTP-redirect" class="headerlink" title="2. HTTP redirect."></a>2. HTTP redirect.</h3><p>Take advantage of the redirect feature of HTTP to redirect your request to their server.</p>
+<!-- more -->
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://freydom.com/2016/11/21/BUPTCNLogin/" data-id="civrpyc2n000pywwc9pxxafd2" class="article-share-link">Share</a>
+      
+        <a href="http://freydom.com/2016/11/21/BUPTCNLogin/#ds-thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
 
-    </header>
+    </footer>
   </div>
-</article>
+  
+    
+<nav id="article-nav">
   
   
-    </div></section>
+    <a href="/2016/11/02/Scala-Closure/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Programming Notes(Scala Closure)</div>
+    </a>
   
+</nav>
 
-</section>
+  
+</article>
+
+
+ <section id="comments">
+   <!-- 多说评论框 start -->
+   <div class="ds-thread" data-thread-key="post-BUPTCNLogin" data-title="BUPTCNLogin" data-url="http://freydom.com/2016/11/21/BUPTCNLogin/"></div>
+   <!-- 多说评论框 end -->
+   <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+   <script type="text/javascript">
+   var duoshuoQuery = {short_name:'freydom'};
+     (function() {
+       var ds = document.createElement('script');
+       ds.type = 'text/javascript';ds.async = true;
+       ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+       ds.charset = 'UTF-8';
+       (document.getElementsByTagName('head')[0] 
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+     })();
+     </script>
+   <!-- 多说公共JS代码 end -->
+ </section>
+ </section>
         
           <aside id="sidebar">
   
