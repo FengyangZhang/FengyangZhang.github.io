@@ -11,10 +11,15 @@
 <meta property="og:url" content="http://freydom.com/2016/11/21/BUPTCNLogin/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / Fengyang Zhang's blog">
 <meta property="og:description" content="An automatic login script written in Python to save the labor to manually login to BUPT Campus Network for you.">
-<meta property="og:updated_time" content="2016-11-21T07:19:37.158Z">
+<meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/DNSResponse.png">
+<meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/NotRealBaiduServer.png">
+<meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/302Moved.png">
+<meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/Redirected.png">
+<meta property="og:updated_time" content="2016-11-22T04:32:14.733Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="BUPTCNLogin">
 <meta name="twitter:description" content="An automatic login script written in Python to save the labor to manually login to BUPT Campus Network for you.">
+<meta name="twitter:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/DNSResponse.png">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / Fengyang Zhang&#39;s blog" type="application/atom+xml">
   
@@ -104,11 +109,21 @@
 </code></pre><p>The first step will largely depend on the method the wifi provider chooses to redirect you to the login page, or his method of <strong>Captive Portal</strong>. Currently there are two ways to do this.</p>
 <h3 id="1-DNS-hold-up"><a href="#1-DNS-hold-up" class="headerlink" title="1. DNS hold up."></a>1. DNS hold up.</h3><p>When you send DNS packets, they rewrite the destination to their server, and provide you with their page. If you type in IP address instead of domain name, you will probably get a 404.</p>
 <h3 id="2-HTTP-redirect"><a href="#2-HTTP-redirect" class="headerlink" title="2. HTTP redirect."></a>2. HTTP redirect.</h3><p>Take advantage of the redirect feature of HTTP to redirect your request to their server.</p>
+<p>So which one does our school choose? Let’s find out. </p>
+<h3 id="Is-it-DNS-hold-up"><a href="#Is-it-DNS-hold-up" class="headerlink" title="Is it DNS hold up?"></a>Is it DNS hold up?</h3><p>I curled baidu.com with wireshark capturing the packets, these are the DNS packets between me (10.202.10.245) and the DNS servers (10.3.9.*):<br><img src="/pic/2016-11-21-BUPTCNLogin/DNSResponse.png" alt="DNS packets"> </p>
+<p>The addresses given in the response are fraudulent: three of them are real baidu servers, but one of them (123.125.114.114) is not a baidu server.<br><img src="/pic/2016-11-21-BUPTCNLogin/NotRealBaiduServer.png" alt="not a baidu server"></p>
+<h3 id="Then"><a href="#Then" class="headerlink" title="Then?"></a>Then?</h3><p>Let’s capture HTTP packets now:<br><img src="/pic/2016-11-21-BUPTCNLogin/302Moved.png" alt="HTTP packets"> </p>
+<p>And this is how they do it! My HTTP packets are sent to the fake server in the DNS response, and the fake server gave me a 302 code, redirecting me to another address, which should be the login page of the campus network.</p>
+<p><img src="/pic/2016-11-21-BUPTCNLogin/Redirected.png" alt="Redirected"> </p>
+<p>Up till now, I’ve got the information I need for the script: I just need to capture the redirected address in the HTTP response packet, and post my table there. </p>
+<p>However there’s a question unanswered, if there are 4 addresses in the DNS response, what if I send HTTP request to the other three addresses, which are truly baidu servers? What’s more, if I know the IP address in the first place, can I curl the IP address directly to avoid the DNS fraud?</p>
+<p>After trying, the answer is I can’t. Obviously they have done some more sophisticated tricks in the lower layer, most likely transport layer, to avoid the direct IP visits.</p>
 <!-- more -->
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/11/21/BUPTCNLogin/" data-id="civrr6vjz000ixcwcfsf7ua0t" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/11/21/BUPTCNLogin/" data-id="civsy4hgr000dhswcbuj4x1rr" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/11/21/BUPTCNLogin/#ds-thread" class="article-comment-link">Comments</a>
       
