@@ -15,7 +15,9 @@
 <meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/NotRealBaiduServer.png">
 <meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/302Moved.png">
 <meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/Redirected.png">
-<meta property="og:updated_time" content="2016-11-22T04:32:14.733Z">
+<meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/10.3.8.211.png">
+<meta property="og:image" content="http://freydom.com/pic/2016-11-21-BUPTCNLogin/entireprocess.png">
+<meta property="og:updated_time" content="2016-11-23T03:06:56.084Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="BUPTCNLogin">
 <meta name="twitter:description" content="An automatic login script written in Python to save the labor to manually login to BUPT Campus Network for you.">
@@ -113,17 +115,19 @@
 <h3 id="Is-it-DNS-hold-up"><a href="#Is-it-DNS-hold-up" class="headerlink" title="Is it DNS hold up?"></a>Is it DNS hold up?</h3><p>I curled baidu.com with wireshark capturing the packets, these are the DNS packets between me (10.202.10.245) and the DNS servers (10.3.9.*):<br><img src="/pic/2016-11-21-BUPTCNLogin/DNSResponse.png" alt="DNS packets"> </p>
 <p>The addresses given in the response are fraudulent: three of them are real baidu servers, but one of them (123.125.114.114) is not a baidu server.<br><img src="/pic/2016-11-21-BUPTCNLogin/NotRealBaiduServer.png" alt="not a baidu server"></p>
 <h3 id="Then"><a href="#Then" class="headerlink" title="Then?"></a>Then?</h3><p>Let’s capture HTTP packets now:<br><img src="/pic/2016-11-21-BUPTCNLogin/302Moved.png" alt="HTTP packets"> </p>
-<p>And this is how they do it! My HTTP packets are sent to the fake server in the DNS response, and the fake server gave me a 302 code, redirecting me to another address, which should be the login page of the campus network.</p>
+<p>And this is the crucial step. My HTTP packets are sent to the fake server in the DNS response, and the fake server gave me a 302 code, redirecting me to another address, which should be the login page of the campus network.</p>
 <p><img src="/pic/2016-11-21-BUPTCNLogin/Redirected.png" alt="Redirected"> </p>
-<p>Up till now, I’ve got the information I need for the script: I just need to capture the redirected address in the HTTP response packet, and post my table there. </p>
-<p>However there’s a question unanswered, if there are 4 addresses in the DNS response, what if I send HTTP request to the other three addresses, which are truly baidu servers? What’s more, if I know the IP address in the first place, can I curl the IP address directly to avoid the DNS fraud?</p>
-<p>After trying, the answer is I can’t. Obviously they have done some more sophisticated tricks in the lower layer, most likely transport layer, to avoid the direct IP visits.</p>
-<!-- more -->
+<p><img src="/pic/2016-11-21-BUPTCNLogin/10.3.8.211.png" alt="10.3.8.211"></p>
+<p>However this cannot be the entire process. Because if they only use this simple trick, I can find several ways to evade it, like, directly type in real server IP. In this way I won’t send DNS query to the DNS server, so they have no chance to fraud me.</p>
+<p>Obviously they have done some more sophisticated tricks in the lower layer, most likely transport layer, to completely block the visit to outer servers. Let’s see how this is done, by capturing all the TCP packets in a single “curl 180.149.132.47” process:</p>
+<p><img src="/pic/2016-11-21-BUPTCNLogin/entireprocess.png" alt="entireTCPprocess"></p>
+<p>That’s the entire process. With basic knowledge of TCP protocol you can see through this image: TCP handshaking was successfully done, but then when we sent HTTP GET, the server responded with 302. Because 180.149.132.47 is a real baidu server, this shouldn’t have happened.</p>
+<p>So, the trick is the router listens to all the 80 ports (HTTP) of connected devices, if the destination address is an outside address, the router fakes a 302 response, redirecting to the login page. Then it doesn’t matter much whether they’ve done anything in the DNS process or TCP handshaking process.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/11/21/BUPTCNLogin/" data-id="civsy4hgr000dhswcbuj4x1rr" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/11/21/BUPTCNLogin/" data-id="civubfoim000hv4wckmxul32z" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/11/21/BUPTCNLogin/#ds-thread" class="article-comment-link">Comments</a>
       
