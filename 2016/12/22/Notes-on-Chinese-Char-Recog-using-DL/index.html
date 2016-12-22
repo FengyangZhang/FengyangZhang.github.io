@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Chinese Character Recognition using DL | John Frey@BUPT / Fengyang Zhang&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Some brief notes for those who wish to get some quick information on Chinese Character Recognition using Deep Learning.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chinese Character Recognition using DL">
+<meta property="og:url" content="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/index.html">
+<meta property="og:site_name" content="John Frey@BUPT / Fengyang Zhang's blog">
+<meta property="og:description" content="Some brief notes for those who wish to get some quick information on Chinese Character Recognition using Deep Learning.">
+<meta property="og:updated_time" content="2016-12-22T08:17:21.914Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chinese Character Recognition using DL">
+<meta name="twitter:description" content="Some brief notes for those who wish to get some quick information on Chinese Character Recognition using Deep Learning.">
+  
+    <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / Fengyang Zhang&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">John Frey@BUPT / Fengyang Zhang&#39;s blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Electronic Information Engineering senior.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/about">About</a>
+        
+          <a class="main-nav-link" href="/tags/Music/">Music</a>
+        
+          <a class="main-nav-link" href="/tags/Technology/">Technology</a>
+        
+          <a class="main-nav-link" href="/tags/Free-thoughts/">Free thoughts</a>
+        
+      </nav>
+      <nav id="sub-nav">
+      <a class="nav-icon-social" href="https://github.com/JohnfyBUPT" title="Github" target="_blank"><img src="/css/images/github.png"></a>
+        
+          <!-- <a id="nav-rss-link" class="nav-icon" href="https://github.com/JohnfyBUPT" title="My Github"></a> -->
+        
+      </nav>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Notes-on-Chinese-Char-Recog-using-DL" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/" class="article-date">
+  <time datetime="2016-12-22T02:48:00.000Z" itemprop="datePublished">2016-12-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Chinese Character Recognition using DL
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Some brief notes for those who wish to get some quick information on Chinese Character Recognition using Deep Learning.<br><a id="more"></a></p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>It’s plain to see that Chinese Character Recognition is a very challenging field in Pattern Recognition and Machine Learning, because of its huge amount of classes (compared to languages like English or French), and also because the writing style varies among one person to another, thanks to the complexity of Chinese characters.<br>I am doing some research on this topic, so I’ve gathered some information, and this article is primarily about these information.<br>Traditional methods to recognize Chinese characters mainly contain three parts: </p>
+<pre><code>1.preprocessing
+2.feature extracting
+3.classification
+</code></pre><p>I don’t want to extend too much on the specific methods, because they are not doing good enough compared to methods equipped with Deep Learning.</p>
+<h1 id="Methods-with-Deep-Learning"><a href="#Methods-with-Deep-Learning" class="headerlink" title="Methods with Deep Learning"></a>Methods with Deep Learning</h1><h2 id="End-to-end-CNN-method"><a href="#End-to-end-CNN-method" class="headerlink" title="End-to-end CNN method:"></a>End-to-end CNN method:</h2><ol>
+<li>Lenet5CNN on hand-written English letter and digits recognition, Yann Lecun et al.<br>This is, like, the very crucial network to make CNN a popular architecture, and it achieves 99.05% on MNIST, which is a hand-written digits database.</li>
+<li>CNN with Data Augmentation, Simard et al.<br>By using elastic distortion and affine distortion, they achieved better result (99.6%) than the original Lenet architecture.<br>But these are all just digits, they can also be easily applied to English characters, which is not of a big amount. However when it comes to Chinese characters, these are not sufficient.</li>
+<li>Chinese character recognition on 1000 classes, IDSIA.<br>In 2011, scholars in Switzerland firstly used GPUs to train CNN, and achieved recognition with a relatively large class number. They got 89.12% on NIST SD19, and 99.72% on MNIST. Based on this method they also got outstanding performance on ICDAR2011.</li>
+<li>Multi-column Deep Neural Networks (MCDNN), IDSIA.<br>In 2012, scientists in IDSIA came up with a method to train multiple CNN on multiple GPUs, and perform simple integration on their decisions, achieving state-of-the-art performance on CASIA-OLHWDB1.1 online dataset. They also got 93.5% on offline dataset, which is better than ICDAR2011. In ICDAR2013 online and offline Chinese Character Recognition, both winning team (Fei Yin et al.) used CNN architecture.</li>
+</ol>
+<p>There are some points to be cleared:<br>First, the difference between online and offline dataset is, an online dataset includes the stroke trajectory, which can be utilized, while the offline dataset doesn’t have this advantage. So naturally the methods towards these two are slightly different, and state-of-the-art accuracy on online datasets are slightly better than that on offline datasets, at least until recently.<br>Second, there are there hand-written datasets mentioned before: MNIST, NIST-SD19 and CASIA. MNIST is a database of handwritten digits which has a training set of 60,000 examples, and a test set of 10,000 examples. It is a subset of a larger set available from NIST; NIST-SD19 is a Special Dataset from NIST, which contains NIST’s entire corpus of training materials for handprinted document and character recognition. CASIA-OLHWDB and CASIA-HWDB are the online and offline Chinese handwriting databases, built by the National Laboratory of Pattern Recognition (NLPR), Institute of Automation of Chinese Academy of Sciences (CASIA). </p>
+<h2 id="CNN-method-with-additional-information"><a href="#CNN-method-with-additional-information" class="headerlink" title="CNN method with additional information:"></a>CNN method with additional information:</h2><p>The end-to-end method didn’t take full advantage of many field-specific information. These information ca be beneficial to recognition, and they cannot be learned by CNNs themselves.</p>
+<ol>
+<li>CNN with Data Generating.<br>In many situations we have not enough training samples, thus Data Augmentation is a very important technology.<br>In 2015, Beyond human recognition:a CNN-based framework for handwritten character recognition, Chen L et al. proposed a deeper CNN architecture, at the same time incorporated Data Augmentation, used 5 CNN to vote, and they got a result of 96.79% on Offline Dataset, which is also the best result as far.</li>
+<li>CNN with directional features.<br>In Spatially-sparse convolutional neural networks, Graham not only proposed a spatially-sparse CNN model, but he also introduced a method called Signature of Path, which is an online time-sequenced feature extraction method. Yang et al. got the best result on NLPR so far using this method with CNN. Some directional feature can also be applied to offline datasets, see HCCR-GoogLeNet model.</li>
+</ol>
+<h2 id="Other-refined-CNN-methods"><a href="#Other-refined-CNN-methods" class="headerlink" title="Other refined CNN methods:"></a>Other refined CNN methods:</h2><p>There are also methods that are focused on doing changes on the network architecture and training process.</p>
+<ol>
+<li>Fractional Max-pooling (FMP).<br>This method is proposed by Graham, and the main idea is to change the stride in Max-pooling to some random fraction between 1 and 2, rather than an integer like before. It’s proved that this trick can prevent overly-quick information loss.</li>
+<li>DropSample.<br>Yang et al. proposed this method, its main idea is to give a weight to every sample in a mini-batch, and change the probability of these samples to be picked into training according to these weights, which is based on the CNN’s output confidence of each sample. Train multiple CNN like this, and integrate them. This method has the best performance on ICDAR2013 up till now.</li>
+<li>Relaxation CNN(R-CNN)<br>The main feature of R-CNN is it does not do weight sharing in conv layers, in order to let the neurons learn different feature separately, but an obvious problem is this is going to use much more memory.</li>
+<li>Alternately training CNN (ART-CNN)<br>This method proposed a strategy to dynamically adjust the learning rate. After every N round, it random pick a weight matrix, and set its learning rate to 0, thus greatly improve the training speed.<h2 id="RNN-LSTM-method"><a href="#RNN-LSTM-method" class="headerlink" title="RNN / LSTM method:"></a>RNN / LSTM method:</h2>It is interesting and actually reasonable to think that RNN’s ability to incorporate sequence information can be favorable to Chinese Character Recognition. In 2015, researchers first tried to use RNN on the top of CNN for character recognition. They use CNN to provide a feature sequence, and feed the sequence into an RNN. In fact, this is also kind of an end-to-end method.</li>
+</ol>
+<h1 id="What’s-next"><a href="#What’s-next" class="headerlink" title="What’s next?"></a>What’s next?</h1><p>I think some big companies have already been doing researches on this topic, and they have really big machines with, say, a thousand chips of GPU on each of them. They can thus train an enormous end-to-end CNN which probably can classify ten thousands classes or more. But methods with a little field-specific knowledge is also good to try. Moreover, I think combine RNN on the top of CNN is really a good point which may see its popularity goes up.</p>
+<h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><p><em>JIN Lian-Wen, ZHONG Zhuo-Yao, YANG Zhao, YANG Wei-Xin, XIE Ze-Cheng, SUN Jun. Applications of Deep Learning for Handwritten Chinese Character Recognition: A Review. Acta Automatica Sinica, 2016, 42(8):1125-1141</em>.<br><em>Yin F, Wang Q F, Zhang X Y, Liu C L. ICDAR 2013 Chinese handwriting recognition competition. In:Proceedings of the 12th International Conference on Document Analysis and Recognition. Washington, DC, USA:IEEE, 2013.1464-1470</em><br><em>Graham B. Spatially-sparse convolutional neural networks. arXiv:1409.6070, 2014.</em><br><em>Cireçsan D C, Meier U, Schmidhuber J. Transfer learning for Latin and Chinese characters with deep neural networks. In:Proceedings of the 2012 International Joint Conference on Neural Networks. Brisbane, QLD:IEEE, 2012.1-6</em><br><em>Chen G, Zhang H G, Guo J. Learning pattern generation for handwritten Chinese character using pattern transform method with cosine function. In:Proceedings of the 2006 International Conference on Machine Learning and Cybernetics. Dalian, China:IEEE, 2006.3329-3333</em><br><em>Yang W X, Jin L W, Liu M F. Character-level Chinese writer identification using path signature feature, dropstroke and deep CNN. arXiv:1505.04922, 2015.</em></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/" data-id="ciwzrrlnt000e98wcupoyh8nj" class="article-share-link">Share</a>
+      
+        <a href="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/#ds-thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2016/12/15/ThreeLayerBP/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">ThreeLayerBP</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+ <section id="comments">
+   <!-- 多说评论框 start -->
+   <div class="ds-thread" data-thread-key="post-Notes-on-Chinese-Char-Recog-using-DL" data-title="Chinese Character Recognition using DL" data-url="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/"></div>
+   <!-- 多说评论框 end -->
+   <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+   <script type="text/javascript">
+   var duoshuoQuery = {short_name:'freydom'};
+     (function() {
+       var ds = document.createElement('script');
+       ds.type = 'text/javascript';ds.async = true;
+       ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+       ds.charset = 'UTF-8';
+       (document.getElementsByTagName('head')[0] 
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+     })();
+     </script>
+   <!-- 多说公共JS代码 end -->
+ </section>
+ </section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Free-thoughts/" style="font-size: 10px;">Free thoughts</a> <a href="/tags/Music/" style="font-size: 15px;">Music</a> <a href="/tags/Technology/" style="font-size: 20px;">Technology</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/">Chinese Character Recognition using DL</a>
+          </li>
+        
+          <li>
+            <a href="/2016/12/15/ThreeLayerBP/">ThreeLayerBP</a>
+          </li>
+        
+          <li>
+            <a href="/2016/11/21/BUPTCNLogin/">BUPTCNLogin</a>
+          </li>
+        
+          <li>
+            <a href="/2016/11/02/Scala-Closure/">Programming Notes(Scala Closure)</a>
+          </li>
+        
+          <li>
+            <a href="/2016/10/11/DAG/">DAG</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner" style="text-align:center;">
+	  <table width="100%" border="0">
+        <tr>
+          <td style="text-align:left">
+            Copyright &copy; 2014-2016 John Frey &nbsp; &nbsp;
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a><br>
+	        Theme Landscape
+		  </td>
+		  <td style="text-align:right">
+		    <div style="font-family: FontAwesome;font-size: 20px;">
+		    <a href="http://weibo.com/2826643047" title="微博" target="_blank">&#61834;</a>&nbsp;	
+			<a href="https://github.com/JohnfyBUPT" title="GitHub" target="_blank">&#61595;</a>&nbsp;
+			</div><br>
+		  </td>
+        </tr>
+      </table>
+    </div>
+</div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+    <a href="/tags/Music/" class="mobile-nav-link">Music</a>
+  
+    <a href="/tags/Technology/" class="mobile-nav-link">Technology</a>
+  
+    <a href="/tags/Free-thoughts/" class="mobile-nav-link">Free thoughts</a>
+  
+</nav>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
