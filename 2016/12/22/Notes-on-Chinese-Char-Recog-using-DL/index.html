@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Chinese Character Recognition using DL | John Frey@BUPT / Fengyang Zhang&#39;s blog</title>
+  <title>Handwritten Chinese Character Recognition using DL | John Frey@BUPT / Fengyang Zhang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Some brief notes for those who wish to get some quick information on Chinese Character Recognition using Deep Learning.">
+  <meta name="description" content="Some brief notes for those who wish to get some quick information on Handwritten Chinese Character Recognition (HCCR) using Deep Learning.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Chinese Character Recognition using DL">
+<meta property="og:title" content="Handwritten Chinese Character Recognition using DL">
 <meta property="og:url" content="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / Fengyang Zhang's blog">
-<meta property="og:description" content="Some brief notes for those who wish to get some quick information on Chinese Character Recognition using Deep Learning.">
-<meta property="og:updated_time" content="2016-12-22T08:17:21.914Z">
+<meta property="og:description" content="Some brief notes for those who wish to get some quick information on Handwritten Chinese Character Recognition (HCCR) using Deep Learning.">
+<meta property="og:updated_time" content="2016-12-23T10:01:32.931Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Chinese Character Recognition using DL">
-<meta name="twitter:description" content="Some brief notes for those who wish to get some quick information on Chinese Character Recognition using Deep Learning.">
+<meta name="twitter:title" content="Handwritten Chinese Character Recognition using DL">
+<meta name="twitter:description" content="Some brief notes for those who wish to get some quick information on Handwritten Chinese Character Recognition (HCCR) using Deep Learning.">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / Fengyang Zhang&#39;s blog" type="application/atom+xml">
   
@@ -86,7 +86,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Chinese Character Recognition using DL
+      Handwritten Chinese Character Recognition using DL
     </h1>
   
 
@@ -94,7 +94,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Some brief notes for those who wish to get some quick information on Chinese Character Recognition using Deep Learning.<br><a id="more"></a></p>
+        <p>Some brief notes for those who wish to get some quick information on Handwritten Chinese Character Recognition (HCCR) using Deep Learning.<br><a id="more"></a></p>
 <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>It’s plain to see that Chinese Character Recognition is a very challenging field in Pattern Recognition and Machine Learning, because of its huge amount of classes (compared to languages like English or French), and also because the writing style varies among one person to another, thanks to the complexity of Chinese characters.<br>I am doing some research on this topic, so I’ve gathered some information, and this article is primarily about these information.<br>Traditional methods to recognize Chinese characters mainly contain three parts: </p>
 <pre><code>1.preprocessing
 2.feature extracting
@@ -117,15 +117,19 @@
 <li>Fractional Max-pooling (FMP).<br>This method is proposed by Graham, and the main idea is to change the stride in Max-pooling to some random fraction between 1 and 2, rather than an integer like before. It’s proved that this trick can prevent overly-quick information loss.</li>
 <li>DropSample.<br>Yang et al. proposed this method, its main idea is to give a weight to every sample in a mini-batch, and change the probability of these samples to be picked into training according to these weights, which is based on the CNN’s output confidence of each sample. Train multiple CNN like this, and integrate them. This method has the best performance on ICDAR2013 up till now.</li>
 <li>Relaxation CNN(R-CNN)<br>The main feature of R-CNN is it does not do weight sharing in conv layers, in order to let the neurons learn different feature separately, but an obvious problem is this is going to use much more memory.</li>
-<li>Alternately training CNN (ART-CNN)<br>This method proposed a strategy to dynamically adjust the learning rate. After every N round, it random pick a weight matrix, and set its learning rate to 0, thus greatly improve the training speed.<h2 id="RNN-LSTM-method"><a href="#RNN-LSTM-method" class="headerlink" title="RNN / LSTM method:"></a>RNN / LSTM method:</h2>It is interesting and actually reasonable to think that RNN’s ability to incorporate sequence information can be favorable to Chinese Character Recognition. In 2015, researchers first tried to use RNN on the top of CNN for character recognition. They use CNN to provide a feature sequence, and feed the sequence into an RNN. In fact, this is also kind of an end-to-end method.</li>
+<li>Alternately training CNN (ART-CNN)<br>This method proposed a strategy to dynamically adjust the learning rate. After every N round, it random pick a weight matrix, and set its learning rate to 0, thus greatly improve the training speed.</li>
 </ol>
-<h1 id="What’s-next"><a href="#What’s-next" class="headerlink" title="What’s next?"></a>What’s next?</h1><p>I think some big companies have already been doing researches on this topic, and they have really big machines with, say, a thousand chips of GPU on each of them. They can thus train an enormous end-to-end CNN which probably can classify ten thousands classes or more. But methods with a little field-specific knowledge is also good to try. Moreover, I think combine RNN on the top of CNN is really a good point which may see its popularity goes up.</p>
+<h2 id="RNN-LSTM-method"><a href="#RNN-LSTM-method" class="headerlink" title="RNN / LSTM method:"></a>RNN / LSTM method:</h2><p>It is interesting and actually reasonable to think that RNN’s ability to incorporate sequence information can be favorable to Chinese Character Recognition. In 2015, researchers first tried to use RNN on the top of CNN for character recognition. They use CNN to provide a feature sequence, and feed the sequence into an RNN. In fact, this is also kind of an end-to-end method.</p>
+<h1 id="What’s-next"><a href="#What’s-next" class="headerlink" title="What’s next?"></a>What’s next?</h1><p>I think some big companies have already been doing researches on this topic, and they have really big machines with, say, a thousand chips of GPU on each of them. They can thus train an enormous end-to-end CNN which probably can classify ten thousands classes or more. But methods with a little field-specific knowledge is also good to try. Moreover, I think combine RNN on the top of CNN is really a good point which may see its popularity goes up. As a summary, I think to achieve better and better result in HCCR, one or several points in the following should be paid attention to:</p>
+<h2 id="Adequate-training-dataset"><a href="#Adequate-training-dataset" class="headerlink" title="Adequate training dataset"></a>Adequate training dataset</h2><p>Although we have many mature dataset as introduced before, it is not enough. As a workaround solution, we could rely on Data Augmentation more to generate training set.</p>
+<h2 id="Field-specific-knowledge"><a href="#Field-specific-knowledge" class="headerlink" title="Field-specific knowledge"></a>Field-specific knowledge</h2><p>We can also refer to some field-specific knowledge, which means we can make some use of the features like directional features in Chinese handwritings. Namely Gabor feature and Gradient feature in offline HCCR, eight-directional feature in online HCCR.</p>
+<h2 id="Great-computation-ability"><a href="#Great-computation-ability" class="headerlink" title="Great computation ability"></a>Great computation ability</h2><p>Talking in a more data-driven way, the computation ability is always the greater, the better. We can just increase the size of the network, as long as the memory of the GPU can hold it, and as long as it doesn’t cost much time.</p>
 <h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><p><em>JIN Lian-Wen, ZHONG Zhuo-Yao, YANG Zhao, YANG Wei-Xin, XIE Ze-Cheng, SUN Jun. Applications of Deep Learning for Handwritten Chinese Character Recognition: A Review. Acta Automatica Sinica, 2016, 42(8):1125-1141</em>.<br><em>Yin F, Wang Q F, Zhang X Y, Liu C L. ICDAR 2013 Chinese handwriting recognition competition. In:Proceedings of the 12th International Conference on Document Analysis and Recognition. Washington, DC, USA:IEEE, 2013.1464-1470</em><br><em>Graham B. Spatially-sparse convolutional neural networks. arXiv:1409.6070, 2014.</em><br><em>Cireçsan D C, Meier U, Schmidhuber J. Transfer learning for Latin and Chinese characters with deep neural networks. In:Proceedings of the 2012 International Joint Conference on Neural Networks. Brisbane, QLD:IEEE, 2012.1-6</em><br><em>Chen G, Zhang H G, Guo J. Learning pattern generation for handwritten Chinese character using pattern transform method with cosine function. In:Proceedings of the 2006 International Conference on Machine Learning and Cybernetics. Dalian, China:IEEE, 2006.3329-3333</em><br><em>Yang W X, Jin L W, Liu M F. Character-level Chinese writer identification using path signature feature, dropstroke and deep CNN. arXiv:1505.04922, 2015.</em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/" data-id="ciwzrrlnt000e98wcupoyh8nj" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/" data-id="cix1kyvaa000jakwc2uu4tlzs" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/#ds-thread" class="article-comment-link">Comments</a>
       
@@ -152,7 +156,7 @@
 
  <section id="comments">
    <!-- 多说评论框 start -->
-   <div class="ds-thread" data-thread-key="post-Notes-on-Chinese-Char-Recog-using-DL" data-title="Chinese Character Recognition using DL" data-url="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/"></div>
+   <div class="ds-thread" data-thread-key="post-Notes-on-Chinese-Char-Recog-using-DL" data-title="Handwritten Chinese Character Recognition using DL" data-url="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/"></div>
    <!-- 多说评论框 end -->
    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
    <script type="text/javascript">
@@ -201,7 +205,7 @@
       <ul>
         
           <li>
-            <a href="/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/">Chinese Character Recognition using DL</a>
+            <a href="/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/">Handwritten Chinese Character Recognition using DL</a>
           </li>
         
           <li>
