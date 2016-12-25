@@ -11,7 +11,7 @@
 <meta property="og:url" content="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / Fengyang Zhang's blog">
 <meta property="og:description" content="Some brief notes for those who wish to get some quick information on Handwritten Chinese Character Recognition (HCCR) using Deep Learning.">
-<meta property="og:updated_time" content="2016-12-23T10:01:32.931Z">
+<meta property="og:updated_time" content="2016-12-25T02:39:09.927Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Handwritten Chinese Character Recognition using DL">
 <meta name="twitter:description" content="Some brief notes for those who wish to get some quick information on Handwritten Chinese Character Recognition (HCCR) using Deep Learning.">
@@ -110,7 +110,8 @@
 <h2 id="CNN-method-with-additional-information"><a href="#CNN-method-with-additional-information" class="headerlink" title="CNN method with additional information:"></a>CNN method with additional information:</h2><p>The end-to-end method didn’t take full advantage of many field-specific information. These information ca be beneficial to recognition, and they cannot be learned by CNNs themselves.</p>
 <ol>
 <li>CNN with Data Generating.<br>In many situations we have not enough training samples, thus Data Augmentation is a very important technology.<br>In 2015, Beyond human recognition:a CNN-based framework for handwritten character recognition, Chen L et al. proposed a deeper CNN architecture, at the same time incorporated Data Augmentation, used 5 CNN to vote, and they got a result of 96.79% on Offline Dataset, which is also the best result as far.</li>
-<li>CNN with directional features.<br>In Spatially-sparse convolutional neural networks, Graham not only proposed a spatially-sparse CNN model, but he also introduced a method called Signature of Path, which is an online time-sequenced feature extraction method. Yang et al. got the best result on NLPR so far using this method with CNN. Some directional feature can also be applied to offline datasets, see HCCR-GoogLeNet model.</li>
+<li>CNN with Shape Normalization.<br>Shape normalization can be viewed as a coordinate mapping in continuous 2D space between original and normalized characters. Two of the algorithms used for shape norm is Line Density Projection Interpolation (LDPI) for offline characters and pseudo 2D bi-moment normalization (P2DBMN) for online characters.</li>
+<li>CNN with directional features.<br>For offline characters, because we don’t have the stroke trace information, so we should make good use of the gradient feature of the image. For edge detection, we can use Sobel Operation or Gabor feature.<br>For online characters, In his paper Spatially-sparse convolutional neural networks, Graham not only proposed a spatially-sparse CNN model, but he also introduced a method called Signature of Path, which is an online time-sequenced feature extraction method. Yang et al. got the best result on NLPR so far using this method with CNN. Some directional feature can also be applied to offline datasets, see HCCR-GoogLeNet model.</li>
 </ol>
 <h2 id="Other-refined-CNN-methods"><a href="#Other-refined-CNN-methods" class="headerlink" title="Other refined CNN methods:"></a>Other refined CNN methods:</h2><p>There are also methods that are focused on doing changes on the network architecture and training process.</p>
 <ol>
@@ -129,7 +130,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/" data-id="cix1kyvaa000jakwc2uu4tlzs" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/" data-id="cix3x38zs000i9cwcwv1cf5gb" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/#ds-thread" class="article-comment-link">Comments</a>
       
