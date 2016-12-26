@@ -3,18 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>RecycleView in Android | John Frey@BUPT / Fengyang Zhang&#39;s blog</title>
+  <title>Notes on three Handwritten Chinese Character Recognition Models | John Frey@BUPT / Fengyang Zhang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="An android recyclerView demo.">
+  <meta name="description" content="This is a follow-up to the last blog about HCCR, to explore more on three of the HCCR models in the last blog.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="RecycleView in Android">
-<meta property="og:url" content="http://freydom.com/2016/07/10/RecycleView-in-Android/index.html">
+<meta property="og:title" content="Notes on three Handwritten Chinese Character Recognition Models">
+<meta property="og:url" content="http://freydom.com/2016/12/26/Notes-on-three-Handwritten-Chinese-Char-Rec-Models/index.html">
 <meta property="og:site_name" content="John Frey@BUPT / Fengyang Zhang's blog">
-<meta property="og:description" content="An android recyclerView demo.">
-<meta property="og:updated_time" content="2016-11-21T05:32:17.475Z">
+<meta property="og:description" content="This is a follow-up to the last blog about HCCR, to explore more on three of the HCCR models in the last blog.">
+<meta property="og:image" content="http://freydom.com/pic/2016-12-26-HCCRModels/CNNwithSampleGen.png">
+<meta property="og:updated_time" content="2016-12-26T08:30:17.709Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="RecycleView in Android">
-<meta name="twitter:description" content="An android recyclerView demo.">
+<meta name="twitter:title" content="Notes on three Handwritten Chinese Character Recognition Models">
+<meta name="twitter:description" content="This is a follow-up to the last blog about HCCR, to explore more on three of the HCCR models in the last blog.">
+<meta name="twitter:image" content="http://freydom.com/pic/2016-12-26-HCCRModels/CNNwithSampleGen.png">
   
     <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / Fengyang Zhang&#39;s blog" type="application/atom+xml">
   
@@ -72,10 +74,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-RecycleView-in-Android" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-Notes-on-three-Handwritten-Chinese-Char-Rec-Models" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/07/10/RecycleView-in-Android/" class="article-date">
-  <time datetime="2016-07-10T05:10:00.000Z" itemprop="datePublished">2016-07-10</time>
+    <a href="/2016/12/26/Notes-on-three-Handwritten-Chinese-Char-Rec-Models/" class="article-date">
+  <time datetime="2016-12-26T07:29:53.000Z" itemprop="datePublished">2016-12-26</time>
 </a>
     
   </div>
@@ -86,7 +88,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      RecycleView in Android
+      Notes on three Handwritten Chinese Character Recognition Models
     </h1>
   
 
@@ -94,20 +96,21 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>An android recyclerView demo.<br><a id="more"></a></p>
-<h2 id="Features-1-Event-passing-from-adapter-to-activity"><a href="#Features-1-Event-passing-from-adapter-to-activity" class="headerlink" title="Features 1 : Event passing from adapter to activity"></a>Features 1 : Event passing from adapter to activity</h2><p>One way is to send otto messages,but a wiser way and the way I used here is to implement an interface which is declared in the adapter,then pass the activity’s handle to the adapter instance,then,when events are triggered,call the interface’s method,which will then call the implemented method in the activity next.</p>
-<h3 id="interface-in-the-adapter"><a href="#interface-in-the-adapter" class="headerlink" title="interface in the adapter"></a>interface in the adapter</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">interface</span> <span class="title">RecyclerViewImp</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">onItemClick</span><span class="params">(<span class="keyword">int</span> position)</span></span>;</span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">onItemLongClick</span><span class="params">(<span class="keyword">int</span> position)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="implement-the-interface"><a href="#implement-the-interface" class="headerlink" title="implement the interface"></a>implement the interface</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RecyclerActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> <span class="keyword">implements</span> <span class="title">PersonAdapter</span>.<span class="title">RecyclerViewImp</span></span></span><br></pre></td></tr></table></figure>
-<h3 id="Pass-the-activity-into-the-adapter"><a href="#Pass-the-activity-into-the-adapter" class="headerlink" title="Pass the activity into the adapter"></a>Pass the activity into the adapter</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adapter = <span class="keyword">new</span> PersonAdapter(personList);</span><br><span class="line">adapter.setOnRecyclerViewListener(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
-<h3 id="When-event-is-triggered"><a href="#When-event-is-triggered" class="headerlink" title="When event is triggered"></a>When event is triggered</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != recyclerViewImp) &#123;</span><br><span class="line">            recyclerViewImp.onItemClick(<span class="keyword">this</span>.getPosition());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onLongClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != recyclerViewImp) &#123;</span><br><span class="line">            <span class="keyword">return</span> recyclerViewImp.onItemLongClick(<span class="keyword">this</span>.getPosition());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/JohnfyBUPT/RecyclerDemo" target="_blank" rel="external">https://github.com/JohnfyBUPT/RecyclerDemo</a></p>
-
+        <p>This is a follow-up to the last blog about HCCR, to explore more on three of the HCCR models in the last blog.<br><a id="more"></a></p>
+<h1 id="1-MCDNN-IDSIA"><a href="#1-MCDNN-IDSIA" class="headerlink" title="1. MCDNN, IDSIA"></a>1. MCDNN, IDSIA</h1><p>This model is the 2011 ICDAR winner and should-be winner of the 2013 ICDAR if they submitted the right preprocessing code. The model is named Multi-column Deep Convolutional Neural Network. The best MCDNN has 8 CNNs, all of which are 11-layered.</p>
+<h1 id="2-Beyond-Human-Recognition-Fujitsu-R-amp-D-center"><a href="#2-Beyond-Human-Recognition-Fujitsu-R-amp-D-center" class="headerlink" title="2. Beyond Human Recognition, Fujitsu R &amp; D center"></a>2. Beyond Human Recognition, Fujitsu R &amp; D center</h1><p>This model claims to be the first to surpass human performance on MNIST and CASIA datasets. It’s architecture is as follows:<br><img src="/pic/2016-12-26-HCCRModels/CNNwithSampleGen.png" alt="模型示意图"></p>
+<p>There model can be divided into three parts: Sample Generation, CNN and Voting.<br>First in the sample generation part, they applied distortion both locally and globally. They didn’t use normalization because that’s contrictory with distortion. The local distortion add a small displacement to the original image on x, y coordinates and gray scale value respectively, and then Gaussian smoothing is applied, as well as bilinear interpolation. The global distortion includes some global transformations such as scaling and rotation. The distorted images are then used to train the CNNs.</p>
+<p>For CASIA, they used a 15-layer network, represented as This network can be represented as</p>
+<pre><code>In-96Conv5-96MaxP3-128Conv3-192Conv3-256Conv3-256MaxP3-352Conv3-480Conv3-512Conv3-256MaxP3-512Conv3-640Conv3-640MaxP3-4096Full1-Out
+</code></pre><p>In the training, they mainly used dropout and multi-supervised training, which is crucial for their model to converge during training.</p>
+<p>Last thing they do is multi-model voting. They used 5 model with the same architecture to vote, and higher accuracy is achieved. However I think this process costs too much extra memory and time, though therotically they should be good to the result, because they are trained on slightly different data (random distorted) and they may have reached at different local optimum. As a result this strategy lowered the error rate by 0.2%.</p>
+<h1 id="3-New-Benchmark-Xu-yao-Zhang-Yoshua-Bengio-et-al"><a href="#3-New-Benchmark-Xu-yao-Zhang-Yoshua-Bengio-et-al" class="headerlink" title="3. New Benchmark, Xu-yao Zhang, Yoshua Bengio et al."></a>3. New Benchmark, Xu-yao Zhang, Yoshua Bengio et al.</h1>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/07/10/RecycleView-in-Android/" data-id="cix5rkgxx0005rkwce8ap10ff" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/12/26/Notes-on-three-Handwritten-Chinese-Char-Rec-Models/" data-id="cix5rkgyd000hrkwcn59cce1r" class="article-share-link">Share</a>
       
-        <a href="http://freydom.com/2016/07/10/RecycleView-in-Android/#ds-thread" class="article-comment-link">Comments</a>
+        <a href="http://freydom.com/2016/12/26/Notes-on-three-Handwritten-Chinese-Char-Rec-Models/#ds-thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
@@ -118,19 +121,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2016/08/11/NaiveBayesian/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          NaiveBayesian
-        
-      </div>
-    </a>
   
-  
-    <a href="/2016/06/07/Game-of-Thrones-season-5/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2016/12/22/Notes-on-Chinese-Char-Recog-using-DL/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Game of Thrones season 6</div>
+      <div class="article-nav-title">Handwritten Chinese Character Recognition using DL, Overview</div>
     </a>
   
 </nav>
@@ -141,7 +135,7 @@
 
  <section id="comments">
    <!-- 多说评论框 start -->
-   <div class="ds-thread" data-thread-key="post-RecycleView-in-Android" data-title="RecycleView in Android" data-url="http://freydom.com/2016/07/10/RecycleView-in-Android/"></div>
+   <div class="ds-thread" data-thread-key="post-Notes-on-three-Handwritten-Chinese-Char-Rec-Models" data-title="Notes on three Handwritten Chinese Character Recognition Models" data-url="http://freydom.com/2016/12/26/Notes-on-three-Handwritten-Chinese-Char-Rec-Models/"></div>
    <!-- 多说评论框 end -->
    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
    <script type="text/javascript">
