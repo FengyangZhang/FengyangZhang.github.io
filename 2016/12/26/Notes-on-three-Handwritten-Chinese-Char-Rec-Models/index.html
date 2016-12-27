@@ -12,7 +12,8 @@
 <meta property="og:site_name" content="John Frey@BUPT / Fengyang Zhang's blog">
 <meta property="og:description" content="This is a follow-up to the last blog about HCCR, to explore more on three of the HCCR models in the last blog.">
 <meta property="og:image" content="http://freydom.com/pic/2016-12-26-HCCRModels/CNNwithSampleGen.png">
-<meta property="og:updated_time" content="2016-12-26T09:22:59.111Z">
+<meta property="og:image" content="http://freydom.com/pic/2016-12-26-HCCRModels/directMap.png">
+<meta property="og:updated_time" content="2016-12-27T01:59:41.657Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Notes on three Handwritten Chinese Character Recognition Models">
 <meta name="twitter:description" content="This is a follow-up to the last blog about HCCR, to explore more on three of the HCCR models in the last blog.">
@@ -97,18 +98,21 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>This is a follow-up to the last blog about HCCR, to explore more on three of the HCCR models in the last blog.<br><a id="more"></a></p>
-<h1 id="1-MCDNN-IDSIA"><a href="#1-MCDNN-IDSIA" class="headerlink" title="1. MCDNN, IDSIA"></a>1. MCDNN, IDSIA</h1><p>This model is the 2011 ICDAR winner and should-be winner of the 2013 ICDAR if they submitted the right preprocessing code. The model is named Multi-column Deep Convolutional Neural Network. The best MCDNN has 8 CNNs, all of which are 11-layered.</p>
-<h1 id="2-Beyond-Human-Recognition-Fujitsu-R-amp-D-center"><a href="#2-Beyond-Human-Recognition-Fujitsu-R-amp-D-center" class="headerlink" title="2. Beyond Human Recognition, Fujitsu R &amp; D center"></a>2. Beyond Human Recognition, Fujitsu R &amp; D center</h1><p>This model claims to be the first to surpass human performance on MNIST and CASIA datasets. It’s architecture is as follows:<br><img src="/pic/2016-12-26-HCCRModels/CNNwithSampleGen.png" alt="模型示意图"></p>
+<h1 id="1-MCDNN-IDSIA"><a href="#1-MCDNN-IDSIA" class="headerlink" title="1. MCDNN, IDSIA"></a>1. MCDNN, IDSIA</h1><p>This model is the 2011 ICDAR winner and should-be winner of the 2013 ICDAR if they submitted the right preprocessing code. The model is named Multi-column Deep Convolutional Neural Network. The best MCDNN has 8 CNNs, all of which are 11-layered, they did some normalization on the picture as preprocessing step but nothing more.</p>
+<h1 id="2-Beyond-Human-Recognition-Fujitsu-R-amp-D-center"><a href="#2-Beyond-Human-Recognition-Fujitsu-R-amp-D-center" class="headerlink" title="2. Beyond Human Recognition, Fujitsu R &amp; D center"></a>2. Beyond Human Recognition, Fujitsu R &amp; D center</h1><p>This model claims to be the first to surpass human performance on MNIST and CASIA datasets. It’s architecture is as follows:<br><img src="/pic/2016-12-26-HCCRModels/CNNwithSampleGen.png" alt="model2"></p>
 <p>There model can be divided into three parts: Sample Generation, CNN and Voting.<br>First in the sample generation part, they applied distortion both locally and globally. They didn’t use normalization because that’s contrictory with distortion. The local distortion add a small displacement to the original image on x, y coordinates and gray scale value respectively, and then Gaussian smoothing is applied, as well as bilinear interpolation. The global distortion includes some global transformations such as scaling and rotation. The distorted images are then used to train the CNNs.</p>
 <p>For CASIA, they used a 15-layer network, represented as This network can be represented as</p>
 <pre><code>In-96Conv5-96MaxP3-128Conv3-192Conv3-256Conv3-256MaxP3-352Conv3-480Conv3-512Conv3-256MaxP3-512Conv3-640Conv3-640MaxP3-4096Full1-Out
 </code></pre><p>In the training, they mainly used dropout and multi-supervised training, which is crucial for their model to converge during training. This is somewhat important as it is used in several huge convnets. The idea is to add auxiliary classifiers connected to these intermediate layers, in order to increase the gradient signal that gets propagated back, and provide additional regularization.</p>
 <p>Last thing they do is multi-model voting. They used 5 model with the same architecture to vote, and higher accuracy is achieved. However I think this process costs too much extra memory and time, though therotically they should be good to the result, because they are trained on slightly different data (random distorted) and they may have reached at different local optimum. As a result this strategy lowered the error rate by 0.2%.</p>
-<h1 id="3-New-Benchmark-Xu-yao-Zhang-Yoshua-Bengio-et-al"><a href="#3-New-Benchmark-Xu-yao-Zhang-Yoshua-Bengio-et-al" class="headerlink" title="3. New Benchmark, Xu-yao Zhang, Yoshua Bengio et al."></a>3. New Benchmark, Xu-yao Zhang, Yoshua Bengio et al.</h1>
+<h1 id="3-New-Benchmark-Xu-yao-Zhang-Yoshua-Bengio-et-al"><a href="#3-New-Benchmark-Xu-yao-Zhang-Yoshua-Bengio-et-al" class="headerlink" title="3. New Benchmark, Xu-yao Zhang, Yoshua Bengio et al."></a>3. New Benchmark, Xu-yao Zhang, Yoshua Bengio et al.</h1><p>The major difference of this new model is they didn’t use data augmentation and model ensemble, which means their model are far less light-weighted than the two models before. As the preprocessing step, they represent the characters by the normalization-cooperated direction-decomposed feature maps (directMap), which can be viewed as a d × n × n sparse tensor.<br><img src="/pic/2016-12-26-HCCRModels/directMap.png" alt="model3"></p>
+<p>For direction decomposition, they used Sobel operator, then decompose the direction of gradient into its to adjacent standard chaincode directions by the parallelogram rule. Then the gradient elements are directly mapped to directional maps, that’s why its called normalization-cooperated, they didn’t generate normalized images, they use the normalization as a mapping from gradients of original images to directMaps.<br>Later they used a single 11-layer CNN.</p>
+<p>They’ve also proposed an adaptation layer, but that’s some kind of hyper-parameter, so we can come back later.</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/12/26/Notes-on-three-Handwritten-Chinese-Char-Rec-Models/" data-id="cix5xjvt0000qx4wcmkfzrrcf" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/12/26/Notes-on-three-Handwritten-Chinese-Char-Rec-Models/" data-id="cix6v8nz6000r00wck1tr4gvi" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/12/26/Notes-on-three-Handwritten-Chinese-Char-Rec-Models/#ds-thread" class="article-comment-link">Comments</a>
       
