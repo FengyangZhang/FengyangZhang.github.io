@@ -3,23 +3,22 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Experience with Batchnorm | John Frey@BUPT / Fengyang Zhang&#39;s blog</title>
+  <title>Unbelievable Usefulness of Batchnorm | Fengyang Zhang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Some shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.
- $$\frac{\partial u}{\partial t} = h^2 \left( \frac{\parti">
+  <meta name="description" content="Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Experience with Batchnorm">
+<meta property="og:title" content="Unbelievable Usefulness of Batchnorm">
 <meta property="og:url" content="http://freydom.com/2017/03/04/experience-with-batchnorm/index.html">
-<meta property="og:site_name" content="John Frey@BUPT / Fengyang Zhang's blog">
-<meta property="og:description" content="Some shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.
- $$\frac{\partial u}{\partial t} = h^2 \left( \frac{\parti">
-<meta property="og:updated_time" content="2017-03-04T13:20:25.545Z">
+<meta property="og:site_name" content="Fengyang Zhang's blog">
+<meta property="og:description" content="Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.">
+<meta property="og:image" content="http://freydom.com/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png">
+<meta property="og:updated_time" content="2017-03-25T08:00:03.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Experience with Batchnorm">
-<meta name="twitter:description" content="Some shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.
- $$\frac{\partial u}{\partial t} = h^2 \left( \frac{\parti">
+<meta name="twitter:title" content="Unbelievable Usefulness of Batchnorm">
+<meta name="twitter:description" content="Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.">
+<meta name="twitter:image" content="http://freydom.com/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png">
   
-    <link rel="alternate" href="https://github.com/JohnfyBUPT" title="John Frey@BUPT / Fengyang Zhang&#39;s blog" type="application/atom+xml">
+    <link rel="alternate" href="https://github.com/JohnfyBUPT" title="Fengyang Zhang&#39;s blog" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -40,11 +39,11 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">John Frey@BUPT / Fengyang Zhang&#39;s blog</a>
+        <a href="/" id="logo">Fengyang Zhang&#39;s blog</a>
       </h1>
       
         <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">I&#39;m a senior undergraduate majored in Electronic Information Engineering, and I&#39;m now studying Computer Vision and Machine Learning.</a>
+          <a href="/" id="subtitle">I&#39;m a senior undergraduate majored in Electronic Information Engineering, currently studying and working on Computer Vision and Deep Learning.</a>
         </h2>
       
     </div>
@@ -89,7 +88,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Experience with Batchnorm
+      Unbelievable Usefulness of Batchnorm
     </h1>
   
 
@@ -97,13 +96,35 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Some shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.</p>
-<p> $$<br>\frac{\partial u}{\partial t} = h^2 \left( \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} + \frac{\partial^2 u}{\partial z^2}\right)<br>$$</p>
+        <p>Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.<br><a id="more"></a><br>Proposed by <a href="https://arxiv.org/abs/1502.03167" target="_blank" rel="external">Szegedy et al. in 2015</a>, batchnorm has since gain its popularity among deep learning architectures. It was designed to address the problem of killed gradients in deep networks. Before this technique came out, training deep networks is a really tricky task, because the gradients are easily killed in the last layers.<br>Take a simple example as $y = x .* w + b$, which denotes a single fully-connected layer. In the beginning we use small random numbers to initialize the weights $w$, and when the layers get stacked up, the output $y$ in each layer get smaller and smaller, thus, in the backward pass, the gradient of $w$, which is some coeffient times $x$, will be very small, and even zero in the first layers.<br>So what kinds of input does the layers want? A good answer may be <strong>unit gaussian</strong>, like this:<br><img src="/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png" alt="a desirable layer inputs"><br>So what the batchnorm layer actually does is to add a step to transform the data to unit gaussian distribution. More intuitively as follows:<br>$$<br>\Large \hat{x}^{(k)}=\frac{x^{(k)}-E[x^{(k)}]}{ \sqrt{VAR[x^{(k)}]} }<br>$$<br>Actually when you implements this transformation, a little coefficient $\epsilon$ is added in the denominator to avoid devided by zero. The reason you can do this is, that this function is differenciable, and you can apply learnable coefficients on $E$ and $VAR$, so that the network can learn to do little in these layers or do a lot depends on the need.<br>I encounterd the problem of killed gradients in a task, whose model is an 11-layered CNN-based model. At first I find that the network learns nothing after several batches, so obviously the gradients are killed. I then applied batchnorm to some layers, and the network start to learn as a charm.<br>But still there are things to be careful with, when you actually implement batchnorm. </p>
+<pre><code>def batchnorm_for_affine(layer):
+    D = layer.get_shape()[-1]
+    scale = tf.Variable(tf.ones([D]))
+    beta = tf.Variable(tf.zeros([D]))
+    pop_mean = tf.Variable(tf.zeros([D]), trainable=False)
+    pop_var = tf.Variable(tf.ones([D]), trainable=False)
+    epsilon = 1e-3
+    decay = 0.999
+
+    if(args[&quot;test_mode&quot;] &lt;= 0):
+        batch_mean, batch_var = tf.nn.moments(layer,[0])
+        train_mean = tf.assign(pop_mean,
+            pop_mean * decay + batch_mean * (1 - decay))
+        train_var = tf.assign(pop_var,
+            pop_var * decay + batch_var * (1 - decay))
+        with tf.control_dependencies([train_mean, train_var]):
+            return tf.nn.batch_normalization(layer,
+                batch_mean, batch_var, beta, scale, epsilon)
+    else:
+        return tf.nn.batch_normalization(layer,
+            pop_mean, pop_var, beta, scale, epsilon)
+</code></pre><p>Here scale and beta are the learnable parameters. First you need to have two sets of means and vars, because at testtime, you cannot use the same procedure as training time, or you get zero outputs. So you need to set a running mean and var, which you will use at testtime.<br>Second thing is, the batchnorm function is different for different kinds of layers. For example you need to flatten the matrix when you are applying batchnorm to output of a CNN layer. Because batchnorm is doing normalization on your mini-batch, more specifically normalize every individual features according to others in the batch.</p>
+<p>So, when you are using random small number initialization, or simpel Xavier initialization, make smart use of batchnorm is almost always a good choice. You can also use more intricate initialization, and use activation functions other than RELU, say leaky RELU or something else.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2017/03/04/experience-with-batchnorm/" data-id="cizva1mt5000si4wch5w929wj" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2017/03/04/experience-with-batchnorm/" data-id="cj0onlopa000s18f2ryolg7cs" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2017/03/04/experience-with-batchnorm/#ds-thread" class="article-comment-link">Comments</a>
       
@@ -130,7 +151,7 @@
 
  <section id="comments">
    <!-- 多说评论框 start -->
-   <div class="ds-thread" data-thread-key="post-experience-with-batchnorm" data-title="Experience with Batchnorm" data-url="http://freydom.com/2017/03/04/experience-with-batchnorm/"></div>
+   <div class="ds-thread" data-thread-key="post-experience-with-batchnorm" data-title="Unbelievable Usefulness of Batchnorm" data-url="http://freydom.com/2017/03/04/experience-with-batchnorm/"></div>
    <!-- 多说评论框 end -->
    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
    <script type="text/javascript">
@@ -179,7 +200,7 @@
       <ul>
         
           <li>
-            <a href="/2017/03/04/experience-with-batchnorm/">Experience with Batchnorm</a>
+            <a href="/2017/03/04/experience-with-batchnorm/">Unbelievable Usefulness of Batchnorm</a>
           </li>
         
           <li>
@@ -213,7 +234,7 @@
 	  <table width="100%" border="0">
         <tr>
           <td style="text-align:left">
-            Copyright &copy; 2014-2017 John Frey &nbsp; &nbsp;
+            Copyright &copy; 2014-2017 Fengyang Zhang &nbsp; &nbsp;
             Powered by <a href="http://hexo.io/" target="_blank">Hexo</a><br>
 	        Theme Landscape
 		  </td>
