@@ -11,7 +11,7 @@
 <meta property="og:url" content="http://freydom.com/2016/07/10/RecycleView-in-Android/index.html">
 <meta property="og:site_name" content="Fengyang Zhang's blog">
 <meta property="og:description" content="An android recyclerView demo.">
-<meta property="og:updated_time" content="2016-11-21T05:32:18.000Z">
+<meta property="og:updated_time" content="2017-05-11T09:57:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RecycleView in Android">
 <meta name="twitter:description" content="An android recyclerView demo.">
@@ -100,12 +100,12 @@
 <h3 id="implement-the-interface"><a href="#implement-the-interface" class="headerlink" title="implement the interface"></a>implement the interface</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RecyclerActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> <span class="keyword">implements</span> <span class="title">PersonAdapter</span>.<span class="title">RecyclerViewImp</span></span></span><br></pre></td></tr></table></figure>
 <h3 id="Pass-the-activity-into-the-adapter"><a href="#Pass-the-activity-into-the-adapter" class="headerlink" title="Pass the activity into the adapter"></a>Pass the activity into the adapter</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adapter = <span class="keyword">new</span> PersonAdapter(personList);</span><br><span class="line">adapter.setOnRecyclerViewListener(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
 <h3 id="When-event-is-triggered"><a href="#When-event-is-triggered" class="headerlink" title="When event is triggered"></a>When event is triggered</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != recyclerViewImp) &#123;</span><br><span class="line">            recyclerViewImp.onItemClick(<span class="keyword">this</span>.getPosition());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onLongClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != recyclerViewImp) &#123;</span><br><span class="line">            <span class="keyword">return</span> recyclerViewImp.onItemLongClick(<span class="keyword">this</span>.getPosition());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/JohnfyBUPT/RecyclerDemo" target="_blank" rel="external">https://github.com/JohnfyBUPT/RecyclerDemo</a></p>
+<h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/FengyangZhang/RecyclerDemo" target="_blank" rel="external">https://github.com/FengyangZhang/RecyclerDemo</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/07/10/RecycleView-in-Android/" data-id="cj2k8d3sc000925f2c9j6p8a8" class="article-share-link">Share</a>
+      <a data-url="http://freydom.com/2016/07/10/RecycleView-in-Android/" data-id="cj0p74ae5000791f2sv2v4zox" class="article-share-link">Share</a>
       
         <a href="http://freydom.com/2016/07/10/RecycleView-in-Android/#ds-thread" class="article-comment-link">Comments</a>
       
@@ -177,7 +177,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li></ul>
     </div>
   </div>
 
@@ -188,6 +188,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2017/05/11/king-of-strange-sea/">King of Strange Sea</a>
+          </li>
         
           <li>
             <a href="/2017/03/04/experience-with-batchnorm/">Unbelievable Usefulness of Batchnorm</a>
@@ -203,10 +207,6 @@
         
           <li>
             <a href="/2016/12/15/ThreeLayerBP/">ThreeLayerBP</a>
-          </li>
-        
-          <li>
-            <a href="/2016/11/21/BUPTCNLogin/">BUPTCNLogin</a>
           </li>
         
       </ul>
