@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Programming Notes(Scala Closure) | Fengyang Zhang&#39;s blog</title>
+  <title>Archives: 2017/6 | Fengyang Zhang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Some understanding of closure in Scala.">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Programming Notes(Scala Closure)">
-<meta property="og:url" content="http://freydom.com/2016/11/02/Scala-Closure/index.html">
+  <meta name="description" content="Fengyang Zhang&apos;s website.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Fengyang Zhang's blog">
+<meta property="og:url" content="http://freydom.com/archives/2017/06/index.html">
 <meta property="og:site_name" content="Fengyang Zhang's blog">
-<meta property="og:description" content="Some understanding of closure in Scala.">
-<meta property="og:updated_time" content="2016-11-02T13:16:24.000Z">
+<meta property="og:description" content="Fengyang Zhang&apos;s website.">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Programming Notes(Scala Closure)">
-<meta name="twitter:description" content="Some understanding of closure in Scala.">
+<meta name="twitter:title" content="Fengyang Zhang's blog">
+<meta name="twitter:description" content="Fengyang Zhang&apos;s website.">
   
     <link rel="alternate" href="https://github.com/fengyangzhang" title="Fengyang Zhang&#39;s blog" type="application/atom+xml">
   
@@ -72,95 +71,41 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-Scala-Closure" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2016/11/02/Scala-Closure/" class="article-date">
-  <time datetime="2016-11-02T11:42:45.000Z" itemprop="datePublished">2016-11-02</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
+        <section id="main">
   
-    <h1 class="article-title" itemprop="name">
-      Programming Notes(Scala Closure)
+  
+    
+    
+      
+      
+      <section class="archives-wrap">
+        <div class="archive-year-wrap">
+          <a href="/archives/2017" class="archive-year">2017</a>
+        </div>
+        <div class="archives">
+    
+    <article class="archive-article archive-type-post">
+  <div class="archive-article-inner">
+    <header class="archive-article-header">
+      <a href="/2017/06/18/departure-BUPT/" class="archive-article-date">
+  <time datetime="2017-06-18T07:34:23.000Z" itemprop="datePublished">Jun 18</time>
+</a>
+      
+  
+    <h1 itemprop="name">
+      <a class="archive-article-title" href="/2017/06/18/departure-BUPT/">再见，北邮！</a>
     </h1>
   
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Some understanding of closure in Scala.<br><a id="more"></a><br>Closure, or functional closure to distinguish itself from closure in abstract algebra, refers to a function that refers to an outer variable. This passage explains its meaning in practice and tested the support for closure in Scala.<br>First we need some basic knowledge about functional programming. Functional programming is a programming paradigm, its main featrue is “functions first”, which means it treats functions as the most important element. Functions can be passed as a parameter, or returned as a return value.<br>This means declaration as follows is possible:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">def <span class="title">fun</span><span class="params">(a: Int)</span>: <span class="params">(Int =&gt; Int)</span> </span>= &#123;</span><br><span class="line">	b =&gt; a + b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>The above function has a return value which is actually a function. This function’s type is(Int =&gt; Int), which indicates it takes an Integer as input, and returns an Integer. Then altogether this function is the return value of fun(a: Int).<br>So what does this have to do with closure? Let’s look at the inner function, which is actually an anonymous function:</p>
-<pre><code>b =&gt; a + b
-</code></pre><p>It takes b as input, and return the sum of a and b. Here we should pay attention to a, because it is, as we’ve said before, an “outer variable”. We can see that a is passed in the inner function by the outer function fun(a: Int). So if not in this context, a in the inner function is unassigned, which means it’s not legal. But in this context, with the support of Scala language, closures like this can be supported. Let’s first call fun(a) once(In the scala REPL):</p>
-<pre><code>scala&gt; fun(1)
-res0: Int =&gt; Int = &lt;function1&gt;
-</code></pre><p>So, here we have res0 as the return function. Normally the a that was passed into fun(a) is irrelevant now, if the return value is not a function. But here as it is a function that referenced a’s value, Scala has to help us record it:</p>
-<pre><code>scala&gt; res0(2)
-res1: Int = 3
-</code></pre><p>So Scala has helped the inner function to record a’s value when it was constructed, and this proved that Scala supports closure, in fact all of the functional programming languages support this feature.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/11/02/Scala-Closure/" data-id="cj42eqcpd000ij1f2ddesnv9t" class="article-share-link">Share</a>
-      
-        <a href="http://freydom.com/2016/11/02/Scala-Closure/#ds-thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
-
-    </footer>
+    </header>
   </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2016/11/21/BUPTCNLogin/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          BUPTCNLogin
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2016/10/11/DAG/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">DAG</div>
-    </a>
-  
-</nav>
-
-  
 </article>
+  
+  
+    </div></section>
+  
 
-
- <section id="comments">
-   <!-- 多说评论框 start -->
-   <div class="ds-thread" data-thread-key="post-Scala-Closure" data-title="Programming Notes(Scala Closure)" data-url="http://freydom.com/2016/11/02/Scala-Closure/"></div>
-   <!-- 多说评论框 end -->
-   <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
-   <script type="text/javascript">
-   var duoshuoQuery = {short_name:'freydom'};
-     (function() {
-       var ds = document.createElement('script');
-       ds.type = 'text/javascript';ds.async = true;
-       ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-       ds.charset = 'UTF-8';
-       (document.getElementsByTagName('head')[0] 
-        || document.getElementsByTagName('body')[0]).appendChild(ds);
-     })();
-     </script>
-   <!-- 多说公共JS代码 end -->
- </section>
- </section>
+</section>
         
           <aside id="sidebar">
   
