@@ -997,6 +997,9 @@ a.article-title:hover {
 #comments a {
   color: #258fb8;
 }
+.nofancybox {
+  margin: 0;
+}
 .archives-wrap {
   margin: 50px 0;
 }
