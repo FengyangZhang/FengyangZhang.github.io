@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.8.0">
   <meta charset="utf-8">
   
   <title>Unbelievable Usefulness of Batchnorm | Fengyang Zhang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.">
+<meta name="keywords" content="Technology">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Unbelievable Usefulness of Batchnorm">
-<meta property="og:url" content="http://freydom.com/2017/03/04/experience-with-batchnorm/index.html">
-<meta property="og:site_name" content="Fengyang Zhang's blog">
+<meta property="og:url" content="http://fengyanz.com/blog/2017/03/04/experience-with-batchnorm/index.html">
+<meta property="og:site_name" content="Fengyang Zhang&#39;s blog">
 <meta property="og:description" content="Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.">
-<meta property="og:image" content="http://freydom.com/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://fengyanz.com/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png">
 <meta property="og:updated_time" content="2017-03-25T08:00:03.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Unbelievable Usefulness of Batchnorm">
 <meta name="twitter:description" content="Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.">
-<meta name="twitter:image" content="http://freydom.com/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png">
+<meta name="twitter:image" content="http://fengyanz.com/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png">
   
     <link rel="alternate" href="https://github.com/fengyangzhang" title="Fengyang Zhang&#39;s blog" type="application/atom+xml">
   
@@ -30,7 +32,7 @@
   
 
 </head>
-
+</html>
 <body>
   <div id="container">
     <div id="wrap">
@@ -68,10 +70,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-experience-with-batchnorm" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-experience-with-batchnorm" class="article article-type-post" itemscope="" itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/03/04/experience-with-batchnorm/" class="article-date">
-  <time datetime="2017-03-05T01:41:46.000Z" itemprop="datePublished">2017-03-04</time>
+  <time datetime="2017-03-05T04:41:46.000Z" itemprop="datePublished">2017-03-04</time>
 </a>
     
   </div>
@@ -90,7 +92,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.<br><a id="more"></a><br>Proposed by <a href="https://arxiv.org/abs/1502.03167" target="_blank" rel="external">Szegedy et al. in 2015</a>, batchnorm has since gain its popularity among deep learning architectures. It was designed to address the problem of killed gradients in deep networks. Before this technique came out, training deep networks is a really tricky task, because the gradients are easily killed in the last layers.<br>Take a simple example as $y = x .* w + b$, which denotes a single fully-connected layer. In the beginning we use small random numbers to initialize the weights $w$, and when the layers get stacked up, the output $y$ in each layer get smaller and smaller, thus, in the backward pass, the gradient of $w$, which is some coeffient times $x$, will be very small, and even zero in the first layers.<br>So what kinds of input does the layers want? A good answer may be <strong>unit gaussian</strong>, like this:<br><img src="/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png" alt="a desirable layer inputs"><br>So what the batchnorm layer actually does is to add a step to transform the data to unit gaussian distribution. More intuitively as follows:<br>$$<br>\Large \hat{x}^{(k)}=\frac{x^{(k)}-E[x^{(k)}]}{ \sqrt{VAR[x^{(k)}]} }<br>$$<br>Actually when you implements this transformation, a little coefficient $\epsilon$ is added in the denominator to avoid devided by zero. The reason you can do this is, that this function is differenciable, and you can apply learnable coefficients on $E$ and $VAR$, so that the network can learn to do little in these layers or do a lot depends on the need.<br>I encounterd the problem of killed gradients in a task, whose model is an 11-layered CNN-based model. At first I find that the network learns nothing after several batches, so obviously the gradients are killed. I then applied batchnorm to some layers, and the network start to learn as a charm.<br>But still there are things to be careful with, when you actually implement batchnorm. </p>
+        <p>Here’s some basic and shallow experience with batchnorm, an incredibly powerful weapon in deep neural networks, and some pitfalls in using it with tensorflow.<br><a id="more"></a><br>Proposed by <a href="https://arxiv.org/abs/1502.03167" target="_blank" rel="noopener">Szegedy et al. in 2015</a>, batchnorm has since gain its popularity among deep learning architectures. It was designed to address the problem of killed gradients in deep networks. Before this technique came out, training deep networks is a really tricky task, because the gradients are easily killed in the last layers.<br>Take a simple example as $y = x .* w + b$, which denotes a single fully-connected layer. In the beginning we use small random numbers to initialize the weights $w$, and when the layers get stacked up, the output $y$ in each layer get smaller and smaller, thus, in the backward pass, the gradient of $w$, which is some coeffient times $x$, will be very small, and even zero in the first layers.<br>So what kinds of input does the layers want? A good answer may be <strong>unit gaussian</strong>, like this:<br><img src="/pic/2017-03-04-experience-with-batchnorm/layer_inputs.png" alt="a desirable layer inputs"><br>So what the batchnorm layer actually does is to add a step to transform the data to unit gaussian distribution. More intuitively as follows:<br>$$<br>\Large \hat{x}^{(k)}=\frac{x^{(k)}-E[x^{(k)}]}{ \sqrt{VAR[x^{(k)}]} }<br>$$<br>Actually when you implements this transformation, a little coefficient $\epsilon$ is added in the denominator to avoid devided by zero. The reason you can do this is, that this function is differenciable, and you can apply learnable coefficients on $E$ and $VAR$, so that the network can learn to do little in these layers or do a lot depends on the need.<br>I encounterd the problem of killed gradients in a task, whose model is an 11-layered CNN-based model. At first I find that the network learns nothing after several batches, so obviously the gradients are killed. I then applied batchnorm to some layers, and the network start to learn as a charm.<br>But still there are things to be careful with, when you actually implement batchnorm. </p>
 <pre><code>def batchnorm_for_affine(layer):
     D = layer.get_shape()[-1]
     scale = tf.Variable(tf.ones([D]))
@@ -118,7 +120,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2017/03/04/experience-with-batchnorm/" data-id="cjo96m9ia000ibcm2rf4k6lds" class="article-share-link">Share</a>
+      <a data-url="http://fengyanz.com/blog/2017/03/04/experience-with-batchnorm/" data-id="cjv714v6u000keif276se1ig4" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
@@ -215,7 +217,7 @@ function googleTranslateElementInit() {
 	  <table width="100%" border="0">
         <tr>
           <td style="text-align:left">
-            Copyright &copy; 2014-2018 Fengyang Zhang &nbsp; &nbsp;
+            Copyright &copy; 2014-2019 Fengyang Zhang &nbsp; &nbsp;
             Powered by <a href="http://hexo.io/" target="_blank">Hexo</a><br>
 	        Theme Landscape
 		  </td>
@@ -270,5 +272,20 @@ function googleTranslateElementInit() {
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
   </div>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

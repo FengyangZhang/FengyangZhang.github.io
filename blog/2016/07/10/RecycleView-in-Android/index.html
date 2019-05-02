@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.8.0">
   <meta charset="utf-8">
   
   <title>RecycleView in Android | Fengyang Zhang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="An android recyclerView demo.">
+<meta name="keywords" content="Technology">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RecycleView in Android">
-<meta property="og:url" content="http://freydom.com/2016/07/10/RecycleView-in-Android/index.html">
-<meta property="og:site_name" content="Fengyang Zhang's blog">
+<meta property="og:url" content="http://fengyanz.com/blog/2016/07/10/RecycleView-in-Android/index.html">
+<meta property="og:site_name" content="Fengyang Zhang&#39;s blog">
 <meta property="og:description" content="An android recyclerView demo.">
+<meta property="og:locale" content="default">
 <meta property="og:updated_time" content="2017-05-11T09:57:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RecycleView in Android">
@@ -28,7 +30,7 @@
   
 
 </head>
-
+</html>
 <body>
   <div id="container">
     <div id="wrap">
@@ -66,10 +68,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-RecycleView-in-Android" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-RecycleView-in-Android" class="article article-type-post" itemscope="" itemprop="blogPost">
   <div class="article-meta">
     <a href="/2016/07/10/RecycleView-in-Android/" class="article-date">
-  <time datetime="2016-07-10T17:10:00.000Z" itemprop="datePublished">2016-07-10</time>
+  <time datetime="2016-07-10T20:10:00.000Z" itemprop="datePublished">2016-07-10</time>
 </a>
     
   </div>
@@ -94,12 +96,12 @@
 <h3 id="implement-the-interface"><a href="#implement-the-interface" class="headerlink" title="implement the interface"></a>implement the interface</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RecyclerActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> <span class="keyword">implements</span> <span class="title">PersonAdapter</span>.<span class="title">RecyclerViewImp</span></span></span><br></pre></td></tr></table></figure>
 <h3 id="Pass-the-activity-into-the-adapter"><a href="#Pass-the-activity-into-the-adapter" class="headerlink" title="Pass the activity into the adapter"></a>Pass the activity into the adapter</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adapter = <span class="keyword">new</span> PersonAdapter(personList);</span><br><span class="line">adapter.setOnRecyclerViewListener(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
 <h3 id="When-event-is-triggered"><a href="#When-event-is-triggered" class="headerlink" title="When event is triggered"></a>When event is triggered</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != recyclerViewImp) &#123;</span><br><span class="line">            recyclerViewImp.onItemClick(<span class="keyword">this</span>.getPosition());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onLongClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != recyclerViewImp) &#123;</span><br><span class="line">            <span class="keyword">return</span> recyclerViewImp.onItemLongClick(<span class="keyword">this</span>.getPosition());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/FengyangZhang/RecyclerDemo" target="_blank" rel="external">https://github.com/FengyangZhang/RecyclerDemo</a></p>
+<h2 id="View-codes-on-github"><a href="#View-codes-on-github" class="headerlink" title="View codes on github:"></a>View codes on github:</h2><p><a href="https://github.com/FengyangZhang/RecyclerDemo" target="_blank" rel="noopener">https://github.com/FengyangZhang/RecyclerDemo</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/07/10/RecycleView-in-Android/" data-id="cjo96m9hx0002bcm2tawwwwda" class="article-share-link">Share</a>
+      <a data-url="http://fengyanz.com/blog/2016/07/10/RecycleView-in-Android/" data-id="cjv714v680004eif2amvpefn4" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
@@ -205,7 +207,7 @@ function googleTranslateElementInit() {
 	  <table width="100%" border="0">
         <tr>
           <td style="text-align:left">
-            Copyright &copy; 2014-2018 Fengyang Zhang &nbsp; &nbsp;
+            Copyright &copy; 2014-2019 Fengyang Zhang &nbsp; &nbsp;
             Powered by <a href="http://hexo.io/" target="_blank">Hexo</a><br>
 	        Theme Landscape
 		  </td>
@@ -260,5 +262,20 @@ function googleTranslateElementInit() {
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
   </div>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

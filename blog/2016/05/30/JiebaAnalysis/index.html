@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.8.0">
   <meta charset="utf-8">
   
   <title>结巴分词（Java版）的学习与详解 | Fengyang Zhang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="对github上的结巴分词项目的Java移植版的源码学习，欢迎对中文分词与文本模式识别有兴趣的朋友来讨论。">
+<meta name="keywords" content="Technology">
 <meta property="og:type" content="article">
 <meta property="og:title" content="结巴分词（Java版）的学习与详解">
-<meta property="og:url" content="http://freydom.com/2016/05/30/JiebaAnalysis/index.html">
-<meta property="og:site_name" content="Fengyang Zhang's blog">
+<meta property="og:url" content="http://fengyanz.com/blog/2016/05/30/JiebaAnalysis/index.html">
+<meta property="og:site_name" content="Fengyang Zhang&#39;s blog">
 <meta property="og:description" content="对github上的结巴分词项目的Java移植版的源码学习，欢迎对中文分词与文本模式识别有兴趣的朋友来讨论。">
-<meta property="og:image" content="http://freydom.com/pic/2016-05-30-JiebaAnalysis/Trie.png">
-<meta property="og:image" content="http://freydom.com/pic/2016-05-30-JiebaAnalysis/dag.png">
-<meta property="og:image" content="http://freydom.com/pic/2016-05-30-JiebaAnalysis/Viterbi.png">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://fengyanz.com/pic/2016-05-30-JiebaAnalysis/Trie.png">
+<meta property="og:image" content="http://fengyanz.com/pic/2016-05-30-JiebaAnalysis/dag.png">
+<meta property="og:image" content="http://fengyanz.com/pic/2016-05-30-JiebaAnalysis/Viterbi.png">
 <meta property="og:updated_time" content="2016-11-02T11:55:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="结巴分词（Java版）的学习与详解">
 <meta name="twitter:description" content="对github上的结巴分词项目的Java移植版的源码学习，欢迎对中文分词与文本模式识别有兴趣的朋友来讨论。">
-<meta name="twitter:image" content="http://freydom.com/pic/2016-05-30-JiebaAnalysis/Trie.png">
+<meta name="twitter:image" content="http://fengyanz.com/pic/2016-05-30-JiebaAnalysis/Trie.png">
   
     <link rel="alternate" href="https://github.com/fengyangzhang" title="Fengyang Zhang&#39;s blog" type="application/atom+xml">
   
@@ -32,7 +34,7 @@
   
 
 </head>
-
+</html>
 <body>
   <div id="container">
     <div id="wrap">
@@ -70,10 +72,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-JiebaAnalysis" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-JiebaAnalysis" class="article article-type-post" itemscope="" itemprop="blogPost">
   <div class="article-meta">
     <a href="/2016/05/30/JiebaAnalysis/" class="article-date">
-  <time datetime="2016-05-30T15:00:12.000Z" itemprop="datePublished">2016-05-30</time>
+  <time datetime="2016-05-30T18:00:12.000Z" itemprop="datePublished">2016-05-30</time>
 </a>
     
   </div>
@@ -94,8 +96,8 @@
       
         <p>对github上的结巴分词项目的Java移植版的源码学习，欢迎对中文分词与文本模式识别有兴趣的朋友来讨论。<br><a id="more"></a></p>
 <h2 id="起源"><a href="#起源" class="headerlink" title="起源"></a>起源</h2><p>最近发现一个很平常但是很多人没有加以思考的问题：为什么在文本编辑器和浏览器中对文本双击时会自动选中一个词组而不是只选中单字呢？背后的分词算法是怎么样的，为什么这么迅速？在github上我发现了一个比较火的分词算法–结巴分词，通过这个项目，我想应该能够对分词算法有一个更好的了解。</p>
-<h2 id="项目地址"><a href="#项目地址" class="headerlink" title="项目地址"></a>项目地址</h2><p>这是结巴分词原始版本(python编写)的项目地址：<br><a href="https://github.com/fxsjy/jieba" target="_blank" rel="external">https://github.com/fxsjy/jieba</a></p>
-<p>这是结巴分词Java移植版本的项目地址：<br><a href="https://github.com/huaban/jieba-analysis" target="_blank" rel="external">https://github.com/huaban/jieba-analysis</a></p>
+<h2 id="项目地址"><a href="#项目地址" class="headerlink" title="项目地址"></a>项目地址</h2><p>这是结巴分词原始版本(python编写)的项目地址：<br><a href="https://github.com/fxsjy/jieba" target="_blank" rel="noopener">https://github.com/fxsjy/jieba</a></p>
+<p>这是结巴分词Java移植版本的项目地址：<br><a href="https://github.com/huaban/jieba-analysis" target="_blank" rel="noopener">https://github.com/huaban/jieba-analysis</a></p>
 <p>需要使用结巴分词的朋友可以去这两个仓库fork一下。<br>本文主要对Java移植版本的代码进行学习。</p>
 <h2 id="测试示例与项目入口"><a href="#测试示例与项目入口" class="headerlink" title="测试示例与项目入口"></a>测试示例与项目入口</h2><p>如果你只是想使用结巴分词，只需要这几行代码就可以了：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">JiebaSegmenter segmenter = <span class="keyword">new</span> JiebaSegmenter();</span><br><span class="line">String[] sentences =</span><br><span class="line">       <span class="keyword">new</span> String[] &#123;<span class="string">"这是一个伸手不见五指的黑夜。我叫张枫旸，我爱北京邮电大学，我爱Java和Scala"</span>&#125;;</span><br><span class="line"><span class="keyword">for</span> (String sentence : sentences) &#123;</span><br><span class="line">    System.out.println(segmenter.process(sentence, JiebaSegmenter.SegMode.INDEX).toString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>这里我只在sentences里面加了一句话，当然你可以加入多句话。JiebaSegmenter的process方法是主要的调用接口，该方法接收的第二个参数可以是INDEX和SEARCH，分别代表的意义我们在之后再说。<br>run之后，结果是这样的：</p>
@@ -121,7 +123,7 @@ model load finished, time elapsed 73 ms.
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://freydom.com/2016/05/30/JiebaAnalysis/" data-id="cjo96m9iu000qbcm2fbbgv7hz" class="article-share-link">Share</a>
+      <a data-url="http://fengyanz.com/blog/2016/05/30/JiebaAnalysis/" data-id="cjv714v640002eif2quiwc4sw" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Technology/">Technology</a></li></ul>
@@ -227,7 +229,7 @@ function googleTranslateElementInit() {
 	  <table width="100%" border="0">
         <tr>
           <td style="text-align:left">
-            Copyright &copy; 2014-2018 Fengyang Zhang &nbsp; &nbsp;
+            Copyright &copy; 2014-2019 Fengyang Zhang &nbsp; &nbsp;
             Powered by <a href="http://hexo.io/" target="_blank">Hexo</a><br>
 	        Theme Landscape
 		  </td>
@@ -282,5 +284,20 @@ function googleTranslateElementInit() {
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
   </div>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>
