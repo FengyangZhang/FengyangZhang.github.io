@@ -43,7 +43,15 @@ python3 -m http.server 8765
 
 开发时打开 `/escape/?dev=1`，控制台里有 `window.__game`。
 
-离线缓存的文件列表在 `sw.js` 的 `ASSETS`。换了资源就把 `CACHE` 的版本号加一。
+离线缓存的文件列表在 `sw.js` 的 `ASSETS`。换了资源就把 `CACHE` 的版本号加一。新版本在标题画面会自己换上；人正在玩的时候不会中途刷新。
+
+## 加场景和人物
+
+渲染器不绑死在这一套谜题上。
+
+- 新房间：在 `js/data/rooms.js` 加一张地图、一份 `theme`、一组 `props`。
+- 新人物：在 `js/render/character.js` 的 `LOOKS` 里写一份样子（年龄 `child` / `teen` / `adult`，发型 `bob` / `long` / `bun` / `short` / `tied`，衣服 `robe` / `dress` / `casual` / `coat`）。房间里放 `{ type: 'npc', look: '名字', facing: 'se', block: true, action: 'dialogue' }`。
+- 对话仍然走 `world.js` 里的 `DIALOGUES`。
 
 ## 通关（剧透）
 

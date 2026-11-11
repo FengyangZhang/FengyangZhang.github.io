@@ -8,6 +8,8 @@ import { ROOMS } from '../js/data/rooms.js';
 import { ALPHABET, CANDLE_ALIAS, INGREDIENTS, SOLUTIONS } from '../js/data/world.js';
 import { findPath } from '../js/engine/path.js';
 import { buildWalkGrid, footprintTiles, standTiles } from '../js/game/grid.js';
+import { LOOKS, PLAYER_LOOK } from '../js/render/character.js';
+import { nearestFloor, pickProp, propAnchor } from '../js/game/pick.js';
 import {
   checkBooks,
   checkCandles,
@@ -172,6 +174,40 @@ test('cipher key is the candle aliases and the worked example holds', () => {
   assert.equal(ALPHABET.length, 12);
 });
 
+test('taps hit the prop body and near-misses still find a floor', () => {
+  const cam = { scale: 1, ox: 40, oy: 60 };
+  const candle = { id: 'candle', type: 'candle', x: 4, y: 5, hit: 0.8 };
+  const book = { id: 'book', type: 'book', x: 4, y: 5, hit: 0.7, pick: 3 };
+  const at = propAnchor(candle, cam);
+  assert.equal(pickProp([candle], cam, at.x + 8, at.y - 6).id, 'candle');
+  assert.equal(pickProp([candle], cam, at.x + 180, at.y), null);
+  assert.equal(pickProp([candle, book], cam, at.x, at.y).id, 'book');
+  const grid = [
+    [0, 0, 0],
+    [0, 1, 1],
+    [0, 1, 0],
+  ];
+  assert.deepEqual(nearestFloor(grid, 1.2, 1.4), { x: 1, y: 1 });
+  assert.deepEqual(nearestFloor(grid, 0.6, 1.2), { x: 1, y: 1 });
+  assert.equal(nearestFloor(grid, 0.1, 0.1, 0.4), null);
+});
+
+test('player look can be swapped for another age and hair', () => {
+  assert.equal(PLAYER_LOOK, LOOKS.xiaozhu);
+  assert.equal(LOOKS.xiaozhu.age, 'child');
+  assert.equal(LOOKS.xiaozhu.hair.style, 'bob');
+  assert.ok(LOOKS.xiaozhu.outfit.outer);
+  const adult = {
+    ...LOOKS.xiaozhu,
+    age: 'adult',
+    hair: { style: 'tied', color: '#2a1814' },
+    ribbon: null,
+    outfit: { ...LOOKS.xiaozhu.outfit, kind: 'coat' },
+  };
+  assert.equal(adult.age, 'adult');
+  assert.equal(adult.hair.style, 'tied');
+});
+
 function alphabetDelta(ch) {
   return ALPHABET.indexOf(ch);
 }
@@ -183,12 +219,15 @@ test('service worker lists every file the page needs', () => {
     'manifest.webmanifest',
     'css/game.css',
     'js/game/main.js',
+    'js/game/pick.js',
+    'js/render/character.js',
     'js/data/world.js',
     'js/data/rooms.js',
     'icons/apple-touch-icon.png',
     'icons/icon-192.png',
     'icons/icon-512.png',
   ];
+  assert.match(sw, /xingzhu-escape-v2/);
   for (const file of needed) {
     assert.equal(fs.existsSync(path.join(root, file)), true, file);
     assert.match(sw, new RegExp(file.replace('.', '\\.')));

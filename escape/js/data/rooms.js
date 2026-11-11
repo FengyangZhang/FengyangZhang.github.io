@@ -7,6 +7,10 @@
  *   + 门洞（上锁时不可走，打开后可走，踩上去会换房间）
  * 北 / 里侧是 y 小的一侧，南 / 近侧是 y 大的一侧，西是 x 小，东是 x 大。
  * 改完布局跑一次 node --test escape/test/logic.test.mjs，它会检查能不能走到每个物件。
+ *
+ * 加一个会说话的人：type 用 'npc'，look 用 js/render/character.js 里的名字
+ * （或直接写一份 look），facing 用 se / sw / ne / nw，block 设 true，
+ * action 继续用 dialogue 或 read。不同场景换 theme 和道具即可，不必改渲染器。
  */
 
 import { BOOKS, CANDLES, INGREDIENTS } from './world.js';

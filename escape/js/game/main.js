@@ -64,11 +64,26 @@ app.addEventListener('change', (event) => {
   if (typeof fn === 'function') fn.call(actions, el.dataset, el.value);
 });
 
+let pointer = null;
+canvas.addEventListener('pointerdown', (event) => {
+  if (state.sheet || state.mode !== 'play') return;
+  pointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+});
 canvas.addEventListener('pointerup', (event) => {
+  if (!pointer || pointer.id !== event.pointerId) return;
+  const dx = event.clientX - pointer.x;
+  const dy = event.clientY - pointer.y;
+  pointer = null;
+  if (dx * dx + dy * dy > 16 * 16) return;
   if (event.pointerType === 'mouse' && event.button !== 0) return;
   const rect = canvas.getBoundingClientRect();
-  const tile = viewToTile(state, view, event.clientX - rect.left, event.clientY - rect.top);
-  actions.tapWorld(tile.x, tile.y);
+  const sx = event.clientX - rect.left;
+  const sy = event.clientY - rect.top;
+  const tile = viewToTile(state, view, sx, sy);
+  actions.tapWorld(tile.x, tile.y, { x: sx, y: sy });
+});
+canvas.addEventListener('pointercancel', () => {
+  pointer = null;
 });
 
 document.addEventListener('touchmove', (event) => {
@@ -93,6 +108,11 @@ function frame(now) {
     state.toast = null;
     ui.render();
   }
+  if (state.pendingUpdate && state.mode !== 'play') {
+    state.pendingUpdate = false;
+    location.reload();
+    return;
+  }
   scene.draw(ctx, view, state, now / 1000);
   if (state.mode === 'play') {
     saveAcc += dt;
@@ -107,8 +127,25 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 if ('serviceWorker' in navigator) {
+  let hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) {
+      hadController = true;
+      return;
+    }
+    if (state.mode === 'play') {
+      state.pendingUpdate = true;
+      return;
+    }
+    location.reload();
+  });
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    navigator.serviceWorker.getRegistration().then((reg) => reg?.update()).catch(() => {});
+    if (state.pendingUpdate && state.mode !== 'play') location.reload();
   });
 }
 

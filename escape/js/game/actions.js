@@ -14,6 +14,7 @@ import {
 } from '../data/world.js';
 import { findPath, nearestWalkable } from '../engine/path.js';
 import { buildWalkGrid, standTiles } from './grid.js';
+import { nearestFloor, pickProp } from './pick.js';
 import {
   checkBooks,
   checkCandles,
@@ -327,31 +328,21 @@ export function createActions(state, hooks) {
   }
 
   const api = {
-    tapWorld(wx, wy) {
+    tapWorld(wx, wy, screen) {
       if (state.mode !== 'play' || state.sheet) return;
       const room = ROOMS[state.roomId];
-      const hits = [];
-      for (const prop of room.props) {
-        const cx = prop.x + (prop.w || 1) / 2;
-        const cy = prop.y + (prop.h || 1) / 2;
-        const dx = wx - cx;
-        const dy = wy - cy;
-        const radius = prop.hit || 0.72;
-        if (dx * dx + dy * dy <= radius * radius) hits.push(prop);
-      }
-      if (hits.length) {
-        hits.sort((a, b) => (b.pick || 0) - (a.pick || 0) || b.x + b.y - (a.x + a.y));
-        interact(hits[0]);
+      const prop = screen && state._cam ? pickProp(room.props, state._cam, screen.x, screen.y) : null;
+      if (prop) {
+        interact(prop);
         return;
       }
-      const tx = Math.floor(wx);
-      const ty = Math.floor(wy);
       const grid = buildWalkGrid(room, state);
-      if (!grid[ty] || grid[ty][tx] !== 1) {
+      const tile = nearestFloor(grid, wx, wy, 1.15);
+      if (!tile) {
         toast('那边走不过去。');
         return;
       }
-      walkTo(tx, ty, null);
+      walkTo(tile.x, tile.y, null);
     },
 
     enter(exit) {
