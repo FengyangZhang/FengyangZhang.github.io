@@ -19,7 +19,7 @@ export function step(state, dt, bus) {
     const dist = Math.hypot(dx, dy) || 0.0001;
     const speed = 2.45 * dt;
     player.moving = true;
-    player.walkPhase += dt * 2.2;
+    player.walkPhase += dt * 1.85;
     player.facing = facingFrom(dx, dy);
     if (dist <= speed) {
       player.x = target.x;

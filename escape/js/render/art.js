@@ -2,6 +2,7 @@
 
 import { BOOKS, CANDLES } from '../data/world.js';
 import { iso, leftFace, poly, rightFace, topFace } from '../engine/iso.js';
+import { LOOKS, PLAYER_LOOK, drawCharacter } from './character.js';
 
 const SANS = '"PingFang SC", "WenQuanYi Micro Hei", "Droid Sans Fallback", sans-serif';
 
@@ -98,23 +99,37 @@ export function drawGlyph(ctx, name, x, y, s, color) {
   ctx.restore();
 }
 
-export function drawBox(ctx, x, y, w, h, z, height, top, left, right) {
+function shadeHex(hex, amount) {
+  const n = String(hex).replace('#', '');
+  if (n.length < 6) return hex;
+  const r = parseInt(n.slice(0, 2), 16);
+  const g = parseInt(n.slice(2, 4), 16);
+  const b = parseInt(n.slice(4, 6), 16);
+  const f = (c) => Math.max(0, Math.min(255, Math.round(c * (1 - amount))));
+  return `rgb(${f(r)},${f(g)},${f(b)})`;
+}
+
+/** Flat block: one main color, a small side step, a light edge. Not a shaded cube. */
+export function drawBox(ctx, x, y, w, h, z, height, top) {
   poly(ctx, leftFace(x, y, w, h, z, z + height));
-  ctx.fillStyle = left;
+  ctx.fillStyle = shadeHex(top, 0.08);
   ctx.fill();
   poly(ctx, rightFace(x, y, w, h, z, z + height));
-  ctx.fillStyle = right;
+  ctx.fillStyle = shadeHex(top, 0.16);
   ctx.fill();
   poly(ctx, topFace(x, y, w, h, z + height));
   ctx.fillStyle = top;
   ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 248, 236, 0.28)';
+  ctx.lineWidth = 1.15;
+  ctx.stroke();
 }
 
 export function drawFloorTile(ctx, x, y, color, theme) {
   poly(ctx, topFace(x, y, 1, 1, 0));
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255,236,200,0.05)';
+  ctx.strokeStyle = 'rgba(24, 18, 32, 0.14)';
   ctx.lineWidth = 1;
   ctx.stroke();
   const n = (x * 3 + y * 5) % 11;
@@ -135,7 +150,7 @@ export function drawFloorTile(ctx, x, y, color, theme) {
 
 export function drawLip(ctx, x, y, side, color) {
   const z0 = 0;
-  const z1 = -24;
+  const z1 = -12;
   const face = side === 'south'
     ? [iso(x, y + 1, z0), iso(x + 1, y + 1, z0), iso(x + 1, y + 1, z1), iso(x, y + 1, z1)]
     : [iso(x + 1, y, z0), iso(x + 1, y + 1, z0), iso(x + 1, y + 1, z1), iso(x + 1, y, z1)];
@@ -145,8 +160,8 @@ export function drawLip(ctx, x, y, side, color) {
 }
 
 export function drawWall(ctx, x, y, tall, theme) {
-  const height = tall ? 108 : 30;
-  drawBox(ctx, x, y, 1, 1, 0, height, theme.wallTop, theme.wall, theme.wallDark);
+  const height = tall ? 86 : 20;
+  drawBox(ctx, x, y, 1, 1, 0, height, theme.wall);
   if (tall && (x + y) % 3 === 0) {
     const glassTop = 62;
     const glassH = 28;
@@ -233,6 +248,20 @@ export function drawProp(ctx, prop, time, state) {
     case 'dial':
       drawDial(ctx, prop, t, state);
       break;
+    case 'npc': {
+      const look = typeof prop.look === 'object' ? prop.look : (LOOKS[prop.look] || PLAYER_LOOK);
+      const p = iso(prop.x + (prop.w || 1) / 2, prop.y + (prop.h || 1) / 2, 0);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      drawCharacter(ctx, look, {
+        facing: prop.facing || 'se',
+        moving: false,
+        walkPhase: 0,
+        idlePhase: time,
+      });
+      ctx.restore();
+      break;
+    }
     default:
       break;
   }
@@ -712,174 +741,12 @@ function drawDial(ctx, prop, time, state) {
   });
 }
 
-export function drawActor(ctx, player) {
+export function drawActor(ctx, player, look = PLAYER_LOOK) {
   const p = iso(player.x, player.y, 0);
   ctx.save();
   ctx.translate(p.x, p.y);
-  ctx.fillStyle = 'rgba(0,0,0,0.28)';
-  ctx.beginPath();
-  ctx.ellipse(0, 3, 13, 5.5, 0, 0, Math.PI * 2);
-  ctx.fill();
-  const flip = player.facing === 'sw' || player.facing === 'nw';
-  const back = player.facing === 'ne' || player.facing === 'nw';
-  ctx.scale(flip ? -1 : 1, 1);
-  drawGirl(ctx, player, back);
+  drawCharacter(ctx, look, player);
   ctx.restore();
-}
-
-function drawGirl(ctx, player, back) {
-  const moving = player.moving;
-  const swing = moving ? Math.sin(player.walkPhase * Math.PI * 2) : 0;
-  const bob = moving ? Math.abs(Math.sin(player.walkPhase * Math.PI * 2)) * -2.4 : Math.sin(player.idlePhase * 1.6) * -0.8;
-  ctx.translate(0, bob);
-
-  const leg = (side) => {
-    ctx.save();
-    ctx.translate(side * 4, -7);
-    ctx.rotate(swing * side * 0.5);
-    ctx.fillStyle = '#f4e4cc';
-    roundRect(ctx, -2.2, 0, 4.4, 9, 2);
-    ctx.fill();
-    ctx.fillStyle = '#2a2422';
-    roundRect(ctx, -2.6, 7.2, 5.4, 3.4, 1.3);
-    ctx.fill();
-    ctx.restore();
-  };
-  leg(-1);
-  leg(1);
-
-  ctx.fillStyle = '#164e4a';
-  ctx.beginPath();
-  ctx.moveTo(-9, -30);
-  ctx.quadraticCurveTo(-14, -16, -14, -8);
-  ctx.quadraticCurveTo(0, -3, 14, -8);
-  ctx.quadraticCurveTo(14, -16, 9, -30);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = '#e4c27a';
-  ctx.lineWidth = 1.25;
-  ctx.beginPath();
-  ctx.moveTo(-12.5, -9.5);
-  ctx.quadraticCurveTo(0, -4.5, 12.5, -9.5);
-  ctx.stroke();
-
-  ctx.fillStyle = '#f7ecdc';
-  ctx.beginPath();
-  ctx.moveTo(-5.5, -30);
-  ctx.lineTo(5.5, -30);
-  ctx.lineTo(6.5, -16);
-  ctx.lineTo(-6.5, -16);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = '#6b3e2a';
-  roundRect(ctx, -12, -26, 6.5, 8, 2);
-  ctx.fill();
-  ctx.fillStyle = '#e4c27a';
-  ctx.fillRect(-10.6, -22.5, 3.6, 1.2);
-
-  const arm = (side) => {
-    ctx.save();
-    ctx.translate(side * 9, -28);
-    ctx.rotate(-swing * side * 0.55);
-    ctx.fillStyle = side < 0 ? '#164e4a' : '#f0c2a0';
-    roundRect(ctx, -2.1, 0, 4.2, 12, 2);
-    ctx.fill();
-    if (side > 0) {
-      ctx.fillStyle = '#f0c2a0';
-      ctx.beginPath();
-      ctx.arc(0, 12, 2.3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  };
-  arm(-1);
-  arm(1);
-
-  ctx.fillStyle = '#f7ecdc';
-  ctx.beginPath();
-  ctx.ellipse(0, -31, 5, 3.2, 0, 0, Math.PI);
-  ctx.fill();
-
-  ctx.fillStyle = '#f0c2a0';
-  ctx.beginPath();
-  ctx.arc(0, -42, 9.4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(-9.2, -41, 2, 0, Math.PI * 2);
-  ctx.arc(9.2, -41, 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#2b1c18';
-  ctx.beginPath();
-  ctx.arc(0, -44.5, 9.8, Math.PI * 0.98, Math.PI * 2.02);
-  ctx.quadraticCurveTo(10, -32, 8, -26);
-  ctx.lineTo(-8, -26);
-  ctx.quadraticCurveTo(-10, -32, -9.6, -44);
-  ctx.fill();
-  if (!back) {
-    ctx.beginPath();
-    ctx.moveTo(-8.4, -44);
-    ctx.quadraticCurveTo(-4, -36.5, 0, -36.8);
-    ctx.quadraticCurveTo(4, -36.5, 8.4, -44);
-    ctx.quadraticCurveTo(4, -46, 0, -45.2);
-    ctx.quadraticCurveTo(-4, -46, -8.4, -44);
-    ctx.fill();
-  } else {
-    ctx.beginPath();
-    ctx.arc(0, -42, 9.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.save();
-    ctx.translate(0, -20);
-    ctx.fillStyle = '#e4c27a';
-    fillStar(ctx, 0, 0, 4.2, 1.8);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  ctx.fillStyle = '#c4475d';
-  ctx.beginPath();
-  ctx.ellipse(8.6, -36, 3.3, 2.1, 0.5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(8.2, -36);
-  ctx.lineTo(13, -33);
-  ctx.lineTo(12, -38);
-  ctx.closePath();
-  ctx.fill();
-
-  if (!back) {
-    const blink = Math.sin(player.idlePhase * 0.7) > 0.96;
-    ctx.fillStyle = '#241816';
-    if (!blink) {
-      ctx.beginPath();
-      ctx.ellipse(-3.3, -41.2, 1.15, 1.4, 0, 0, Math.PI * 2);
-      ctx.ellipse(3.3, -41.2, 1.15, 1.4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(-2.8, -42, 0.9, 0.9);
-      ctx.fillRect(3.8, -42, 0.9, 0.9);
-    } else {
-      ctx.strokeStyle = '#241816';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(-4.6, -41);
-      ctx.lineTo(-2, -41);
-      ctx.moveTo(2, -41);
-      ctx.lineTo(4.6, -41);
-      ctx.stroke();
-    }
-    ctx.fillStyle = 'rgba(224, 120, 120, 0.5)';
-    ctx.beginPath();
-    ctx.ellipse(-5.6, -38.2, 2, 1.05, 0, 0, Math.PI * 2);
-    ctx.ellipse(5.6, -38.2, 2, 1.05, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#a85a52';
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.arc(0, -37.4, 2.3, 0.15 * Math.PI, 0.85 * Math.PI);
-    ctx.stroke();
-  }
 }
 
 export function propDepth(prop) {
@@ -889,5 +756,5 @@ export function propDepth(prop) {
 }
 
 export function actorDepth(player) {
-  return player.x + player.y + 0.2;
+  return player.x + player.y + 0.45;
 }

@@ -72,7 +72,11 @@ export function createScene() {
     islands,
     draw(ctx, view, state, time) {
       const room = ROOMS[state.roomId];
-      const cam = camera(view, state, time);
+      const prev = this._time ?? time;
+      const dt = Math.min(0.05, Math.max(0, time - prev));
+      this._time = time;
+      const cam = camera(view, state, time, dt);
+      ctx.imageSmoothingEnabled = true;
       const dpr = view.dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       drawSky(ctx, view, room, state, time);
@@ -130,14 +134,14 @@ export function createScene() {
   };
 }
 
-function camera(view, state, time) {
-  const tilesWide = view.w < 520 ? 5.5 : view.w < 900 ? 8.2 : 10.5;
+function camera(view, state, time, dt) {
+  const tilesWide = view.w < 520 ? 5.05 : view.w < 900 ? 7.4 : 9.6;
   const scale = view.w / (tilesWide * 78);
   let tx = state.player.x;
   let ty = state.player.y;
   if (state.mode === 'title') {
-    tx += Math.sin(time * 0.18) * 0.55;
-    ty += Math.cos(time * 0.14) * 0.35;
+    tx += Math.sin(time * 0.18) * 0.4;
+    ty += Math.cos(time * 0.14) * 0.25;
   }
   if (!state._look) state._look = { x: tx, y: ty };
   if (state.camSnap) {
@@ -145,14 +149,14 @@ function camera(view, state, time) {
     state._look.y = ty;
     state.camSnap = false;
   } else {
-    const k = 1 - Math.pow(0.0015, 1 / 60);
-    state._look.x += (tx - state._look.x) * 0.08;
-    state._look.y += (ty - state._look.y) * 0.08;
-    void k;
+    const t = 1 - Math.exp(-7 * Math.max(0.001, dt || 0.016));
+    state._look.x += (tx - state._look.x) * t;
+    state._look.y += (ty - state._look.y) * t;
   }
   const focus = iso(state._look.x, state._look.y, 0);
+  const anchor = state.mode === 'title' ? 0.32 : 0.4;
   let ox = view.w / 2 - focus.x * scale;
-  let oy = view.h * 0.44 - focus.y * scale;
+  let oy = view.h * anchor - focus.y * scale;
   if (state.shake > 0) {
     ox += Math.sin(time * 42) * state.shake * 7;
     oy += Math.cos(time * 37) * state.shake * 4;
@@ -334,7 +338,7 @@ function drawLighting(ctx, view, room, cam, time, state, light) {
     light.height = lh;
   }
   const g = light.getContext('2d');
-  const darkness = room.theme.darkness * (1 - (state.dawn || 0) * 0.82);
+  const darkness = room.theme.darkness * 0.62 * (1 - (state.dawn || 0) * 0.82);
   g.clearRect(0, 0, lw, lh);
   g.fillStyle = `rgba(5, 7, 16, ${darkness})`;
   g.fillRect(0, 0, lw, lh);
@@ -399,7 +403,7 @@ function drawVignette(ctx, view) {
     view.h * 0.72,
   );
   g.addColorStop(0, 'rgba(0,0,0,0)');
-  g.addColorStop(1, 'rgba(0,0,0,0.45)');
+  g.addColorStop(1, 'rgba(0,0,0,0.28)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, view.w, view.h);
 }
