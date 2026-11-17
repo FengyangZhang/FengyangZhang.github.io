@@ -93,13 +93,18 @@ function camera(view, state, room, dt) {
     state._look.y += (ty - state._look.y) * ease;
   }
   let ox = Math.round(view.w / 2 - state._look.x * TILE * scale);
-  let oy = Math.round(view.h * 0.62 - state._look.y * TILE * scale);
   if (roomW + 12 < view.w) ox = Math.round((view.w - roomW) / 2);
   else ox = Math.max(view.w - roomW - 4, Math.min(4, ox));
-  const minOy = 46;
-  const maxOy = view.h - 96 - 5 * TILE * scale;
-  oy = Math.max(minOy, Math.min(Math.max(minOy, maxOy), oy));
-  void roomH;
+  const toolbar = 88;
+  const topHud = 54;
+  const frieze = 32 * scale;
+  // The whole room fits on a phone, so sit it on the toolbar instead of leaving a dark band.
+  let oy = Math.round(view.h - toolbar - roomH);
+  if (oy - frieze < topHud) oy = topHud + frieze;
+  const follow = Math.round(view.h * 0.62 - state._look.y * TILE * scale);
+  if (roomH + frieze > view.h - toolbar - topHud) {
+    oy = Math.max(topHud, Math.min(view.h - toolbar - 4 * TILE * scale, follow));
+  }
   void rows;
   return { scale, ox, oy, tx: state._look.x, ty: state._look.y };
 }
@@ -587,7 +592,14 @@ function paintProp(g, prop, state) {
       g.fillRect(4, 5, 8, 2);
       break;
     case 'door':
-      paintDoorTile(g, 'atrium');
+      g.fillStyle = '#4a2c18';
+      g.fillRect(2, 2, 12, 18);
+      g.fillStyle = '#8a5a32';
+      g.fillRect(3, 4, 10, 14);
+      g.fillStyle = '#6b4228';
+      g.fillRect(4, 8, 8, 1);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(10, 12, 2, 2);
       break;
     case 'note':
       g.fillStyle = '#f3ead4';
