@@ -1,155 +1,86 @@
-/** Frame renderer: sky, floating platform, y-sorted props, candle light. */
+/** Top-down 16px tile renderer. Integer scale, no smoothing. */
 
 import { ROOMS } from '../data/rooms.js';
-import { iso, leftFace, poly } from '../engine/iso.js';
-import { actorDepth, drawActor, drawBox, drawProp, propDepth } from './art.js';
+import { drawCharacter, PLAYER_LOOK } from './character.js';
 
-function mixHex(a, b, t) {
-  const pa = hex(a);
-  const pb = hex(b);
-  const c = pa.map((v, i) => Math.round(v + (pb[i] - v) * t));
-  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-}
+export const TILE = 16;
 
-function hex(h) {
-  const s = h.replace('#', '');
-  return [0, 2, 4].map((i) => parseInt(s.slice(i, i + 2), 16));
-}
+const SCALE_PHONE = 4;
 
-function makeStars(n) {
-  const stars = [];
-  for (let i = 0; i < n; i++) {
-    stars.push({
-      x: Math.random(),
-      y: Math.random() * 0.72,
-      r: Math.random() < 0.08 ? 1.7 : 0.6 + Math.random() * 0.7,
-      p: Math.random() * Math.PI * 2,
-      tw: 0.6 + Math.random() * 1.6,
-      par: 6 + Math.random() * 16,
-    });
-  }
-  return stars;
-}
-
-function makeClouds() {
-  const clouds = [];
-  for (let i = 0; i < 7; i++) {
-    clouds.push({
-      x: Math.random(),
-      y: 0.55 + Math.random() * 0.4,
-      w: 80 + Math.random() * 140,
-      h: 18 + Math.random() * 16,
-      par: 18 + Math.random() * 30,
-      a: 0.08 + Math.random() * 0.1,
-    });
-  }
-  return clouds;
+function scaleFor(viewW) {
+  if (viewW < 520) return SCALE_PHONE;
+  if (viewW < 900) return 4;
+  return 5;
 }
 
 export function createScene() {
-  const stars = makeStars(70);
-  const clouds = makeClouds();
-  const islands = [
-    { x: 0.12, y: 0.58, s: 1 },
-    { x: 0.78, y: 0.62, s: 0.7 },
-    { x: 0.5, y: 0.7, s: 0.45 },
-  ];
-  let light = null;
+  const tiles = new Map();
+  let last = 0;
   return {
-    stars,
-    clouds,
-    islands,
     draw(ctx, view, state, time) {
+      const dt = Math.min(0.05, Math.max(0, time - (last || time)));
+      last = time;
       const room = ROOMS[state.roomId];
-      const prev = this._time ?? time;
-      const dt = Math.min(0.05, Math.max(0, time - prev));
-      this._time = time;
-      const cam = camera(view, state, time, dt);
-      ctx.imageSmoothingEnabled = true;
-      const dpr = view.dpr;
+      const cam = camera(view, state, dt);
+      const dpr = view.dpr || 1;
+      ctx.imageSmoothingEnabled = false;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawSky(ctx, view, room, state, time);
-      drawStars(ctx, view, stars, cam, time, state);
-      drawIslands(ctx, view, islands, cam, state);
-      drawCloudLayer(ctx, view, clouds, cam, time, room, state);
+      paintNight(ctx, view, time);
 
-      ctx.setTransform(dpr * cam.scale, 0, 0, dpr * cam.scale, dpr * cam.ox, dpr * cam.oy);
-      drawPlatform(ctx, room);
-      const items = [];
       const rows = room.map.length;
       const cols = room.map[0].length;
-      const wallHeight = (ch) => (ch === '#' ? 86 : ch === '=' ? 20 : 0);
       for (let y = 0; y < rows; y++) {
-        let x = 0;
-        while (x < cols) {
-          const height = wallHeight(room.map[y][x]);
-          if (!height) {
-            x += 1;
-            continue;
-          }
-          let end = x + 1;
-          while (end < cols && wallHeight(room.map[y][end]) === height) end += 1;
-          const runX = x;
-          const runW = end - x;
-          const tall = height > 40;
-          items.push({
-            depth: runX + runW + y + 1,
-            draw: () => {
-              drawBox(ctx, runX, y, runW, 1, 0, height, room.theme.wall);
-              if (!tall) return;
-              for (let wx = runX; wx < runX + runW; wx += 1) {
-                if ((wx + y) % 4 !== 0) continue;
-                poly(ctx, leftFace(wx + 0.22, y + 0.62, 0.56, 0.06, 48, 74));
-                ctx.fillStyle = 'rgba(126, 200, 195, 0.4)';
-                ctx.fill();
-              }
-            },
-          });
-          x = end;
+        for (let x = 0; x < cols; x++) {
+          const ch = room.map[y][x];
+          const kind = ch === '#' || ch === '=' ? 'wall' : ch === '+' ? 'door' : 'floor';
+          blitTile(ctx, tiles, kind, x, y, cam, room.id);
         }
       }
-      for (const prop of room.props) {
-        if (prop.type === 'note' || prop.type === 'star' || prop.type === 'brick') {
-          items.push({
-            depth: prop.x + prop.y + 0.05,
-            draw: () => drawProp(ctx, prop, time, state),
-          });
-        } else {
-          items.push({
-            depth: propDepth(prop),
-            draw: () => drawProp(ctx, prop, time, state),
-          });
-        }
-      }
-      items.push({
-        depth: actorDepth(state.player),
-        draw: () => drawActor(ctx, state.player),
-      });
-      if (state.roomId === 'atrium') drawCandleLines(ctx);
-      items.sort((a, b) => a.depth - b.depth);
-      for (const item of items) item.draw();
-      drawMotes(ctx, state, time);
 
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      light = drawLighting(ctx, view, room, cam, time, state, light);
-      drawVignette(ctx, view);
+      const sprites = [];
+      for (const prop of room.props) {
+        sprites.push({
+          y: prop.y + (prop.h || 1) - 0.2,
+          draw: () => drawProp(ctx, prop, cam, state),
+        });
+      }
+      sprites.push({
+        y: state.player.y,
+        draw: () => drawPlayer(ctx, state.player, cam),
+      });
+      sprites.sort((a, b) => a.y - b.y);
+      for (const sprite of sprites) sprite.draw();
+
       if (state.fade > 0.01) {
-        ctx.fillStyle = `rgba(6, 7, 14, ${Math.min(1, state.fade)})`;
+        ctx.fillStyle = `rgba(20, 14, 10, ${Math.min(1, state.fade)})`;
         ctx.fillRect(0, 0, view.w, view.h);
       }
       state._cam = cam;
+      void time;
     },
   };
 }
 
-function camera(view, state, time, dt) {
-  const tilesWide = view.w < 520 ? 5.05 : view.w < 900 ? 7.4 : 9.6;
-  const scale = view.w / (tilesWide * 78);
+function paintNight(ctx, view, time) {
+  ctx.fillStyle = '#1b2433';
+  ctx.fillRect(0, 0, view.w, view.h);
+  ctx.fillStyle = '#f6e7c4';
+  const stars = [[40, 80], [120, 36], [210, 110], [300, 54], [70, 180], [250, 160], [160, 220], [330, 200]];
+  for (const [x, y] of stars) {
+    const tw = (Math.sin(time * 2 + x) + 1) / 2;
+    if (tw < 0.2) continue;
+    ctx.fillRect(x, y, 2, 2);
+  }
+  ctx.fillStyle = '#243044';
+  ctx.fillRect(0, view.h - 80, view.w, 80);
+}
+
+function camera(view, state, dt) {
+  const scale = scaleFor(view.w);
   let tx = state.player.x;
   let ty = state.player.y;
   if (state.mode === 'title') {
-    tx += Math.sin(time * 0.18) * 0.4;
-    ty += Math.cos(time * 0.14) * 0.25;
+    tx += Math.sin((state.player.idlePhase || 0) * 0.4) * 0.15;
   }
   if (!state._look) state._look = { x: tx, y: ty };
   if (state.camSnap) {
@@ -157,268 +88,272 @@ function camera(view, state, time, dt) {
     state._look.y = ty;
     state.camSnap = false;
   } else {
-    const t = 1 - Math.exp(-7 * Math.max(0.001, dt || 0.016));
+    const t = 1 - Math.exp(-8 * Math.max(0.001, dt || 0.016));
     state._look.x += (tx - state._look.x) * t;
     state._look.y += (ty - state._look.y) * t;
   }
-  const focus = iso(state._look.x, state._look.y, 0);
-  const anchor = state.mode === 'title' ? 0.32 : 0.4;
-  let ox = view.w / 2 - focus.x * scale;
-  let oy = view.h * anchor - focus.y * scale;
-  if (state.shake > 0) {
-    ox += Math.sin(time * 42) * state.shake * 7;
-    oy += Math.cos(time * 37) * state.shake * 4;
-  }
-  return { scale, ox, oy, tx: state._look.x, ty: state._look.y };
+  const room = ROOMS[state.roomId];
+  const roomW = room.map[0].length * TILE * scale;
+  const roomH = room.map.length * TILE * scale;
+  const anchorY = state.mode === 'title' ? 0.38 : 0.46;
+  let ox = view.w / 2 - state._look.x * TILE * scale;
+  let oy = view.h * anchorY - state._look.y * TILE * scale;
+  ox = roomW <= view.w ? (view.w - roomW) / 2 : Math.min(0, Math.max(view.w - roomW, ox));
+  oy = roomH <= view.h ? (view.h - roomH) / 2 : Math.min(0, Math.max(view.h - roomH, oy));
+  return { scale, ox: Math.round(ox), oy: Math.round(oy), tx: state._look.x, ty: state._look.y };
 }
 
 export function projectTile(state, view, tileX, tileY) {
   const cam = state._cam;
   if (!cam) return { x: view.w / 2, y: view.h / 2 };
-  const p = iso(tileX, tileY, 0);
-  return { x: p.x * cam.scale + cam.ox, y: p.y * cam.scale + cam.oy };
+  return {
+    x: tileX * TILE * cam.scale + cam.ox,
+    y: tileY * TILE * cam.scale + cam.oy,
+  };
 }
 
 export function viewToTile(state, view, px, py) {
   const cam = state._cam;
   if (!cam) return { x: 0, y: 0 };
-  const sx = (px - cam.ox) / cam.scale;
-  const sy = (py - cam.oy) / cam.scale;
-  const hx = 78 / 2;
-  const hy = 39 / 2;
   return {
-    x: (sx / hx + sy / hy) / 2,
-    y: (sy / hy - sx / hx) / 2,
+    x: (px - cam.ox) / (TILE * cam.scale),
+    y: (py - cam.oy) / (TILE * cam.scale),
   };
 }
 
-function drawSky(ctx, view, room, state, time) {
-  const dawn = state.dawn || 0;
-  const top = mixHex(room.theme.skyTop, '#f3d2ae', dawn);
-  const mid = mixHex(room.theme.skyMid, '#e7b7a8', dawn);
-  const bot = mixHex(room.theme.skyBot, '#8ea6c8', dawn);
-  const g = ctx.createLinearGradient(0, 0, 0, view.h);
-  g.addColorStop(0, top);
-  g.addColorStop(0.55, mid);
-  g.addColorStop(1, bot);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, view.w, view.h);
-  const moonX = view.w * (0.78 - camPar(state, 10) * 0.0008);
-  const moonY = view.h * (0.16 + (state.roomId === 'tower' ? 0 : 0.02));
-  const moonR = state.roomId === 'tower' ? 36 : 22;
-  ctx.save();
-  ctx.globalAlpha = 1 - dawn * 0.85;
-  ctx.fillStyle = '#f4f0e2';
-  ctx.beginPath();
-  ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = mixHex(room.theme.skyMid, '#d7deee', 0.2);
-  ctx.beginPath();
-  ctx.arc(moonX + moonR * 0.28, moonY - moonR * 0.1, moonR * 0.82, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-  if (dawn > 0.05) {
-    const sun = ctx.createRadialGradient(view.w * 0.5, view.h * 0.92, 10, view.w * 0.5, view.h * 0.92, view.h * 0.55);
-    sun.addColorStop(0, `rgba(255, 214, 170, ${0.35 * dawn})`);
-    sun.addColorStop(1, 'rgba(255, 214, 170, 0)');
-    ctx.fillStyle = sun;
-    ctx.fillRect(0, 0, view.w, view.h);
+function blitTile(ctx, cache, kind, x, y, cam, roomId) {
+  const key = kind + (kind === 'floor' ? roomId : '');
+  let canvas = cache.get(key);
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.width = TILE;
+    canvas.height = TILE;
+    const g = canvas.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    if (kind === 'wall') paintWall(g);
+    else if (kind === 'door') paintDoor(g);
+    else paintFloor(g, roomId);
+    cache.set(key, canvas);
   }
-  void time;
+  const dx = Math.round(cam.ox + x * TILE * cam.scale);
+  const dy = Math.round(cam.oy + y * TILE * cam.scale);
+  ctx.drawImage(canvas, dx, dy, TILE * cam.scale, TILE * cam.scale);
 }
 
-function camPar(state, amount) {
-  if (!state._look) return 0;
-  return (state._look.x - state._look.y) * amount;
+function paintFloor(g, roomId) {
+  const wood = roomId === 'tower' ? '#6d7384' : roomId === 'cloister' ? '#7d6a4e' : '#c4925a';
+  const line = roomId === 'tower' ? '#596074' : roomId === 'cloister' ? '#5e4e38' : '#a87440';
+  const hi = roomId === 'tower' ? '#8b93a6' : '#e0b878';
+  g.fillStyle = wood;
+  g.fillRect(0, 0, 16, 16);
+  g.fillStyle = line;
+  g.fillRect(0, 0, 16, 1);
+  g.fillRect(0, 8, 16, 1);
+  g.fillStyle = hi;
+  g.fillRect(0, 1, 16, 1);
+  g.fillRect(0, 9, 16, 1);
+  g.fillStyle = line;
+  g.fillRect(3, 4, 2, 2);
+  g.fillRect(11, 12, 2, 2);
 }
 
-function drawStars(ctx, view, stars, cam, time, state) {
-  const dawn = state.dawn || 0;
+function paintWall(g) {
+  g.fillStyle = '#6b5344';
+  g.fillRect(0, 0, 16, 16);
+  g.fillStyle = '#efe0c4';
+  g.fillRect(1, 1, 14, 10);
+  g.fillStyle = '#e7c98a';
+  g.fillRect(2, 2, 12, 8);
+  g.fillStyle = '#5c4030';
+  g.fillRect(0, 12, 16, 4);
+  g.fillStyle = '#c4a882';
+  g.fillRect(0, 12, 16, 1);
+}
+
+function paintDoor(g) {
+  paintFloor(g, 'atrium');
+  g.fillStyle = '#6b4228';
+  g.fillRect(2, 1, 12, 14);
+  g.fillStyle = '#8a5a32';
+  g.fillRect(3, 2, 10, 12);
+  g.fillStyle = '#e6c56a';
+  g.fillRect(10, 8, 2, 2);
+}
+
+function origin(cam, x, y) {
+  return {
+    x: Math.round(cam.ox + x * TILE * cam.scale),
+    y: Math.round(cam.oy + y * TILE * cam.scale),
+  };
+}
+
+function drawPlayer(ctx, player, cam) {
+  const p = origin(cam, player.x, player.y);
   ctx.save();
-  ctx.globalAlpha = 1 - dawn * 0.9;
-  for (const s of stars) {
-    const tw = 0.35 + Math.abs(Math.sin(time * s.tw + s.p)) * 0.65;
-    const x = (s.x * view.w + cam.tx * s.par * -0.15) % view.w;
-    const y = s.y * view.h * 0.7;
-    ctx.globalAlpha = tw * (1 - dawn * 0.9);
-    ctx.fillStyle = '#f7f4ea';
-    ctx.beginPath();
-    ctx.arc(x < 0 ? x + view.w : x, y, s.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-function drawIslands(ctx, view, islands, cam, state) {
-  ctx.save();
-  for (const isl of islands) {
-    const x = isl.x * view.w - cam.tx * 8;
-    const y = view.h * isl.y;
-    ctx.fillStyle = state.dawn > 0.4 ? 'rgba(90, 70, 80, 0.35)' : 'rgba(18, 20, 36, 0.55)';
-    ctx.beginPath();
-    ctx.ellipse(x, y, 70 * isl.s, 16 * isl.s, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillRect(x - 8 * isl.s, y - 36 * isl.s, 16 * isl.s, 28 * isl.s);
-    ctx.fillStyle = state.dawn > 0.5 ? '#f0d7a2' : '#f0d7a2';
-    ctx.globalAlpha = 0.8;
-    ctx.fillRect(x - 2, y - 28 * isl.s, 3, 4);
-    ctx.globalAlpha = 1;
-  }
-  ctx.restore();
-}
-
-function drawCloudLayer(ctx, view, clouds, cam, time, room, state) {
-  for (const c of clouds) {
-    const x = ((c.x * view.w + time * 6 + cam.tx * c.par * -0.2) % (view.w + 200)) - 100;
-    const y = c.y * view.h;
-    ctx.fillStyle = state.dawn > 0.3 ? `rgba(255, 236, 220, ${c.a + state.dawn * 0.12})` : room.theme.cloud;
-    ctx.beginPath();
-    ctx.ellipse(x, y, c.w, c.h, 0, 0, Math.PI * 2);
-    ctx.ellipse(x + c.w * 0.35, y + 4, c.w * 0.6, c.h * 0.7, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-function drawPlatform(ctx, room) {
-  const rows = room.map.length;
-  const cols = room.map[0].length;
-  drawContinuousLip(ctx, cols, rows, room.theme.lip);
-  poly(ctx, [iso(0, 0, 0), iso(cols, 0, 0), iso(cols, rows, 0), iso(0, rows, 0)]);
-  ctx.fillStyle = room.theme.floorA;
-  ctx.fill();
-  drawRim(ctx, cols, rows);
-}
-
-function drawContinuousLip(ctx, cols, rows, color) {
-  const drop = -16;
-  poly(ctx, [iso(0, rows, 0), iso(cols, rows, 0), iso(cols, rows, drop), iso(0, rows, drop)]);
-  ctx.fillStyle = color;
-  ctx.fill();
-  poly(ctx, [iso(cols, 0, 0), iso(cols, rows, 0), iso(cols, rows, drop), iso(cols, 0, drop)]);
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-
-function drawRim(ctx, cols, rows) {
-  const a = iso(0, rows, 0);
-  const b = iso(cols, rows, 0);
-  const c = iso(cols, 0, 0);
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.lineTo(c.x, c.y);
-  ctx.strokeStyle = 'rgba(255, 244, 220, 0.22)';
-  ctx.lineWidth = 2;
-  ctx.lineJoin = 'round';
-  ctx.stroke();
-}
-
-function drawCandleLines(ctx) {
-  ctx.save();
-  ctx.strokeStyle = 'rgba(230, 201, 138, 0.28)';
-  ctx.lineWidth = 2;
-  const a = iso(6.5, 3.5, 2);
-  const b = iso(6.5, 8.5, 2);
-  const c = iso(2.5, 5.5, 2);
-  const d = iso(9.5, 5.5, 2);
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.moveTo(c.x, c.y);
-  ctx.lineTo(d.x, d.y);
-  ctx.stroke();
+  ctx.translate(p.x, p.y);
+  ctx.scale(cam.scale, cam.scale);
+  ctx.translate(0, 2);
+  drawCharacter(ctx, PLAYER_LOOK, player);
   ctx.restore();
 }
 
-function drawMotes(ctx, state, time) {
-  if (!state.motes) return;
-  for (const m of state.motes) {
-    const p = iso(m.x, m.y, m.z);
-    ctx.globalAlpha = Math.max(0, m.life / m.max);
-    ctx.fillStyle = m.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, m.size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-  void time;
-}
-
-function drawLighting(ctx, view, room, cam, time, state, light) {
-  const lw = Math.max(2, view.w >> 1);
-  const lh = Math.max(2, view.h >> 1);
-  if (!light || light.width !== lw || light.height !== lh) {
-    light = document.createElement('canvas');
-    light.width = lw;
-    light.height = lh;
-  }
-  const g = light.getContext('2d');
-  const darkness = room.theme.darkness * 0.62 * (1 - (state.dawn || 0) * 0.82);
-  g.clearRect(0, 0, lw, lh);
-  g.fillStyle = `rgba(5, 7, 16, ${darkness})`;
-  g.fillRect(0, 0, lw, lh);
-  g.globalCompositeOperation = 'destination-out';
-  for (const lit of room.lights) {
-    paintLight(g, lit, cam, time, 1);
-  }
-  if ((state.dawn || 0) > 0.2) {
-    g.fillStyle = `rgba(0,0,0,${(state.dawn - 0.2) * 0.55})`;
-    g.fillRect(0, 0, lw, lh);
-  }
-  g.globalCompositeOperation = 'source-over';
-  ctx.drawImage(light, 0, 0, view.w, view.h);
-
+function drawProp(ctx, prop, cam, state) {
+  const p = origin(cam, prop.x + (prop.w || 1) / 2, prop.y + (prop.h || 1));
   ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  for (const lit of room.lights) {
-    const world = iso(lit.x, lit.y, 20);
-    const sx = world.x * cam.scale + cam.ox;
-    const sy = world.y * cam.scale + cam.oy;
-    const flick = 0.75 + Math.sin(time * 6 + lit.phase) * 0.25;
-    const r = lit.radius * cam.scale * 0.55 * flick;
-    const grd = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
-    grd.addColorStop(0, hexAlpha(lit.color, 0.28));
-    grd.addColorStop(1, hexAlpha(lit.color, 0));
-    ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.arc(sx, sy, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  ctx.translate(p.x, p.y);
+  ctx.scale(cam.scale, cam.scale);
+  ctx.translate(-8, -16);
+  paintProp(ctx, prop, state);
   ctx.restore();
-  return light;
 }
 
-function paintLight(g, lit, cam, time, alpha) {
-  const flick = 0.88 + Math.sin(time * 6 + lit.phase) * 0.12;
-  const world = iso(lit.x, lit.y, 24);
-  const sx = (world.x * cam.scale + cam.ox) / 2;
-  const sy = (world.y * cam.scale + cam.oy) / 2;
-  const r = (lit.radius * cam.scale * flick) / 2;
-  const grd = g.createRadialGradient(sx, sy, r * 0.05, sx, sy, r);
-  grd.addColorStop(0, `rgba(0,0,0,${0.95 * alpha})`);
-  grd.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = grd;
-  g.beginPath();
-  g.arc(sx, sy, r, 0, Math.PI * 2);
-  g.fill();
+function paintProp(ctx, prop, state) {
+  const g = ctx;
+  switch (prop.type) {
+    case 'candle':
+      box(g, 4, 6, 8, 8, '#d9cbb6', '#8a7058');
+      g.fillStyle = '#f6e7a8';
+      g.fillRect(6, 2, 4, 5);
+      g.fillStyle = '#fff6d0';
+      g.fillRect(7, 0, 2, 3);
+      break;
+    case 'book':
+      box(g, 2, 6, 12, 8, propColor(prop), '#3a2418');
+      g.fillStyle = '#f6e7c4';
+      g.fillRect(5, 8, 6, 1);
+      break;
+    case 'bookshelf':
+      box(g, 1, 0, 14, 16, '#6b4228', '#3a2418');
+      for (let i = 0; i < 4; i++) {
+        g.fillStyle = ['#8c3048', '#1d6a64', '#e6c98a', '#314e8a'][i];
+        g.fillRect(3 + i * 3, 3, 2, 8);
+      }
+      break;
+    case 'cauldron':
+      g.fillStyle = '#3a4650';
+      g.fillRect(2, 6, 12, 8);
+      g.fillStyle = '#7ec8a8';
+      g.fillRect(4, 4, 8, 4);
+      break;
+    case 'bottle':
+      if (state.inv.includes(prop.item)) break;
+      g.fillStyle = prop.tint || '#9fd7e8';
+      g.fillRect(5, 4, 6, 8);
+      g.fillStyle = '#f6ead8';
+      g.fillRect(6, 2, 4, 2);
+      break;
+    case 'portrait':
+      box(g, 2, 0, 12, 14, '#e6c98a', '#6b4228');
+      g.fillStyle = '#f6c8aa';
+      g.fillRect(5, 3, 6, 6);
+      g.fillStyle = '#2a1814';
+      g.fillRect(5, 3, 6, 2);
+      break;
+    case 'door':
+      paintDoorMini(g, prop, state);
+      break;
+    case 'note':
+      g.fillStyle = '#f3ead4';
+      g.fillRect(3, 4, 10, 8);
+      g.fillStyle = '#8a623c';
+      g.fillRect(5, 6, 6, 1);
+      g.fillRect(5, 8, 5, 1);
+      break;
+    case 'lectern':
+      box(g, 3, 4, 10, 10, '#6b4228', '#3a2418');
+      g.fillStyle = '#f3ead4';
+      g.fillRect(4, 2, 8, 5);
+      break;
+    case 'tablet':
+    case 'plaque':
+    case 'chart':
+      box(g, 2, 3, 12, 10, '#d9cbb6', '#6b5344');
+      g.fillStyle = '#5c4030';
+      g.fillRect(4, 6, 8, 1);
+      g.fillRect(4, 8, 6, 1);
+      break;
+    case 'brazier':
+      box(g, 3, 8, 10, 6, '#6b4228', '#3a2418');
+      g.fillStyle = '#ffb15a';
+      g.fillRect(6, 2, 4, 6);
+      break;
+    case 'bell':
+      g.fillStyle = '#e6c56a';
+      g.fillRect(5, 2, 6, 8);
+      g.fillRect(6, 10, 4, 2);
+      break;
+    case 'dial':
+      g.fillStyle = '#2a241c';
+      g.fillRect(1, 2, 14, 12);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(6, 5, 4, 4);
+      break;
+    case 'star':
+      g.fillStyle = '#e6c56a';
+      g.fillRect(6, 2, 4, 4);
+      g.fillRect(4, 4, 8, 4);
+      g.fillRect(6, 8, 4, 4);
+      break;
+    case 'brick':
+      g.fillStyle = '#8a5a3a';
+      g.fillRect(2, 6, 12, 6);
+      g.fillStyle = '#5c3828';
+      g.fillRect(4, 7, 8, 1);
+      break;
+    case 'banner':
+      g.fillStyle = '#8c3048';
+      g.fillRect(4, 0, 8, 12);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(6, 3, 4, 4);
+      break;
+    case 'window':
+      g.fillStyle = '#6b8cae';
+      g.fillRect(2, 1, 12, 12);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(7, 1, 2, 12);
+      g.fillRect(2, 6, 12, 2);
+      break;
+    case 'stairs':
+      g.fillStyle = '#8a7058';
+      g.fillRect(1, 4, 14, 3);
+      g.fillRect(2, 8, 12, 3);
+      g.fillRect(3, 12, 10, 3);
+      break;
+    case 'crane':
+      g.fillStyle = '#f4efe4';
+      g.fillRect(4, 4, 8, 6);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(7, 6, 2, 2);
+      break;
+    case 'npc':
+      drawCharacter(g, PLAYER_LOOK, { facing: prop.facing || 'down', moving: false, walkPhase: 0, idlePhase: 0 });
+      break;
+    default:
+      box(g, 3, 4, 10, 8, '#c4a882', '#5c4030');
+  }
 }
 
-function hexAlpha(h, a) {
-  const [r, g, b] = hex(h);
-  return `rgba(${r},${g},${b},${a})`;
+function propColor(prop) {
+  const id = prop.book;
+  if (id === '甲') return '#6b4632';
+  if (id === '乙') return '#8c3048';
+  if (id === '丙') return '#1d6a64';
+  if (id === '丁') return '#e7e1d4';
+  return '#f3ead4';
 }
 
-function drawVignette(ctx, view) {
-  const g = ctx.createRadialGradient(
-    view.w * 0.5,
-    view.h * 0.45,
-    view.h * 0.2,
-    view.w * 0.5,
-    view.h * 0.5,
-    view.h * 0.72,
-  );
-  g.addColorStop(0, 'rgba(0,0,0,0)');
-  g.addColorStop(1, 'rgba(0,0,0,0.28)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, view.w, view.h);
+function box(g, x, y, w, h, fill, edge) {
+  g.fillStyle = edge;
+  g.fillRect(x, y, w, h);
+  g.fillStyle = fill;
+  g.fillRect(x + 1, y + 1, w - 2, h - 2);
+}
+
+function paintDoorMini(g, prop, state) {
+  const locked = prop.exit === 'east' && prop.name === '东门' && !state.flags.candle_solved
+    || prop.exit === 'north' && !state.inv.includes('copper_key');
+  g.fillStyle = locked ? '#4a2c18' : '#8a5a32';
+  g.fillRect(3, 1, 10, 14);
+  g.fillStyle = '#e6c56a';
+  g.fillRect(10, 8, 2, 2);
 }

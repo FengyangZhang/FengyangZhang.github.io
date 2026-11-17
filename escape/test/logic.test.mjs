@@ -195,7 +195,7 @@ test('taps hit the prop body and near-misses still find a floor', () => {
 test('player look can be swapped for another age and hair', () => {
   assert.equal(PLAYER_LOOK, LOOKS.xiaozhu);
   assert.equal(LOOKS.xiaozhu.age, 'child');
-  assert.equal(LOOKS.xiaozhu.hair.style, 'bob');
+  assert.equal(LOOKS.xiaozhu.hair.style, 'braid');
   assert.ok(LOOKS.xiaozhu.outfit.outer);
   const adult = {
     ...LOOKS.xiaozhu,
@@ -225,13 +225,15 @@ test('service worker lists every file the page needs', () => {
     'js/game/main.js',
     'js/game/pick.js',
     'js/render/character.js',
+    'js/render/sprites.js',
+    'fonts/fusion-pixel-12px-zh_hans.woff2',
     'js/data/world.js',
     'js/data/rooms.js',
     'icons/apple-touch-icon.png',
     'icons/icon-192.png',
     'icons/icon-512.png',
   ];
-  assert.match(sw, /xingzhu-escape-v3/);
+  assert.match(sw, /xingzhu-escape-v4/);
   for (const file of needed) {
     assert.equal(fs.existsSync(path.join(root, file)), true, file);
     assert.match(sw, new RegExp(file.replace('.', '\\.')));
