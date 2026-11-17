@@ -4,8 +4,8 @@ import { ROOMS } from '../data/rooms.js';
 import { isExitOpen } from './logic.js';
 
 function facingFrom(dx, dy) {
-  if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'se' : 'nw';
-  return dy > 0 ? 'sw' : 'ne';
+  if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+  return dy > 0 ? 'down' : 'up';
 }
 
 export function step(state, dt, bus) {

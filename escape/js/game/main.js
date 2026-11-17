@@ -2,7 +2,7 @@
 
 import { OBJECTIVES } from '../data/world.js';
 import { createAudio } from '../engine/audio.js';
-import { drawCharacter, PLAYER_LOOK, showsFace } from '../render/character.js';
+import { showsFace } from '../render/character.js';
 import { createScene, projectTile, viewToTile } from '../render/scene.js';
 import { createActions } from './actions.js';
 import { currentObjective } from './logic.js';
@@ -158,30 +158,5 @@ if (params.has('dev')) {
     project: (x, y) => projectTile(state, view, x, y),
     tileAt: (px, py) => viewToTile(state, view, px, py),
     showsFace,
-    drawContact(target) {
-      const g = target.getContext('2d');
-      const facings = ['se', 'sw', 'ne', 'nw'];
-      target.width = 240 * facings.length;
-      target.height = 560;
-      g.fillStyle = '#1a1830';
-      g.fillRect(0, 0, target.width, target.height);
-      facings.forEach((facing, i) => {
-        g.save();
-        g.translate(120 + i * 240, 210);
-        g.scale(1.7, 1.7);
-        drawCharacter(g, PLAYER_LOOK, { facing, moving: false, walkPhase: 0, idlePhase: 0.4 });
-        g.restore();
-        g.save();
-        g.translate(120 + i * 240, 460);
-        g.scale(1.7, 1.7);
-        drawCharacter(g, PLAYER_LOOK, { facing, moving: true, walkPhase: 0.25, idlePhase: 0.4 });
-        g.restore();
-        g.fillStyle = '#f3e2bc';
-        g.font = '22px sans-serif';
-        g.textAlign = 'center';
-        g.fillText(facing + (showsFace(facing) ? ' face' : ' back'), 120 + i * 240, 40);
-        g.fillText('walk', 120 + i * 240, 280);
-      });
-    },
   };
 }

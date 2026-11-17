@@ -16,8 +16,7 @@ import {
   OBJECTIVES,
   SUBJECTS,
 } from '../data/world.js';
-import { cipherCiphertext } from './logic.js';
-import { currentObjective } from './logic.js';
+import { cipherCiphertext, currentObjective } from './logic.js';
 
 const TAGS = ['线索', '配方', '星盘', '记事', '闲话'];
 
@@ -187,14 +186,26 @@ function panel(title, body, foot, backdropCloses) {
   );
 }
 
+function portraitFor(who) {
+  if (who === '林小烛') return 'sprites/portrait.png';
+  if (!who) return '';
+  return 'sprites/silhouette.png';
+}
+
 function dialogue(state) {
   const line = DIALOGUES[state.dialogue.id][state.dialogue.i];
   return (
     '<div class="sheet-layer">' +
       '<div class="sheet-back" data-act="dialogNext"></div>' +
       '<section class="dialogue-card" role="dialog" data-act="dialogNext">' +
+        '<div class="dialogue-row">' +
+        (portraitFor(line.who)
+          ? '<img class="portrait" src="' + portraitFor(line.who) + '" alt="" width="128" height="128">'
+          : '') +
+        '<div class="dialogue-copy">' +
         (line.who ? '<div class="who">' + esc(line.who) + '</div>' : '') +
         '<p>' + esc(line.text) + '</p>' +
+        '</div></div>' +
         '<div class="dialog-actions">' +
           '<button class="btn btn-primary" data-act="dialogNext">下一句</button>' +
           '<button class="btn btn-ghost" data-act="dialogSkip">跳过</button>' +
