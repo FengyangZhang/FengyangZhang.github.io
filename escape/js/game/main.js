@@ -3,7 +3,6 @@
 import { OBJECTIVES } from '../data/world.js';
 import { createAudio } from '../engine/audio.js';
 import { showsFace } from '../render/character.js';
-import { drawSprite, frameRows } from '../render/sprites.js';
 import { createScene, projectTile, viewToTile } from '../render/scene.js';
 import { createActions } from './actions.js';
 import { currentObjective } from './logic.js';
@@ -159,29 +158,5 @@ if (params.has('dev')) {
     project: (x, y) => projectTile(state, view, x, y),
     tileAt: (px, py) => viewToTile(state, view, px, py),
     showsFace,
-    drawContact(target) {
-      const g = target.getContext('2d');
-      const facings = ['down', 'left', 'up', 'right'];
-      const scale = 8;
-      const fw = 16 * scale;
-      const fh = 32 * scale;
-      target.width = 24 + 5 * (fw + 16);
-      target.height = 36 + facings.length * (fh + 28);
-      g.fillStyle = '#241810';
-      g.fillRect(0, 0, target.width, target.height);
-      g.imageSmoothingEnabled = false;
-      facings.forEach((facing, row) => {
-        const y = 28 + row * (fh + 28);
-        g.fillStyle = '#f3e0b8';
-        g.font = '16px sans-serif';
-        g.textAlign = 'left';
-        g.fillText(facing + (showsFace(facing) ? ' face' : ' back'), 8, y - 6);
-        for (let col = 0; col < 5; col++) {
-          const frame = col === 0 ? 0 : col - 1;
-          const rows = frameRows(facing === 'left' ? 'right' : facing, frame);
-          drawSprite(g, rows, 16 + col * (fw + 16), y, scale, facing === 'left');
-        }
-      });
-    },
   };
 }

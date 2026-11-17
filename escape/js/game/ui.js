@@ -17,7 +17,6 @@ import {
   SUBJECTS,
 } from '../data/world.js';
 import { cipherCiphertext, currentObjective } from './logic.js';
-import { paintPortrait } from '../render/character.js';
 
 const TAGS = ['线索', '配方', '星盘', '记事', '闲话'];
 
@@ -67,7 +66,6 @@ export function createUI(root, state) {
       state.mode === 'title' ? titleScreen(state) : '',
       sheet(state),
     ].join('');
-    root.querySelectorAll('canvas.portrait').forEach((canvas) => paintPortrait(canvas));
   }
 
   return { render };
@@ -195,7 +193,7 @@ function dialogue(state) {
       '<div class="sheet-back" data-act="dialogNext"></div>' +
       '<section class="dialogue-card" role="dialog" data-act="dialogNext">' +
         '<div class="dialogue-row">' +
-        '<canvas class="portrait" width="64" height="64" data-portrait="wife"></canvas>' +
+        '<img class="portrait" src="sprites/portrait.png" alt="" width="128" height="128">' +
         '<div class="dialogue-copy">' +
         (line.who ? '<div class="who">' + esc(line.who) + '</div>' : '') +
         '<p>' + esc(line.text) + '</p>' +

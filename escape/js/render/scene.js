@@ -1,46 +1,60 @@
-/** Top-down 16px tile renderer. Integer scale, no smoothing. */
+/** Top-down 16px interiors. Integer scale, no smoothing. Walls carry the decoration. */
 
 import { ROOMS } from '../data/rooms.js';
-import { drawCharacter, PLAYER_LOOK } from './character.js';
+import { FRAME_H, drawCharacter, PLAYER_LOOK } from './character.js';
 
 export const TILE = 16;
 
-const SCALE_PHONE = 4;
+let sheet = null;
+function spriteSheet() {
+  if (!sheet && typeof Image !== 'undefined') {
+    sheet = new Image();
+    sheet.src = new URL('../../sprites/wife.png', import.meta.url).href;
+  }
+  return sheet;
+}
 
 function scaleFor(viewW) {
-  if (viewW < 520) return SCALE_PHONE;
-  if (viewW < 900) return 4;
-  return 5;
+  if (viewW < 520) return 2;
+  if (viewW < 900) return 3;
+  return 4;
 }
 
 export function createScene() {
-  const tiles = new Map();
+  const cache = new Map();
   let last = 0;
   return {
     draw(ctx, view, state, time) {
       const dt = Math.min(0.05, Math.max(0, time - (last || time)));
       last = time;
       const room = ROOMS[state.roomId];
-      const cam = camera(view, state, dt);
+      const cam = camera(view, state, room, dt);
       const dpr = view.dpr || 1;
       ctx.imageSmoothingEnabled = false;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      paintNight(ctx, view, time);
+      ctx.fillStyle = room.id === 'tower' ? '#1a2030' : '#2a211c';
+      ctx.fillRect(0, 0, view.w, view.h);
 
+      drawFrieze(ctx, cache, room, cam);
       const rows = room.map.length;
       const cols = room.map[0].length;
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
-          const ch = room.map[y][x];
-          const kind = ch === '#' || ch === '=' ? 'wall' : ch === '+' ? 'door' : 'floor';
-          blitTile(ctx, tiles, kind, x, y, cam, room.id);
+          blitTile(ctx, cache, room, x, y, cam);
         }
       }
+      drawLights(ctx, room, cam, time);
 
       const sprites = [];
+      for (const deco of decos(room)) {
+        sprites.push({
+          y: deco.y,
+          draw: () => drawDeco(ctx, deco, cam, time),
+        });
+      }
       for (const prop of room.props) {
         sprites.push({
-          y: prop.y + (prop.h || 1) - 0.2,
+          y: prop.y + (prop.h || 1) - 0.15,
           draw: () => drawProp(ctx, prop, cam, state),
         });
       }
@@ -56,51 +70,29 @@ export function createScene() {
         ctx.fillRect(0, 0, view.w, view.h);
       }
       state._cam = cam;
-      void time;
     },
   };
 }
 
-function paintNight(ctx, view, time) {
-  ctx.fillStyle = '#1b2433';
-  ctx.fillRect(0, 0, view.w, view.h);
-  ctx.fillStyle = '#f6e7c4';
-  const stars = [[40, 80], [120, 36], [210, 110], [300, 54], [70, 180], [250, 160], [160, 220], [330, 200]];
-  for (const [x, y] of stars) {
-    const tw = (Math.sin(time * 2 + x) + 1) / 2;
-    if (tw < 0.2) continue;
-    ctx.fillRect(x, y, 2, 2);
-  }
-  ctx.fillStyle = '#243044';
-  ctx.fillRect(0, view.h - 80, view.w, 80);
-}
-
-function camera(view, state, dt) {
+function camera(view, state, room, dt) {
   const scale = scaleFor(view.w);
-  let tx = state.player.x;
-  let ty = state.player.y;
-  if (state.mode === 'title') {
-    tx += Math.sin((state.player.idlePhase || 0) * 0.4) * 0.15;
+  const cols = room.map[0].length;
+  const rows = room.map.length;
+  const roomW = cols * TILE * scale;
+  const roomH = rows * TILE * scale;
+  const topPad = 58;
+  const botPad = 96;
+  let ox = Math.round((view.w - roomW) / 2);
+  if (roomW > view.w - 8) {
+    const follow = view.w / 2 - state.player.x * TILE * scale;
+    ox = Math.round(Math.min(4, Math.max(view.w - roomW - 4, follow)));
   }
-  if (!state._look) state._look = { x: tx, y: ty };
-  if (state.camSnap) {
-    state._look.x = tx;
-    state._look.y = ty;
-    state.camSnap = false;
-  } else {
-    const t = 1 - Math.exp(-8 * Math.max(0.001, dt || 0.016));
-    state._look.x += (tx - state._look.x) * t;
-    state._look.y += (ty - state._look.y) * t;
-  }
-  const room = ROOMS[state.roomId];
-  const roomW = room.map[0].length * TILE * scale;
-  const roomH = room.map.length * TILE * scale;
-  const anchorY = state.mode === 'title' ? 0.38 : 0.46;
-  let ox = view.w / 2 - state._look.x * TILE * scale;
-  let oy = view.h * anchorY - state._look.y * TILE * scale;
-  ox = roomW <= view.w ? (view.w - roomW) / 2 : Math.min(0, Math.max(view.w - roomW, ox));
-  oy = roomH <= view.h ? (view.h - roomH) / 2 : Math.min(0, Math.max(view.h - roomH, oy));
-  return { scale, ox: Math.round(ox), oy: Math.round(oy), tx: state._look.x, ty: state._look.y };
+  let oy = Math.round(view.h - botPad - roomH);
+  const minOy = topPad + TILE * scale * 4;
+  if (oy < minOy) oy = minOy;
+  if (oy + roomH > view.h - 8) oy = Math.max(topPad, view.h - 8 - roomH);
+  void dt;
+  return { scale, ox, oy, tx: state.player.x, ty: state.player.y };
 }
 
 export function projectTile(state, view, tileX, tileY) {
@@ -121,65 +113,6 @@ export function viewToTile(state, view, px, py) {
   };
 }
 
-function blitTile(ctx, cache, kind, x, y, cam, roomId) {
-  const key = kind + (kind === 'floor' ? roomId : '');
-  let canvas = cache.get(key);
-  if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.width = TILE;
-    canvas.height = TILE;
-    const g = canvas.getContext('2d');
-    g.imageSmoothingEnabled = false;
-    if (kind === 'wall') paintWall(g);
-    else if (kind === 'door') paintDoor(g);
-    else paintFloor(g, roomId);
-    cache.set(key, canvas);
-  }
-  const dx = Math.round(cam.ox + x * TILE * cam.scale);
-  const dy = Math.round(cam.oy + y * TILE * cam.scale);
-  ctx.drawImage(canvas, dx, dy, TILE * cam.scale, TILE * cam.scale);
-}
-
-function paintFloor(g, roomId) {
-  const wood = roomId === 'tower' ? '#6d7384' : roomId === 'cloister' ? '#7d6a4e' : '#c4925a';
-  const line = roomId === 'tower' ? '#596074' : roomId === 'cloister' ? '#5e4e38' : '#a87440';
-  const hi = roomId === 'tower' ? '#8b93a6' : '#e0b878';
-  g.fillStyle = wood;
-  g.fillRect(0, 0, 16, 16);
-  g.fillStyle = line;
-  g.fillRect(0, 0, 16, 1);
-  g.fillRect(0, 8, 16, 1);
-  g.fillStyle = hi;
-  g.fillRect(0, 1, 16, 1);
-  g.fillRect(0, 9, 16, 1);
-  g.fillStyle = line;
-  g.fillRect(3, 4, 2, 2);
-  g.fillRect(11, 12, 2, 2);
-}
-
-function paintWall(g) {
-  g.fillStyle = '#6b5344';
-  g.fillRect(0, 0, 16, 16);
-  g.fillStyle = '#efe0c4';
-  g.fillRect(1, 1, 14, 10);
-  g.fillStyle = '#e7c98a';
-  g.fillRect(2, 2, 12, 8);
-  g.fillStyle = '#5c4030';
-  g.fillRect(0, 12, 16, 4);
-  g.fillStyle = '#c4a882';
-  g.fillRect(0, 12, 16, 1);
-}
-
-function paintDoor(g) {
-  paintFloor(g, 'atrium');
-  g.fillStyle = '#6b4228';
-  g.fillRect(2, 1, 12, 14);
-  g.fillStyle = '#8a5a32';
-  g.fillRect(3, 2, 10, 12);
-  g.fillStyle = '#e6c56a';
-  g.fillRect(10, 8, 2, 2);
-}
-
 function origin(cam, x, y) {
   return {
     x: Math.round(cam.ox + x * TILE * cam.scale),
@@ -187,173 +120,535 @@ function origin(cam, x, y) {
   };
 }
 
-function drawPlayer(ctx, player, cam) {
-  const p = origin(cam, player.x, player.y);
+function blitTile(ctx, cache, room, x, y, cam) {
+  const ch = room.map[y][x];
+  const kind = ch === '#' || ch === '=' ? 'wall' : ch === '+' ? 'door' : 'floor';
+  const rug = kind === 'floor' && inRug(room.id, x, y);
+  const rugKey = rug
+    ? [inRug(room.id, x - 1, y), inRug(room.id, x + 1, y), inRug(room.id, x, y - 1), inRug(room.id, x, y + 1)].join('')
+    : '';
+  const key = kind + ':' + room.id + ':' + (kind === 'floor' ? (rug ? 'rug' + rugKey : 'wood' + (y % 2) + (x % 3)) : edgeKind(room, x, y));
+  let canvas = cache.get(key);
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.width = TILE;
+    canvas.height = TILE;
+    const g = canvas.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    if (kind === 'wall') paintWall(g, room, x, y);
+    else if (kind === 'door') paintDoorTile(g, room.id);
+    else paintFloor(g, room.id, x, y, rug);
+    cache.set(key, canvas);
+  }
+  const dx = Math.round(cam.ox + x * TILE * cam.scale);
+  const dy = Math.round(cam.oy + y * TILE * cam.scale);
+  ctx.drawImage(canvas, dx, dy, TILE * cam.scale, TILE * cam.scale);
+}
+
+function edgeKind(room, x, y) {
+  const rows = room.map.length;
+  const cols = room.map[0].length;
+  if (y === 0) return 'n';
+  if (y === rows - 1) return 's';
+  if (x === 0) return 'w';
+  if (x === cols - 1) return 'e';
+  return 'm';
+}
+
+function inRug(roomId, x, y) {
+  if (roomId === 'tower') return x >= 4 && x <= 7 && y >= 5 && y <= 8;
+  if (roomId === 'library') return x >= 3 && x <= 8 && y >= 5 && y <= 8;
+  if (roomId === 'cloister') return x >= 3 && x <= 8 && y >= 5 && y <= 8;
+  return x >= 3 && x <= 8 && y >= 4 && y <= 8;
+}
+
+function paintFloor(g, roomId, x, y, rug) {
+  if (roomId === 'tower') {
+    const alt = (x + y) % 2;
+    g.fillStyle = alt ? '#6a7388' : '#5d667a';
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#4a5366';
+    g.fillRect(0, 15, 16, 1);
+    g.fillRect(15, 0, 1, 16);
+    g.fillStyle = '#808aa0';
+    g.fillRect(1, 1, 2, 1);
+  } else if (roomId === 'cloister') {
+    g.fillStyle = (x + y) % 2 ? '#8a7356' : '#7d684c';
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#6b5640';
+    g.fillRect(0, 0, 16, 1);
+    g.fillRect((x * 5) % 16, 0, 1, 16);
+  } else {
+    g.fillStyle = y % 2 ? '#c4925a' : '#b8884e';
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#8d6238';
+    g.fillRect(0, 0, 16, 1);
+    g.fillStyle = '#e2bc84';
+    g.fillRect(0, 1, 16, 1);
+    if (x % 3 === 0) {
+      g.fillStyle = '#8d6238';
+      g.fillRect(0, 0, 1, 16);
+    }
+    if ((x * 2 + y) % 5 === 0) {
+      g.fillStyle = '#a56b3a';
+      g.fillRect(6, 5, 2, 2);
+    }
+  }
+  if (!rug) return;
+  const color = roomId === 'library' ? '#2f5a45' : roomId === 'tower' ? '#3d4a78' : roomId === 'cloister' ? '#6e4a38' : '#8d3b3b';
+  const edge = roomId === 'library' ? '#1d3d2e' : roomId === 'tower' ? '#2a3458' : '#5c2a28';
+  g.fillStyle = color;
+  g.fillRect(0, 0, 16, 16);
+  g.fillStyle = edge;
+  if (!inRug(roomId, x - 1, y)) g.fillRect(0, 0, 2, 16);
+  if (!inRug(roomId, x + 1, y)) g.fillRect(14, 0, 2, 16);
+  if (!inRug(roomId, x, y - 1)) g.fillRect(0, 0, 16, 2);
+  if (!inRug(roomId, x, y + 1)) g.fillRect(0, 14, 16, 2);
+  g.fillStyle = '#e6c56a';
+  if ((x + y) % 4 === 0) g.fillRect(7, 7, 2, 2);
+}
+
+function paintWall(g, room, x, y) {
+  const edge = edgeKind(room, x, y);
+  const stone = room.id === 'tower';
+  g.fillStyle = stone ? '#3e4658' : '#6b4228';
+  g.fillRect(0, 0, 16, 16);
+  if (edge === 'n') {
+    g.fillStyle = stone ? '#6a758c' : '#efe0c4';
+    g.fillRect(0, 0, 16, 8);
+    g.fillStyle = stone ? '#2c3344' : '#5c4030';
+    g.fillRect(0, 8, 16, 8);
+    g.fillStyle = '#e6c56a';
+    g.fillRect(0, 8, 16, 2);
+  } else if (edge === 's') {
+    g.fillStyle = stone ? '#5a6478' : '#8a5a32';
+    g.fillRect(1, 2, 14, 10);
+    g.fillStyle = '#e6c56a';
+    if (x % 3 === 0) g.fillRect(6, 0, 4, 16);
+  } else {
+    g.fillStyle = stone ? '#6a758c' : '#efe0c4';
+    g.fillRect(2, 0, 12, 16);
+    g.fillStyle = stone ? '#2c3344' : '#5c4030';
+    g.fillRect(0, 12, 16, 4);
+    g.fillStyle = '#e6c56a';
+    g.fillRect(0, 12, 16, 1);
+  }
+}
+
+function paintDoorTile(g, roomId) {
+  g.fillStyle = roomId === 'tower' ? '#5d667a' : '#c4925a';
+  g.fillRect(0, 0, 16, 16);
+  g.fillStyle = '#4a2c18';
+  g.fillRect(2, 0, 12, 16);
+  g.fillStyle = '#8a5a32';
+  g.fillRect(3, 1, 10, 14);
+  g.fillStyle = '#e6c56a';
+  g.fillRect(10, 8, 2, 2);
+  g.fillStyle = '#6b4228';
+  g.fillRect(4, 3, 8, 1);
+  g.fillRect(4, 6, 8, 1);
+}
+
+function drawFrieze(ctx, cache, room, cam) {
+  const cols = room.map[0].length;
+  const srcH = Math.max(32, Math.round(cam.oy / cam.scale));
+  const key = 'frieze:' + room.id + ':' + srcH;
+  let canvas = cache.get(key);
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.width = cols * TILE;
+    canvas.height = srcH;
+    paintFrieze(canvas.getContext('2d'), room, srcH);
+    cache.set(key, canvas);
+  }
+  const dw = cols * TILE * cam.scale;
+  const dh = srcH * cam.scale;
+  ctx.drawImage(canvas, cam.ox, cam.oy - dh, dw, dh);
+}
+
+function paintFrieze(g, room, height) {
+  const cols = room.map[0].length;
+  const width = cols * TILE;
+  const stone = room.id === 'tower';
+  const paper = stone ? '#5c677c' : room.id === 'cloister' ? '#cbb892' : '#f0ddb4';
+  const paper2 = stone ? '#515c72' : room.id === 'cloister' ? '#b9a47e' : '#e4cd9e';
+  g.fillStyle = paper;
+  g.fillRect(0, 0, width, height);
+  g.fillStyle = paper2;
+  for (let y = 10; y < height - 22; y += 8) {
+    for (let x = (y / 8) % 2 ? 4 : 0; x < width; x += 8) g.fillRect(x, y, 2, 2);
+  }
+  g.fillStyle = '#4a2c18';
+  g.fillRect(0, 0, width, 5);
+  g.fillStyle = '#e6c56a';
+  g.fillRect(0, 4, width, 2);
+  const rail = height - 16;
+  g.fillStyle = stone ? '#2c3344' : '#6b4228';
+  g.fillRect(0, rail, width, 16);
+  g.fillStyle = '#c4a882';
+  g.fillRect(0, rail, width, 3);
+  for (let x = 0; x < width; x += 32) {
+    g.fillStyle = '#5c4030';
+    g.fillRect(x, rail, 2, 16);
+  }
+  for (let col = 1; col < cols - 1; col++) {
+    const feature = friezeFeature(room.id, col);
+    const px = col * TILE;
+    if (feature === 'window') drawWindow(g, px + 1, 14, rail - 18);
+    else if (feature === 'books') drawWallBooks(g, px + 1, 16, rail - 4);
+    else if (feature === 'painting') drawPainting(g, px + 1, 18, room.id);
+    else if (feature === 'sconce') drawSconce(g, px + 4, rail - 18);
+  }
+}
+
+function friezeFeature(roomId, col) {
+  if (roomId === 'library') return col % 2 === 0 ? 'books' : 'window';
+  if (roomId === 'tower') return col % 3 === 0 ? 'window' : 'sconce';
+  if (roomId === 'cloister') return col % 3 === 1 ? 'window' : 'painting';
+  if (col % 5 === 2) return 'window';
+  if (col % 5 === 4) return 'books';
+  if (col % 5 === 0) return 'painting';
+  return 'sconce';
+}
+
+function drawWindow(g, x, y, h) {
+  g.fillStyle = '#4a2c18';
+  g.fillRect(x, y, 14, h);
+  g.fillStyle = '#8ec4e0';
+  g.fillRect(x + 2, y + 2, 10, h - 4);
+  g.fillStyle = '#d8f2ff';
+  g.fillRect(x + 3, y + 3, 3, Math.max(2, h - 8));
+  g.fillStyle = '#4a2c18';
+  g.fillRect(x + 6, y + 2, 2, h - 4);
+  g.fillRect(x + 2, y + Math.floor(h / 2), 10, 2);
+}
+
+function drawWallBooks(g, x, y, bottom) {
+  g.fillStyle = '#4a2c18';
+  g.fillRect(x, y, 14, bottom - y);
+  const colors = ['#8c3048', '#1d6a64', '#e6c98a', '#314e8a', '#c47a32', '#6b8f71'];
+  let by = y + 2;
+  while (by < bottom - 6) {
+    for (let i = 0; i < 4; i++) {
+      g.fillStyle = colors[(i + by) % colors.length];
+      g.fillRect(x + 2 + i * 3, by, 2, 6);
+    }
+    g.fillStyle = '#6b4228';
+    g.fillRect(x + 1, by + 6, 12, 2);
+    by += 9;
+  }
+}
+
+function drawPainting(g, x, y, roomId) {
+  g.fillStyle = '#e6c56a';
+  g.fillRect(x, y, 14, 16);
+  g.fillStyle = roomId === 'cloister' ? '#6a8f6a' : '#7eb0c8';
+  g.fillRect(x + 2, y + 2, 10, 12);
+  g.fillStyle = '#3d6b4f';
+  g.fillRect(x + 2, y + 9, 10, 5);
+  g.fillStyle = '#f6e7c4';
+  g.fillRect(x + 6, y + 4, 2, 4);
+}
+
+function drawSconce(g, x, y) {
+  g.fillStyle = '#6b4228';
+  g.fillRect(x + 2, y + 6, 4, 8);
+  g.fillStyle = '#f6e7a8';
+  g.fillRect(x + 2, y + 2, 4, 5);
+  g.fillStyle = '#fff6d0';
+  g.fillRect(x + 3, y, 2, 3);
+}
+
+function drawLights(ctx, room, cam, time) {
+  const flick = 0.55 + Math.sin(time * 6) * 0.15;
   ctx.save();
-  ctx.translate(p.x, p.y);
-  ctx.scale(cam.scale, cam.scale);
-  ctx.translate(0, 2);
-  drawCharacter(ctx, PLAYER_LOOK, player);
+  for (const prop of room.props) {
+    if (prop.type !== 'candle' && prop.type !== 'brazier') continue;
+    const p = origin(cam, prop.x + 0.5, prop.y + 0.8);
+    ctx.fillStyle = `rgba(255, 196, 90, ${0.18 * flick})`;
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y, 28 * cam.scale / 2, 14 * cam.scale / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
-function drawProp(ctx, prop, cam, state) {
-  const p = origin(cam, prop.x + (prop.w || 1) / 2, prop.y + (prop.h || 1));
+function decos(room) {
+  const cols = room.map[0].length;
+  const rows = room.map.length;
+  const list = [
+    { kind: 'plant', x: 1.15, y: 1.2 },
+    { kind: 'plant', x: cols - 2.15, y: 1.2 },
+    { kind: 'plant', x: 1.15, y: rows - 2.25 },
+    { kind: 'plant', x: cols - 2.15, y: rows - 2.25 },
+  ];
+  if (room.id === 'library') {
+    list.push({ kind: 'shelf', x: 1.05, y: 3.2 }, { kind: 'shelf', x: 1.05, y: 6.2 });
+  }
+  if (room.id === 'atrium') {
+    list.push({ kind: 'table', x: 2.2, y: 3.2 }, { kind: 'papers', x: 8.4, y: 7.4 });
+  }
+  if (room.id === 'cloister') {
+    list.push({ kind: 'plant', x: 4.2, y: 8.3 }, { kind: 'crate', x: 8.2, y: 7.3 });
+  }
+  return list.filter((item) => {
+    const tx = Math.floor(item.x);
+    const ty = Math.floor(item.y);
+    const ch = room.map[ty]?.[tx];
+    if (ch !== '.') return false;
+    return !room.props.some((prop) => {
+      const w = prop.w || 1;
+      const h = prop.h || 1;
+      return tx >= prop.x && tx < prop.x + w && ty >= prop.y && ty < prop.y + h;
+    });
+  });
+}
+
+function drawDeco(ctx, deco, cam, time) {
+  const p = origin(cam, deco.x, deco.y);
   ctx.save();
   ctx.translate(p.x, p.y);
   ctx.scale(cam.scale, cam.scale);
   ctx.translate(-8, -16);
+  if (deco.kind === 'plant') paintPlant(ctx);
+  else if (deco.kind === 'shelf') paintShelf(ctx);
+  else if (deco.kind === 'table') paintTable(ctx);
+  else if (deco.kind === 'papers') {
+    ctx.fillStyle = '#f3ead4';
+    ctx.fillRect(2, 8, 10, 7);
+    ctx.fillStyle = '#8a623c';
+    ctx.fillRect(4, 10, 6, 1);
+  } else if (deco.kind === 'crate') {
+    ctx.fillStyle = '#8a5a32';
+    ctx.fillRect(1, 6, 14, 10);
+    ctx.fillStyle = '#6b4228';
+    ctx.fillRect(1, 10, 14, 2);
+  }
+  ctx.restore();
+  void time;
+}
+
+function paintPlant(g) {
+  g.fillStyle = '#6b4228';
+  g.fillRect(4, 12, 8, 5);
+  g.fillStyle = '#e6c56a';
+  g.fillRect(4, 12, 8, 1);
+  g.fillStyle = '#2f6b3a';
+  g.fillRect(3, 6, 10, 7);
+  g.fillStyle = '#3f8a48';
+  g.fillRect(5, 2, 6, 6);
+  g.fillStyle = '#1d4a28';
+  g.fillRect(2, 8, 3, 4);
+  g.fillRect(11, 7, 3, 4);
+}
+
+function paintShelf(g) {
+  g.fillStyle = '#4a2c18';
+  g.fillRect(0, 0, 16, 20);
+  const colors = ['#8c3048', '#e6c98a', '#1d6a64', '#314e8a'];
+  for (let i = 0; i < 4; i++) {
+    g.fillStyle = colors[i];
+    g.fillRect(2 + i * 3, 3, 2, 6);
+    g.fillRect(2 + ((i + 1) % 4) * 3, 12, 2, 5);
+  }
+}
+
+function paintTable(g) {
+  g.fillStyle = '#6b4228';
+  g.fillRect(1, 8, 14, 8);
+  g.fillStyle = '#8a5a32';
+  g.fillRect(2, 6, 12, 4);
+  g.fillStyle = '#f3ead4';
+  g.fillRect(4, 5, 5, 3);
+  g.fillStyle = '#8c3048';
+  g.fillRect(10, 4, 3, 4);
+}
+
+function drawPlayer(ctx, player, cam) {
+  const p = origin(cam, player.x, player.y + 0.42);
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.scale(cam.scale, cam.scale);
+  drawCharacter(ctx, PLAYER_LOOK, player, spriteSheet());
+  ctx.restore();
+}
+
+function drawProp(ctx, prop, cam, state) {
+  if (prop.type === 'bottle' && state.inv.includes(prop.item)) return;
+  const p = origin(cam, prop.x + (prop.w || 1) / 2, prop.y + (prop.h || 1));
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.scale(cam.scale, cam.scale);
+  ctx.translate(-8, -20);
   paintProp(ctx, prop, state);
   ctx.restore();
 }
 
-function paintProp(ctx, prop, state) {
-  const g = ctx;
+function paintProp(g, prop, state) {
   switch (prop.type) {
     case 'candle':
-      box(g, 4, 6, 8, 8, '#d9cbb6', '#8a7058');
+      g.fillStyle = '#6b4228';
+      g.fillRect(3, 14, 10, 6);
+      g.fillStyle = '#e7d7bc';
+      g.fillRect(6, 6, 4, 9);
       g.fillStyle = '#f6e7a8';
       g.fillRect(6, 2, 4, 5);
       g.fillStyle = '#fff6d0';
       g.fillRect(7, 0, 2, 3);
       break;
     case 'book':
-      box(g, 2, 6, 12, 8, propColor(prop), '#3a2418');
+      g.fillStyle = '#6b4228';
+      g.fillRect(1, 12, 14, 6);
+      g.fillStyle = bookColor(prop);
+      g.fillRect(3, 6, 10, 8);
       g.fillStyle = '#f6e7c4';
       g.fillRect(5, 8, 6, 1);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(4, 6, 8, 1);
       break;
     case 'bookshelf':
-      box(g, 1, 0, 14, 16, '#6b4228', '#3a2418');
-      for (let i = 0; i < 4; i++) {
-        g.fillStyle = ['#8c3048', '#1d6a64', '#e6c98a', '#314e8a'][i];
-        g.fillRect(3 + i * 3, 3, 2, 8);
-      }
+      paintShelf(g);
+      g.fillStyle = '#4a2c18';
+      g.fillRect(0, 18, 16, 4);
       break;
     case 'cauldron':
-      g.fillStyle = '#3a4650';
-      g.fillRect(2, 6, 12, 8);
+      g.fillStyle = '#2c3844';
+      g.fillRect(1, 8, 14, 10);
       g.fillStyle = '#7ec8a8';
-      g.fillRect(4, 4, 8, 4);
+      g.fillRect(3, 5, 10, 5);
+      g.fillStyle = '#d8fff0';
+      g.fillRect(6, 3, 4, 3);
+      g.fillStyle = '#6b4228';
+      g.fillRect(0, 16, 4, 4);
+      g.fillRect(12, 16, 4, 4);
       break;
     case 'bottle':
-      if (state.inv.includes(prop.item)) break;
       g.fillStyle = prop.tint || '#9fd7e8';
-      g.fillRect(5, 4, 6, 8);
+      g.fillRect(5, 6, 6, 10);
       g.fillStyle = '#f6ead8';
-      g.fillRect(6, 2, 4, 2);
+      g.fillRect(6, 3, 4, 4);
+      g.fillStyle = '#ffffff';
+      g.fillRect(6, 8, 2, 4);
       break;
     case 'portrait':
-      box(g, 2, 0, 12, 14, '#e6c98a', '#6b4228');
+      g.fillStyle = '#e6c56a';
+      g.fillRect(2, 0, 12, 16);
       g.fillStyle = '#f6c8aa';
-      g.fillRect(5, 3, 6, 6);
+      g.fillRect(4, 3, 8, 7);
       g.fillStyle = '#2a1814';
-      g.fillRect(5, 3, 6, 2);
+      g.fillRect(4, 3, 8, 3);
+      g.fillStyle = '#f7e8c6';
+      g.fillRect(4, 5, 8, 2);
       break;
     case 'door':
-      paintDoorMini(g, prop, state);
+      paintDoorTile(g, 'atrium');
       break;
     case 'note':
       g.fillStyle = '#f3ead4';
-      g.fillRect(3, 4, 10, 8);
+      g.fillRect(2, 6, 12, 10);
       g.fillStyle = '#8a623c';
-      g.fillRect(5, 6, 6, 1);
-      g.fillRect(5, 8, 5, 1);
+      g.fillRect(4, 8, 8, 1);
+      g.fillRect(4, 11, 6, 1);
       break;
     case 'lectern':
-      box(g, 3, 4, 10, 10, '#6b4228', '#3a2418');
+      g.fillStyle = '#4a2c18';
+      g.fillRect(2, 8, 12, 12);
+      g.fillStyle = '#8a5a32';
+      g.fillRect(1, 4, 14, 6);
       g.fillStyle = '#f3ead4';
-      g.fillRect(4, 2, 8, 5);
+      g.fillRect(3, 2, 10, 5);
+      g.fillStyle = '#8c3048';
+      g.fillRect(5, 3, 6, 1);
       break;
     case 'tablet':
     case 'plaque':
     case 'chart':
-      box(g, 2, 3, 12, 10, '#d9cbb6', '#6b5344');
-      g.fillStyle = '#5c4030';
-      g.fillRect(4, 6, 8, 1);
-      g.fillRect(4, 8, 6, 1);
+      g.fillStyle = '#d9cbb6';
+      g.fillRect(1, 4, 14, 12);
+      g.fillStyle = '#6b5344';
+      g.fillRect(3, 7, 10, 1);
+      g.fillRect(3, 10, 8, 1);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(1, 4, 14, 2);
       break;
     case 'brazier':
-      box(g, 3, 8, 10, 6, '#6b4228', '#3a2418');
+      g.fillStyle = '#4a2c18';
+      g.fillRect(2, 12, 12, 8);
       g.fillStyle = '#ffb15a';
-      g.fillRect(6, 2, 4, 6);
+      g.fillRect(5, 4, 6, 9);
+      g.fillStyle = '#fff6d0';
+      g.fillRect(7, 1, 2, 4);
       break;
     case 'bell':
       g.fillStyle = '#e6c56a';
-      g.fillRect(5, 2, 6, 8);
-      g.fillRect(6, 10, 4, 2);
+      g.fillRect(4, 2, 8, 10);
+      g.fillStyle = '#8a6230';
+      g.fillRect(7, 12, 2, 4);
+      g.fillStyle = '#fff6d0';
+      g.fillRect(6, 4, 2, 3);
       break;
     case 'dial':
       g.fillStyle = '#2a241c';
-      g.fillRect(1, 2, 14, 12);
+      g.fillRect(0, 4, 16, 14);
       g.fillStyle = '#e6c56a';
-      g.fillRect(6, 5, 4, 4);
+      g.fillRect(2, 6, 12, 10);
+      g.fillStyle = '#2a241c';
+      g.fillRect(6, 8, 4, 4);
+      g.fillStyle = '#8c3048';
+      g.fillRect(7, 6, 2, 3);
       break;
     case 'star':
-      g.fillStyle = '#e6c56a';
-      g.fillRect(6, 2, 4, 4);
-      g.fillRect(4, 4, 8, 4);
-      g.fillRect(6, 8, 4, 4);
+      g.fillStyle = '#f5c20e';
+      g.fillRect(6, 4, 4, 4);
+      g.fillRect(4, 6, 8, 4);
+      g.fillRect(6, 10, 4, 4);
+      g.fillStyle = '#2a1814';
+      g.fillRect(5, 7, 2, 2);
+      g.fillRect(9, 7, 2, 2);
       break;
     case 'brick':
       g.fillStyle = '#8a5a3a';
-      g.fillRect(2, 6, 12, 6);
+      g.fillRect(1, 10, 14, 6);
       g.fillStyle = '#5c3828';
-      g.fillRect(4, 7, 8, 1);
+      g.fillRect(3, 12, 10, 1);
       break;
     case 'banner':
       g.fillStyle = '#8c3048';
-      g.fillRect(4, 0, 8, 12);
+      g.fillRect(3, 0, 10, 16);
       g.fillStyle = '#e6c56a';
-      g.fillRect(6, 3, 4, 4);
+      g.fillRect(6, 4, 4, 6);
       break;
     case 'window':
-      g.fillStyle = '#6b8cae';
-      g.fillRect(2, 1, 12, 12);
-      g.fillStyle = '#e6c56a';
-      g.fillRect(7, 1, 2, 12);
-      g.fillRect(2, 6, 12, 2);
+      drawWindow(g, 1, 0, 18);
       break;
     case 'stairs':
       g.fillStyle = '#8a7058';
-      g.fillRect(1, 4, 14, 3);
-      g.fillRect(2, 8, 12, 3);
-      g.fillRect(3, 12, 10, 3);
+      g.fillRect(0, 6, 16, 4);
+      g.fillRect(1, 10, 14, 4);
+      g.fillRect(2, 14, 12, 4);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(0, 6, 16, 1);
       break;
     case 'crane':
       g.fillStyle = '#f4efe4';
-      g.fillRect(4, 4, 8, 6);
+      g.fillRect(4, 6, 8, 8);
       g.fillStyle = '#e6c56a';
-      g.fillRect(7, 6, 2, 2);
+      g.fillRect(7, 8, 2, 3);
       break;
     case 'npc':
-      drawCharacter(g, PLAYER_LOOK, { facing: prop.facing || 'down', moving: false, walkPhase: 0, idlePhase: 0 });
+      drawCharacter(g, PLAYER_LOOK, { facing: prop.facing || 'down', moving: false, walkPhase: 0 }, spriteSheet());
       break;
     default:
-      box(g, 3, 4, 10, 8, '#c4a882', '#5c4030');
+      g.fillStyle = '#c4a882';
+      g.fillRect(2, 8, 12, 8);
   }
+  void state;
+  void FRAME_H;
 }
 
-function propColor(prop) {
-  const id = prop.book;
-  if (id === '甲') return '#6b4632';
-  if (id === '乙') return '#8c3048';
-  if (id === '丙') return '#1d6a64';
-  if (id === '丁') return '#e7e1d4';
+function bookColor(prop) {
+  if (prop.book === '甲') return '#6b4632';
+  if (prop.book === '乙') return '#8c3048';
+  if (prop.book === '丙') return '#1d6a64';
   return '#f3ead4';
-}
-
-function box(g, x, y, w, h, fill, edge) {
-  g.fillStyle = edge;
-  g.fillRect(x, y, w, h);
-  g.fillStyle = fill;
-  g.fillRect(x + 1, y + 1, w - 2, h - 2);
-}
-
-function paintDoorMini(g, prop, state) {
-  const locked = prop.exit === 'east' && prop.name === '东门' && !state.flags.candle_solved
-    || prop.exit === 'north' && !state.inv.includes('copper_key');
-  g.fillStyle = locked ? '#4a2c18' : '#8a5a32';
-  g.fillRect(3, 1, 10, 14);
-  g.fillStyle = '#e6c56a';
-  g.fillRect(10, 8, 2, 2);
 }

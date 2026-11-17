@@ -257,15 +257,13 @@ body[data-mode="title"] .hud-bottom { display: none; }
 .dialogue-card, .ending-card { margin-bottom: 0; }
 .dialogue-row { display: flex; gap: 10px; align-items: flex-start; }
 .dialogue-copy { flex: 1; min-width: 0; }
-canvas.portrait {
-  width: 64px;
-  height: 64px;
+img.portrait {
+  width: 128px;
+  height: 128px;
   flex: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  background: #f3e0b8;
-  border: 3px solid #4a2c18;
-  box-shadow: inset 0 0 0 2px #e7c48a;
+  background: #e7d3b0;
 }
 
 .sheet-handle {

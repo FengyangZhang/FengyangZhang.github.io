@@ -1,13 +1,16 @@
 /**
- * Pixel character. Future NPCs: add a sprite set and a LOOKS entry with `sprite`.
- * Directions: down and the old front facings show a face. up / ne / nw are the back.
+ * Pixel character. Future NPCs add a spritesheet and a LOOKS entry.
+ * `down` faces the camera. `up` is the back: hair, braid, visor band, no face.
+ * The sheet is 4 columns (idle, step, bob, step) by 4 rows (down, left, right, up).
  */
 
-import { DOWN, drawSprite, frameRows } from './sprites.js';
+export const FRAME_W = 32;
+export const FRAME_H = 72;
 
 export const LOOKS = {
   xiaozhu: {
     sprite: 'wife',
+    sheet: 'sprites/wife.png',
     age: 'child',
     skin: '#f6c8aa',
     blush: '#f2a090',
@@ -29,6 +32,7 @@ export const LOOKS = {
 export const PLAYER_LOOK = LOOKS.xiaozhu;
 
 const BACK = new Set(['up', 'ne', 'nw']);
+const ROW = { down: 0, left: 1, right: 2, up: 3 };
 
 export function canonFacing(facing) {
   if (facing === 'se') return 'down';
@@ -42,24 +46,21 @@ export function showsFace(facing) {
   return !BACK.has(facing) && canonFacing(facing) !== 'up';
 }
 
-export function drawCharacter(ctx, look, pose) {
+export function drawCharacter(ctx, look, pose, sheet) {
+  if (!sheet || !sheet.complete || !sheet.naturalWidth) return;
   const facing = canonFacing(pose.facing || 'down');
-  const moving = !!pose.moving;
-  const frame = moving ? Math.floor((pose.walkPhase || 0) * 4) % 4 : 0;
-  const rows = frameRows(facing, frame);
-  const flip = facing === 'left';
-  drawSprite(ctx, rows, -8, -30, 1, flip);
+  const row = ROW[facing] ?? 0;
+  const frame = pose.moving ? Math.floor((pose.walkPhase || 0) * 4) % 4 : 0;
+  ctx.drawImage(
+    sheet,
+    frame * FRAME_W,
+    row * FRAME_H,
+    FRAME_W,
+    FRAME_H,
+    -FRAME_W / 2,
+    -FRAME_H + 4,
+    FRAME_W,
+    FRAME_H,
+  );
   void look;
-}
-
-export function paintPortrait(canvas) {
-  const g = canvas.getContext('2d');
-  const scale = 4;
-  canvas.width = 16 * scale;
-  canvas.height = 16 * scale;
-  g.imageSmoothingEnabled = false;
-  g.fillStyle = '#f3e0b8';
-  g.fillRect(0, 0, canvas.width, canvas.height);
-  const head = DOWN.slice(1, 15);
-  drawSprite(g, head, 0, 0, scale, false);
 }
