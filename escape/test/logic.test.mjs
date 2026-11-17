@@ -8,7 +8,7 @@ import { ROOMS } from '../js/data/rooms.js';
 import { ALPHABET, CANDLE_ALIAS, INGREDIENTS, SOLUTIONS } from '../js/data/world.js';
 import { findPath } from '../js/engine/path.js';
 import { buildWalkGrid, footprintTiles, standTiles } from '../js/game/grid.js';
-import { LOOKS, PLAYER_LOOK } from '../js/render/character.js';
+import { LOOKS, PLAYER_LOOK, showsFace } from '../js/render/character.js';
 import { nearestFloor, pickProp, propAnchor } from '../js/game/pick.js';
 import {
   checkBooks,
@@ -206,6 +206,10 @@ test('player look can be swapped for another age and hair', () => {
   };
   assert.equal(adult.age, 'adult');
   assert.equal(adult.hair.style, 'tied');
+  assert.equal(showsFace('se'), true);
+  assert.equal(showsFace('sw'), true);
+  assert.equal(showsFace('ne'), false);
+  assert.equal(showsFace('nw'), false);
 });
 
 function alphabetDelta(ch) {
@@ -227,7 +231,7 @@ test('service worker lists every file the page needs', () => {
     'icons/icon-192.png',
     'icons/icon-512.png',
   ];
-  assert.match(sw, /xingzhu-escape-v2/);
+  assert.match(sw, /xingzhu-escape-v3/);
   for (const file of needed) {
     assert.equal(fs.existsSync(path.join(root, file)), true, file);
     assert.match(sw, new RegExp(file.replace('.', '\\.')));

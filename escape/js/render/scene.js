@@ -1,19 +1,8 @@
 /** Frame renderer: sky, floating platform, y-sorted props, candle light. */
 
 import { ROOMS } from '../data/rooms.js';
-import { iso, topFace, poly } from '../engine/iso.js';
-import { tileChar } from '../game/grid.js';
-import {
-  actorDepth,
-  drawActor,
-  drawFloorTile,
-  drawLip,
-  drawProp,
-  drawWall,
-  propDepth,
-} from './art.js';
-
-const FLOOR = new Set(['.', ',', '+']);
+import { iso, leftFace, poly } from '../engine/iso.js';
+import { actorDepth, drawActor, drawBox, drawProp, propDepth } from './art.js';
 
 function mixHex(a, b, t) {
   const pa = hex(a);
@@ -89,15 +78,34 @@ export function createScene() {
       const items = [];
       const rows = room.map.length;
       const cols = room.map[0].length;
+      const wallHeight = (ch) => (ch === '#' ? 86 : ch === '=' ? 20 : 0);
       for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          const ch = room.map[y][x];
-          if (ch === '#' || ch === '=') {
-            items.push({
-              depth: x + 1 + y + 1,
-              draw: () => drawWall(ctx, x, y, ch === '#', room.theme),
-            });
+        let x = 0;
+        while (x < cols) {
+          const height = wallHeight(room.map[y][x]);
+          if (!height) {
+            x += 1;
+            continue;
           }
+          let end = x + 1;
+          while (end < cols && wallHeight(room.map[y][end]) === height) end += 1;
+          const runX = x;
+          const runW = end - x;
+          const tall = height > 40;
+          items.push({
+            depth: runX + runW + y + 1,
+            draw: () => {
+              drawBox(ctx, runX, y, runW, 1, 0, height, room.theme.wall);
+              if (!tall) return;
+              for (let wx = runX; wx < runX + runW; wx += 1) {
+                if ((wx + y) % 4 !== 0) continue;
+                poly(ctx, leftFace(wx + 0.22, y + 0.62, 0.56, 0.06, 48, 74));
+                ctx.fillStyle = 'rgba(126, 200, 195, 0.4)';
+                ctx.fill();
+              }
+            },
+          });
+          x = end;
         }
       }
       for (const prop of room.props) {
@@ -274,28 +282,35 @@ function drawCloudLayer(ctx, view, clouds, cam, time, room, state) {
 function drawPlatform(ctx, room) {
   const rows = room.map.length;
   const cols = room.map[0].length;
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const ch = tileChar(room, x, y);
-      if (ch === ' ') continue;
-      if (x === cols - 1) drawLip(ctx, x, y, 'east', room.theme.lip);
-      if (y === rows - 1) drawLip(ctx, x, y, 'south', room.theme.lip);
-    }
-  }
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const ch = room.map[y][x];
-      if (!FLOOR.has(ch) && ch !== '#' && ch !== '=') continue;
-      const n = (x * 13 + y * 7) % 5;
-      const color = n === 0 ? room.theme.floorC : (x + y) % 2 === 0 ? room.theme.floorA : room.theme.floorB;
-      if (FLOOR.has(ch)) drawFloorTile(ctx, x, y, color, room.theme);
-      else {
-        poly(ctx, topFace(x, y, 1, 1, 0));
-        ctx.fillStyle = color;
-        ctx.fill();
-      }
-    }
-  }
+  drawContinuousLip(ctx, cols, rows, room.theme.lip);
+  poly(ctx, [iso(0, 0, 0), iso(cols, 0, 0), iso(cols, rows, 0), iso(0, rows, 0)]);
+  ctx.fillStyle = room.theme.floorA;
+  ctx.fill();
+  drawRim(ctx, cols, rows);
+}
+
+function drawContinuousLip(ctx, cols, rows, color) {
+  const drop = -16;
+  poly(ctx, [iso(0, rows, 0), iso(cols, rows, 0), iso(cols, rows, drop), iso(0, rows, drop)]);
+  ctx.fillStyle = color;
+  ctx.fill();
+  poly(ctx, [iso(cols, 0, 0), iso(cols, rows, 0), iso(cols, rows, drop), iso(cols, 0, drop)]);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawRim(ctx, cols, rows) {
+  const a = iso(0, rows, 0);
+  const b = iso(cols, rows, 0);
+  const c = iso(cols, 0, 0);
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.lineTo(c.x, c.y);
+  ctx.strokeStyle = 'rgba(255, 244, 220, 0.22)';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
 }
 
 function drawCandleLines(ctx) {
