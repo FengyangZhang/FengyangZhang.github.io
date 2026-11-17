@@ -3,7 +3,7 @@
 import { ROOMS } from '../data/rooms.js';
 import { FRAME_H, drawCharacter, PLAYER_LOOK } from './character.js';
 
-export const TILE = 16;
+export const TILE = 32;
 
 let sheet = null;
 function spriteSheet() {
@@ -15,9 +15,10 @@ function spriteSheet() {
 }
 
 function scaleFor(viewW) {
-  if (viewW < 520) return 3;
-  if (viewW < 900) return 4;
-  return 5;
+  // 32px tiles. Scale 2 is the integer step nearest a 90–110px character.
+  if (viewW < 700) return 2;
+  if (viewW < 1100) return 3;
+  return 4;
 }
 
 export function createScene() {
@@ -55,7 +56,7 @@ export function createScene() {
       for (const prop of room.props) {
         sprites.push({
           y: prop.y + (prop.h || 1) - 0.15,
-          draw: () => drawProp(ctx, prop, cam, state),
+          draw: () => drawProp(ctx, prop, cam, state, room),
         });
       }
       sprites.push({
@@ -93,18 +94,15 @@ function camera(view, state, room, dt) {
     state._look.y += (ty - state._look.y) * ease;
   }
   let ox = Math.round(view.w / 2 - state._look.x * TILE * scale);
-  if (roomW + 12 < view.w) ox = Math.round((view.w - roomW) / 2);
+  if (roomW + 8 < view.w) ox = Math.round((view.w - roomW) / 2);
   else ox = Math.max(view.w - roomW - 4, Math.min(4, ox));
   const toolbar = 88;
-  const topHud = 54;
-  const frieze = 32 * scale;
-  // The whole room fits on a phone, so sit it on the toolbar instead of leaving a dark band.
-  let oy = Math.round(view.h - toolbar - roomH);
-  if (oy - frieze < topHud) oy = topHud + frieze;
-  const follow = Math.round(view.h * 0.62 - state._look.y * TILE * scale);
-  if (roomH + frieze > view.h - toolbar - topHud) {
-    oy = Math.max(topHud, Math.min(view.h - toolbar - 4 * TILE * scale, follow));
-  }
+  const tilePx = TILE * scale;
+  const follow = Math.round(view.h * 0.58 - state._look.y * tilePx);
+  // Never float the south wall above the toolbar, and never hide all the floor.
+  const minOy = view.h - toolbar - roomH;
+  const maxOy = view.h - toolbar - 4 * tilePx;
+  const oy = Math.max(minOy, Math.min(maxOy, follow));
   void rows;
   return { scale, ox, oy, tx: state._look.x, ty: state._look.y };
 }
@@ -149,9 +147,16 @@ function blitTile(ctx, cache, room, x, y, cam) {
     canvas.height = TILE;
     const g = canvas.getContext('2d');
     g.imageSmoothingEnabled = false;
-    if (kind === 'wall') paintWall(g, room, x, y);
-    else if (kind === 'door') paintDoorTile(g, room.id);
-    else paintFloor(g, room.id, x, y, rug);
+    const small = document.createElement('canvas');
+    small.width = 16;
+    small.height = 16;
+    const sg = small.getContext('2d');
+    sg.imageSmoothingEnabled = false;
+    if (kind === 'wall') paintWall(sg, room, x, y);
+    else if (kind === 'door') paintDoorTile(sg, room.id);
+    else paintFloor(sg, room.id, x, y, rug);
+    g.drawImage(small, 0, 0, TILE, TILE);
+    if (kind === 'floor' && !rug) addFloorGrain(g, x, y, room.id);
     cache.set(key, canvas);
   }
   const dx = Math.round(cam.ox + x * TILE * cam.scale);
@@ -256,6 +261,19 @@ function paintWall(g, room, x, y) {
   }
 }
 
+function addFloorGrain(g, x, y, roomId) {
+  const wood = roomId !== 'tower';
+  g.fillStyle = wood ? '#8d6238' : '#3e4658';
+  const n = (x * 13 + y * 7) % 5;
+  g.fillRect(4 + n, 10, 3, 1);
+  g.fillRect(18 + (n % 3), 22, 4, 1);
+  if (wood) {
+    g.fillStyle = '#e2bc84';
+    g.fillRect(2, 4, 8, 1);
+    g.fillRect(16, 18, 10, 1);
+  }
+}
+
 function paintDoorTile(g, roomId) {
   g.fillStyle = roomId === 'tower' ? '#5d667a' : '#c4925a';
   g.fillRect(0, 0, 16, 16);
@@ -273,23 +291,25 @@ function paintDoorTile(g, roomId) {
 function drawFrieze(ctx, cache, room, cam) {
   const cols = room.map[0].length;
   const srcH = 32;
-  const key = 'frieze:' + room.id + ':' + srcH;
+  const key = 'frieze:' + room.id;
   let canvas = cache.get(key);
   if (!canvas) {
     canvas = document.createElement('canvas');
-    canvas.width = cols * TILE;
+    canvas.width = cols * 16;
     canvas.height = srcH;
     paintFrieze(canvas.getContext('2d'), room, srcH);
     cache.set(key, canvas);
   }
+  // 16px art shown at 2x: the band is two 32px tiles tall.
   const dw = cols * TILE * cam.scale;
-  const dh = srcH * cam.scale;
+  const dh = srcH * 2 * cam.scale;
+  ctx.imageSmoothingEnabled = false;
   ctx.drawImage(canvas, cam.ox, cam.oy - dh, dw, dh);
 }
 
 function paintFrieze(g, room, height) {
   const cols = room.map[0].length;
-  const width = cols * TILE;
+  const width = cols * 16;
   const stone = room.id === 'tower';
   const paper = stone ? '#5c677c' : room.id === 'cloister' ? '#cbb892' : '#f0ddb4';
   g.fillStyle = paper;
@@ -306,7 +326,7 @@ function paintFrieze(g, room, height) {
   g.fillRect(0, height - 8, width, 2);
   for (let col = 1; col < cols - 1; col++) {
     const feature = friezeFeature(room.id, col);
-    const px = col * TILE + 1;
+    const px = col * 16 + 1;
     if (feature === 'window') drawWindow(g, px, 5, 16);
     else if (feature === 'books') drawWallBooks(g, px, 6, 22);
     else if (feature === 'painting') drawPainting(g, px, 5, room.id);
@@ -438,7 +458,7 @@ function drawDeco(ctx, deco, cam, time) {
   const p = origin(cam, deco.x, deco.y);
   ctx.save();
   ctx.translate(p.x, p.y);
-  ctx.scale(cam.scale, cam.scale);
+  ctx.scale(cam.scale * 2, cam.scale * 2);
   ctx.translate(-8, -16);
   if (deco.kind === 'plant' || deco.kind === 'plants') paintPlant(ctx, deco.kind === 'plants');
   else if (deco.kind === 'shelf') paintShelf(ctx);
@@ -524,18 +544,18 @@ function drawPlayer(ctx, player, cam) {
   ctx.restore();
 }
 
-function drawProp(ctx, prop, cam, state) {
+function drawProp(ctx, prop, cam, state, room) {
   if (prop.type === 'bottle' && state.inv.includes(prop.item)) return;
   const p = origin(cam, prop.x + (prop.w || 1) / 2, prop.y + (prop.h || 1));
   ctx.save();
   ctx.translate(p.x, p.y);
-  ctx.scale(cam.scale, cam.scale);
+  ctx.scale(cam.scale * 2, cam.scale * 2);
   ctx.translate(-8, -20);
-  paintProp(ctx, prop, state);
+  paintProp(ctx, prop, state, room);
   ctx.restore();
 }
 
-function paintProp(g, prop, state) {
+function paintProp(g, prop, state, room) {
   switch (prop.type) {
     case 'candle':
       g.fillStyle = '#6b4228';
@@ -591,16 +611,21 @@ function paintProp(g, prop, state) {
       g.fillStyle = '#f7e8c6';
       g.fillRect(4, 5, 8, 2);
       break;
-    case 'door':
+    case 'door': {
+      const south = prop.y >= (room?.map.length || 12) - 2;
+      // The prop is drawn 20px above its south edge, so a south door must not climb into the room.
+      const top = south ? 4 : -12;
       g.fillStyle = '#4a2c18';
-      g.fillRect(2, 2, 12, 18);
+      g.fillRect(1, top, 14, 32);
       g.fillStyle = '#8a5a32';
-      g.fillRect(3, 4, 10, 14);
+      g.fillRect(2, top + 2, 12, 28);
       g.fillStyle = '#6b4228';
-      g.fillRect(4, 8, 8, 1);
+      g.fillRect(3, top + 8, 10, 1);
+      g.fillRect(3, top + 16, 10, 1);
       g.fillStyle = '#e6c56a';
-      g.fillRect(10, 12, 2, 2);
+      g.fillRect(11, top + 20, 2, 2);
       break;
+    }
     case 'note':
       g.fillStyle = '#f3ead4';
       g.fillRect(2, 6, 12, 10);
