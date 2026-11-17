@@ -186,6 +186,12 @@ function panel(title, body, foot, backdropCloses) {
   );
 }
 
+function portraitFor(who) {
+  if (who === '林小烛') return 'sprites/portrait.png';
+  if (!who) return '';
+  return 'sprites/silhouette.png';
+}
+
 function dialogue(state) {
   const line = DIALOGUES[state.dialogue.id][state.dialogue.i];
   return (
@@ -193,7 +199,9 @@ function dialogue(state) {
       '<div class="sheet-back" data-act="dialogNext"></div>' +
       '<section class="dialogue-card" role="dialog" data-act="dialogNext">' +
         '<div class="dialogue-row">' +
-        '<img class="portrait" src="sprites/portrait.png" alt="" width="128" height="128">' +
+        (portraitFor(line.who)
+          ? '<img class="portrait" src="' + portraitFor(line.who) + '" alt="" width="128" height="128">'
+          : '') +
         '<div class="dialogue-copy">' +
         (line.who ? '<div class="who">' + esc(line.who) + '</div>' : '') +
         '<p>' + esc(line.text) + '</p>' +

@@ -1,5 +1,5 @@
 /* Offline cache for /escape/ only. Bump CACHE when assets change. */
-const CACHE = 'xingzhu-escape-v5';
+const CACHE = 'xingzhu-escape-v6';
 
 const ASSETS = [
   './',
@@ -15,6 +15,7 @@ const ASSETS = [
   './js/render/scene.js',
   './sprites/wife.png',
   './sprites/portrait.png',
+  './sprites/silhouette.png',
   './fonts/fusion-pixel-12px-zh_hans.woff2',
   './fonts/OFL.txt',
   './js/data/world.js',

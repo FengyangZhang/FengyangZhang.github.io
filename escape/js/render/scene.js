@@ -15,9 +15,9 @@ function spriteSheet() {
 }
 
 function scaleFor(viewW) {
-  if (viewW < 520) return 2;
-  if (viewW < 900) return 3;
-  return 4;
+  if (viewW < 520) return 3;
+  if (viewW < 900) return 4;
+  return 5;
 }
 
 export function createScene() {
@@ -80,19 +80,28 @@ function camera(view, state, room, dt) {
   const rows = room.map.length;
   const roomW = cols * TILE * scale;
   const roomH = rows * TILE * scale;
-  const topPad = 58;
-  const botPad = 96;
-  let ox = Math.round((view.w - roomW) / 2);
-  if (roomW > view.w - 8) {
-    const follow = view.w / 2 - state.player.x * TILE * scale;
-    ox = Math.round(Math.min(4, Math.max(view.w - roomW - 4, follow)));
+  let tx = state.player.x;
+  let ty = state.player.y;
+  if (!state._look) state._look = { x: tx, y: ty };
+  if (state.camSnap) {
+    state._look.x = tx;
+    state._look.y = ty;
+    state.camSnap = false;
+  } else {
+    const ease = 1 - Math.exp(-8 * Math.max(0.001, dt || 0.016));
+    state._look.x += (tx - state._look.x) * ease;
+    state._look.y += (ty - state._look.y) * ease;
   }
-  let oy = Math.round(view.h - botPad - roomH);
-  const minOy = topPad + TILE * scale * 4;
-  if (oy < minOy) oy = minOy;
-  if (oy + roomH > view.h - 8) oy = Math.max(topPad, view.h - 8 - roomH);
-  void dt;
-  return { scale, ox, oy, tx: state.player.x, ty: state.player.y };
+  let ox = Math.round(view.w / 2 - state._look.x * TILE * scale);
+  let oy = Math.round(view.h * 0.62 - state._look.y * TILE * scale);
+  if (roomW + 12 < view.w) ox = Math.round((view.w - roomW) / 2);
+  else ox = Math.max(view.w - roomW - 4, Math.min(4, ox));
+  const minOy = 46;
+  const maxOy = view.h - 96 - 5 * TILE * scale;
+  oy = Math.max(minOy, Math.min(Math.max(minOy, maxOy), oy));
+  void roomH;
+  void rows;
+  return { scale, ox, oy, tx: state._look.x, ty: state._look.y };
 }
 
 export function projectTile(state, view, tileX, tileY) {
@@ -226,12 +235,19 @@ function paintWall(g, room, x, y) {
     g.fillStyle = '#e6c56a';
     if (x % 3 === 0) g.fillRect(6, 0, 4, 16);
   } else {
-    g.fillStyle = stone ? '#6a758c' : '#efe0c4';
-    g.fillRect(2, 0, 12, 16);
-    g.fillStyle = stone ? '#2c3344' : '#5c4030';
-    g.fillRect(0, 12, 16, 4);
+    g.fillStyle = stone ? '#4a5366' : '#6b4228';
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = stone ? '#5c677c' : '#8a5a32';
+    g.fillRect(1, 0, 14, 11);
+    g.fillStyle = stone ? '#7d879c' : '#c4a070';
+    g.fillRect(2, 1, 5, 4);
+    g.fillStyle = stone ? '#2c3344' : '#4a2c18';
+    g.fillRect(0, 11, 16, 5);
     g.fillStyle = '#e6c56a';
-    g.fillRect(0, 12, 16, 1);
+    g.fillRect(0, 11, 16, 1);
+    g.fillStyle = stone ? '#2c3344' : '#5c3828';
+    g.fillRect(0, 0, 1, 16);
+    g.fillRect(15, 0, 1, 16);
   }
 }
 
@@ -251,7 +267,7 @@ function paintDoorTile(g, roomId) {
 
 function drawFrieze(ctx, cache, room, cam) {
   const cols = room.map[0].length;
-  const srcH = Math.max(32, Math.round(cam.oy / cam.scale));
+  const srcH = 32;
   const key = 'frieze:' + room.id + ':' + srcH;
   let canvas = cache.get(key);
   if (!canvas) {
@@ -271,33 +287,25 @@ function paintFrieze(g, room, height) {
   const width = cols * TILE;
   const stone = room.id === 'tower';
   const paper = stone ? '#5c677c' : room.id === 'cloister' ? '#cbb892' : '#f0ddb4';
-  const paper2 = stone ? '#515c72' : room.id === 'cloister' ? '#b9a47e' : '#e4cd9e';
   g.fillStyle = paper;
   g.fillRect(0, 0, width, height);
-  g.fillStyle = paper2;
-  for (let y = 10; y < height - 22; y += 8) {
-    for (let x = (y / 8) % 2 ? 4 : 0; x < width; x += 8) g.fillRect(x, y, 2, 2);
-  }
+  g.fillStyle = stone ? '#515c72' : '#e4cd9e';
+  for (let x = 2; x < width; x += 8) g.fillRect(x, 6, 2, 2);
   g.fillStyle = '#4a2c18';
-  g.fillRect(0, 0, width, 5);
+  g.fillRect(0, 0, width, 3);
   g.fillStyle = '#e6c56a';
-  g.fillRect(0, 4, width, 2);
-  const rail = height - 16;
+  g.fillRect(0, 3, width, 1);
   g.fillStyle = stone ? '#2c3344' : '#6b4228';
-  g.fillRect(0, rail, width, 16);
+  g.fillRect(0, height - 8, width, 8);
   g.fillStyle = '#c4a882';
-  g.fillRect(0, rail, width, 3);
-  for (let x = 0; x < width; x += 32) {
-    g.fillStyle = '#5c4030';
-    g.fillRect(x, rail, 2, 16);
-  }
+  g.fillRect(0, height - 8, width, 2);
   for (let col = 1; col < cols - 1; col++) {
     const feature = friezeFeature(room.id, col);
-    const px = col * TILE;
-    if (feature === 'window') drawWindow(g, px + 1, 14, rail - 18);
-    else if (feature === 'books') drawWallBooks(g, px + 1, 16, rail - 4);
-    else if (feature === 'painting') drawPainting(g, px + 1, 18, room.id);
-    else if (feature === 'sconce') drawSconce(g, px + 4, rail - 18);
+    const px = col * TILE + 1;
+    if (feature === 'window') drawWindow(g, px, 5, 16);
+    else if (feature === 'books') drawWallBooks(g, px, 6, 22);
+    else if (feature === 'painting') drawPainting(g, px, 5, room.id);
+    else drawSconce(g, px + 3, 6);
   }
 }
 
@@ -362,6 +370,14 @@ function drawSconce(g, x, y) {
 function drawLights(ctx, room, cam, time) {
   const flick = 0.55 + Math.sin(time * 6) * 0.15;
   ctx.save();
+  for (const deco of decos(room)) {
+    if (deco.kind !== 'lamp') continue;
+    const p = origin(cam, deco.x, deco.y + 0.4);
+    ctx.fillStyle = `rgba(255, 210, 120, ${0.16 * flick})`;
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y, 22 * cam.scale / 2, 12 * cam.scale / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
   for (const prop of room.props) {
     if (prop.type !== 'candle' && prop.type !== 'brazier') continue;
     const p = origin(cam, prop.x + 0.5, prop.y + 0.8);
@@ -382,14 +398,23 @@ function decos(room) {
     { kind: 'plant', x: 1.15, y: rows - 2.25 },
     { kind: 'plant', x: cols - 2.15, y: rows - 2.25 },
   ];
+  list.push(
+    { kind: 'chair', x: 3.3, y: 3.5 },
+    { kind: 'lamp', x: 1.35, y: 4.4 },
+    { kind: 'shelf', x: cols - 1.85, y: 3.3 },
+    { kind: 'plants', x: cols - 2.4, y: rows - 2.4 },
+  );
   if (room.id === 'library') {
-    list.push({ kind: 'shelf', x: 1.05, y: 3.2 }, { kind: 'shelf', x: 1.05, y: 6.2 });
+    list.push({ kind: 'shelf', x: 1.05, y: 4.2 }, { kind: 'table', x: 4.2, y: 8.3 });
   }
   if (room.id === 'atrium') {
-    list.push({ kind: 'table', x: 2.2, y: 3.2 }, { kind: 'papers', x: 8.4, y: 7.4 });
+    list.push({ kind: 'table', x: 2.3, y: 3.4 }, { kind: 'papers', x: 8.5, y: 7.5 });
   }
   if (room.id === 'cloister') {
-    list.push({ kind: 'plant', x: 4.2, y: 8.3 }, { kind: 'crate', x: 8.2, y: 7.3 });
+    list.push({ kind: 'crate', x: 8.3, y: 7.4 });
+  }
+  if (room.id === 'tower') {
+    list.push({ kind: 'chair', x: 8.4, y: 6.5 });
   }
   return list.filter((item) => {
     const tx = Math.floor(item.x);
@@ -410,9 +435,11 @@ function drawDeco(ctx, deco, cam, time) {
   ctx.translate(p.x, p.y);
   ctx.scale(cam.scale, cam.scale);
   ctx.translate(-8, -16);
-  if (deco.kind === 'plant') paintPlant(ctx);
+  if (deco.kind === 'plant' || deco.kind === 'plants') paintPlant(ctx, deco.kind === 'plants');
   else if (deco.kind === 'shelf') paintShelf(ctx);
   else if (deco.kind === 'table') paintTable(ctx);
+  else if (deco.kind === 'chair') paintChair(ctx);
+  else if (deco.kind === 'lamp') paintLamp(ctx);
   else if (deco.kind === 'papers') {
     ctx.fillStyle = '#f3ead4';
     ctx.fillRect(2, 8, 10, 7);
@@ -428,18 +455,37 @@ function drawDeco(ctx, deco, cam, time) {
   void time;
 }
 
-function paintPlant(g) {
+function paintPlant(g, cluster) {
+  const pots = cluster ? [[1, 0], [6, 2], [11, 0]] : [[4, 0]];
+  for (const [ox, oy] of pots) {
+    g.fillStyle = '#6b4228';
+    g.fillRect(ox, 12 + oy, 6, 4);
+    g.fillStyle = '#2f6b3a';
+    g.fillRect(ox - 1, 7 + oy, 8, 6);
+    g.fillStyle = '#3f8a48';
+    g.fillRect(ox + 1, 3 + oy, 4, 5);
+  }
+}
+
+function paintChair(g) {
   g.fillStyle = '#6b4228';
-  g.fillRect(4, 12, 8, 5);
+  g.fillRect(3, 2, 10, 8);
+  g.fillStyle = '#8a5a32';
+  g.fillRect(2, 10, 12, 3);
+  g.fillStyle = '#4a2c18';
+  g.fillRect(3, 13, 2, 4);
+  g.fillRect(11, 13, 2, 4);
+}
+
+function paintLamp(g) {
+  g.fillStyle = '#6b4228';
+  g.fillRect(6, 10, 4, 8);
   g.fillStyle = '#e6c56a';
-  g.fillRect(4, 12, 8, 1);
-  g.fillStyle = '#2f6b3a';
-  g.fillRect(3, 6, 10, 7);
-  g.fillStyle = '#3f8a48';
+  g.fillRect(4, 8, 8, 3);
+  g.fillStyle = '#fff1c4';
   g.fillRect(5, 2, 6, 6);
-  g.fillStyle = '#1d4a28';
-  g.fillRect(2, 8, 3, 4);
-  g.fillRect(11, 7, 3, 4);
+  g.fillStyle = '#fffef4';
+  g.fillRect(7, 3, 2, 3);
 }
 
 function paintShelf(g) {

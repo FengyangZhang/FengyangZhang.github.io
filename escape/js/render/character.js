@@ -4,8 +4,8 @@
  * The sheet is 4 columns (idle, step, bob, step) by 4 rows (down, left, right, up).
  */
 
-export const FRAME_W = 32;
-export const FRAME_H = 72;
+export const FRAME_W = 40;
+export const FRAME_H = 84;
 
 export const LOOKS = {
   xiaozhu: {

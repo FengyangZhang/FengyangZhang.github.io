@@ -227,6 +227,7 @@ test('service worker lists every file the page needs', () => {
     'js/render/character.js',
     'sprites/wife.png',
     'sprites/portrait.png',
+    'sprites/silhouette.png',
     'fonts/fusion-pixel-12px-zh_hans.woff2',
     'js/data/world.js',
     'js/data/rooms.js',
@@ -234,7 +235,7 @@ test('service worker lists every file the page needs', () => {
     'icons/icon-192.png',
     'icons/icon-512.png',
   ];
-  assert.match(sw, /xingzhu-escape-v5/);
+  assert.match(sw, /xingzhu-escape-v6/);
   for (const file of needed) {
     assert.equal(fs.existsSync(path.join(root, file)), true, file);
     assert.match(sw, new RegExp(file.replace('.', '\\.')));
