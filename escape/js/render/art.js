@@ -120,18 +120,12 @@ export function drawBox(ctx, x, y, w, h, z, height, top) {
   poly(ctx, topFace(x, y, w, h, z + height));
   ctx.fillStyle = top;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255, 248, 236, 0.28)';
-  ctx.lineWidth = 1.15;
-  ctx.stroke();
 }
 
 export function drawFloorTile(ctx, x, y, color, theme) {
   poly(ctx, topFace(x, y, 1, 1, 0));
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(24, 18, 32, 0.14)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
   const n = (x * 3 + y * 5) % 11;
   if (n === 0) {
     const c = iso(x + 0.5, y + 0.5, 1);

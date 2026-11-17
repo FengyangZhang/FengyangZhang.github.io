@@ -1,5 +1,5 @@
 /* Offline cache for /escape/ only. Bump CACHE when assets change. */
-const CACHE = 'xingzhu-escape-v2';
+const CACHE = 'xingzhu-escape-v3';
 
 const ASSETS = [
   './',
