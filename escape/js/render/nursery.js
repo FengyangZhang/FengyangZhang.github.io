@@ -5,78 +5,136 @@ function box(g, color, x, y, w, h) {
   g.fillRect(x, y, w, h);
 }
 
-export function paintNurseryWall(g, x, edge) {
-  g.fillStyle = '#f7d5e1';
-  g.fillRect(0, 0, 16, 16);
+function nurseryRug(x, y) {
+  return x >= 1 && x <= 10 && y >= 2 && y <= 10;
+}
+
+export function paintNurseryTile(g, kind, x, y, rug, edge) {
+  if (kind === 'wall') paintWall32(g, x, edge);
+  else if (kind === 'door') paintDoor32(g);
+  else paintFloor32(g, x, y, rug);
+}
+
+function paintFloor32(g, x, y, rug) {
+  for (let i = 0; i < 8; i++) {
+    const yy = i * 4;
+    g.fillStyle = (x + y + i) % 2 ? '#e8c49a' : '#f4d8b4';
+    g.fillRect(0, yy, 32, 4);
+    g.fillStyle = '#c4925a';
+    g.fillRect(0, yy, 32, 1);
+    const seam = (6 + ((y * 5 + i * 7) % 14));
+    g.fillStyle = '#b07a45';
+    g.fillRect(seam, yy + 1, 1, 3);
+    g.fillRect((seam + 16) % 32, yy + 1, 1, 3);
+  }
+  if (!rug) return;
+  g.fillStyle = '#f6d3c4';
+  g.fillRect(0, 0, 32, 32);
+  g.fillStyle = '#fbe4d4';
+  g.fillRect(4, 8, 3, 2);
+  g.fillRect(18, 22, 3, 2);
+  g.fillStyle = '#e7b7c8';
+  if (!nurseryRug(x - 1, y)) g.fillRect(0, 0, 4, 32);
+  if (!nurseryRug(x + 1, y)) g.fillRect(28, 0, 4, 32);
+  if (!nurseryRug(x, y - 1)) g.fillRect(0, 0, 32, 4);
+  if (!nurseryRug(x, y + 1)) g.fillRect(0, 28, 32, 4);
+  g.fillStyle = '#f2a0b8';
+  if ((x + y) % 2 === 0) {
+    g.fillRect(14, 13, 4, 4);
+    g.fillRect(12, 15, 8, 1);
+    g.fillRect(15, 12, 2, 8);
+  } else {
+    g.fillStyle = '#fff8ef';
+    g.fillRect(8, 8, 3, 3);
+    g.fillRect(20, 18, 2, 2);
+  }
+}
+
+function paintWall32(g, x, edge) {
+  g.fillStyle = '#f6d0de';
+  g.fillRect(0, 0, 32, 32);
   g.fillStyle = '#fff8ef';
-  g.fillRect(2, 3, 2, 2);
-  g.fillRect(11, 6, 2, 2);
+  g.fillRect(3, 8, 10, 5);
+  g.fillRect(5, 6, 6, 9);
+  g.fillRect(18, 16, 8, 4);
+  g.fillRect(20, 14, 4, 8);
   g.fillStyle = '#f6e7a8';
-  g.fillRect(6, 5, 3, 1);
-  g.fillRect(7, 4, 1, 3);
+  g.fillRect(22, 6, 5, 1);
+  g.fillRect(24, 4, 1, 5);
+  g.fillRect(8, 20, 5, 1);
+  g.fillRect(10, 18, 1, 5);
+  g.fillStyle = '#e8c9a4';
+  g.fillRect(0, 26, 32, 6);
+  g.fillStyle = '#c48a5a';
+  g.fillRect(0, 26, 32, 2);
   if (edge === 'n' && x >= 4 && x <= 7) {
     g.fillStyle = '#6b4228';
-    g.fillRect(1, 1, 14, 12);
-    g.fillStyle = '#9fd4ee';
-    g.fillRect(3, 3, 10, 8);
+    g.fillRect(0, 2, 32, 22);
+    g.fillStyle = '#8ec8e6';
+    g.fillRect(2, 4, 28, 18);
     g.fillStyle = '#fff6d0';
-    g.fillRect(4, 4, 3, 3);
+    g.fillRect(4, 6, 8, 6);
     g.fillStyle = '#6b4228';
-    g.fillRect(7, 3, 1, 8);
-    g.fillRect(3, 6, 10, 1);
-    g.fillStyle = '#e7b7c8';
-    g.fillRect(0, 2, 3, 11);
-    g.fillRect(13, 2, 3, 11);
-  } else if (edge === 'n' && (x === 2 || x === 9)) {
+    g.fillRect(15, 4, 2, 18);
+    g.fillRect(2, 12, 28, 2);
+    if (x === 4) {
+      g.fillStyle = '#e7b7c8';
+      g.fillRect(0, 2, 8, 22);
+      g.fillStyle = '#f4c2d0';
+      g.fillRect(2, 4, 3, 18);
+    }
+    if (x === 7) {
+      g.fillStyle = '#e7b7c8';
+      g.fillRect(24, 2, 8, 22);
+      g.fillStyle = '#f4c2d0';
+      g.fillRect(27, 4, 3, 18);
+    }
+  } else if (edge === 'n' && (x === 2 || x === 10)) {
     g.fillStyle = '#6b4228';
-    g.fillRect(2, 1, 12, 11);
+    g.fillRect(6, 4, 20, 18);
     g.fillStyle = '#e6c56a';
-    g.fillRect(3, 2, 10, 9);
-    g.fillStyle = x === 2 ? '#f6c8aa' : '#7eb6d6';
-    g.fillRect(4, 3, 8, 4);
+    g.fillRect(8, 6, 16, 14);
+    g.fillStyle = x === 2 ? '#f6c8aa' : '#9fd4ee';
+    g.fillRect(10, 8, 12, 6);
     g.fillStyle = '#3d8a55';
-    g.fillRect(4, 7, 8, 3);
+    g.fillRect(10, 14, 12, 4);
+    g.fillStyle = '#d6453c';
+    g.fillRect(18, 9, 3, 3);
   } else if (edge === 'n' && x === 8) {
-    const colors = ['#d6453c', '#f5c20e', '#3d6ea8', '#3d8a55'];
+    const colors = ['#d6453c', '#f5c20e', '#3d6ea8', '#3d8a55', '#f4efe6'];
     g.fillStyle = '#6b4228';
-    g.fillRect(1, 2, 14, 11);
-    for (let i = 0; i < 4; i++) {
+    g.fillRect(4, 6, 24, 16);
+    for (let i = 0; i < 5; i++) {
       g.fillStyle = colors[i];
-      g.fillRect(2 + i * 3, 3, 2, 8);
+      g.fillRect(6 + i * 4, 8, 3, 12);
     }
   }
-  g.fillStyle = '#e8c9a4';
-  g.fillRect(0, 13, 16, 3);
-  g.fillStyle = '#c48a5a';
-  g.fillRect(0, 13, 16, 1);
+}
+
+function paintDoor32(g) {
+  paintFloor32(g, 5, 11, false);
+  g.fillStyle = '#6b4228';
+  g.fillRect(6, 0, 20, 32);
+  g.fillStyle = '#a56b3a';
+  g.fillRect(8, 2, 16, 28);
+  g.fillStyle = '#c4a070';
+  g.fillRect(8, 14, 16, 2);
+  g.fillStyle = '#e6c56a';
+  g.fillRect(18, 16, 3, 3);
 }
 
 export function paintNurseryFrieze(g, width, height) {
-  g.fillStyle = '#f7d5e1';
+  g.fillStyle = '#f6d0de';
   g.fillRect(0, 0, width, height);
   g.fillStyle = '#fff8ef';
-  for (let x = 4; x < width; x += 10) {
-    g.fillRect(x, 8, 2, 2);
-    g.fillRect(x + 5, 16, 2, 2);
-  }
+  for (let x = 2; x < width; x += 14) g.fillRect(x, 2, 4, 2);
   g.fillStyle = '#f6e7a8';
-  for (let x = 8; x < width; x += 22) {
-    g.fillRect(x, 12, 3, 1);
-    g.fillRect(x + 1, 11, 1, 3);
+  for (let x = 8; x < width; x += 18) {
+    g.fillRect(x, 3, 3, 1);
+    g.fillRect(x + 1, 2, 1, 3);
   }
-  g.fillStyle = '#4a2c18';
-  g.fillRect(0, 0, width, 2);
-  g.fillStyle = '#e6c56a';
-  g.fillRect(0, 2, width, 1);
-  g.fillStyle = '#e8c9a4';
-  g.fillRect(0, height - 6, width, 6);
   g.fillStyle = '#c48a5a';
-  g.fillRect(0, height - 6, width, 1);
-
-  drawFramed(g, 18, 6, '#f6c8aa', '#7eb6d6');
-  drawWindowBand(g, 58, 5, 52, 22);
-  drawPictureBooks(g, 122, 6);
-  drawFramed(g, 156, 6, '#f6e7a8', '#8c3048');
+  g.fillRect(0, height - 2, width, 2);
 }
 
 function drawFramed(g, x, y, sky, hill) {
@@ -128,13 +186,18 @@ function drawPictureBooks(g, x, y) {
 
 export function nurseryDecos() {
   return [
-    { kind: 'plant', x: 1.22, y: 1.35 },
-    { kind: 'plant', x: 10.35, y: 1.55 },
-    { kind: 'plant', x: 1.22, y: 9.45 },
-    { kind: 'ball', x: 6.65, y: 7.45 },
-    { kind: 'crayons', x: 9.4, y: 9.2 },
-    { kind: 'rattle', x: 3.45, y: 6.55 },
-    { kind: 'blocks2', x: 7.55, y: 8.65 },
+    { kind: 'mobile', x: 2.55, y: 1.35 },
+    { kind: 'plant', x: 10.4, y: 1.45 },
+    { kind: 'plant', x: 1.25, y: 9.55 },
+    { kind: 'drawing', x: 6.35, y: 2.55 },
+    { kind: 'ball', x: 5.4, y: 3.55 },
+    { kind: 'crayons', x: 7.45, y: 7.35 },
+    { kind: 'rattle', x: 3.4, y: 6.55 },
+    { kind: 'blocks2', x: 3.45, y: 7.45 },
+    { kind: 'drawing', x: 9.45, y: 9.35 },
+    { kind: 'ball', x: 4.55, y: 9.45 },
+    { kind: 'blocks2', x: 7.4, y: 9.25 },
+    { kind: 'crayons', x: 6.55, y: 8.45 },
   ];
 }
 
@@ -162,6 +225,25 @@ export function paintNurseryDeco(g, kind) {
     box(g, '#3d6ea8', 2, 8, 6, 6);
     box(g, '#f5c20e', 7, 10, 6, 6);
     box(g, '#d6453c', 4, 3, 5, 5);
+    box(g, '#fff8ef', 5, 4, 1, 1);
+    return true;
+  }
+  if (kind === 'mobile') {
+    box(g, '#6b4228', 2, 0, 12, 2);
+    box(g, '#c48a5a', 4, 2, 1, 6);
+    box(g, '#c48a5a', 8, 2, 1, 8);
+    box(g, '#c48a5a', 12, 2, 1, 5);
+    box(g, '#f5c20e', 2, 7, 5, 5);
+    box(g, '#d6453c', 6, 9, 5, 5);
+    box(g, '#3d6ea8', 10, 6, 5, 5);
+    return true;
+  }
+  if (kind === 'drawing') {
+    box(g, '#6b4228', 2, 2, 12, 12);
+    box(g, '#fff8ef', 3, 3, 10, 10);
+    box(g, '#9fd4ee', 4, 4, 8, 4);
+    box(g, '#3d8a55', 4, 8, 8, 4);
+    box(g, '#f5c20e', 8, 5, 2, 2);
     return true;
   }
   return false;
@@ -169,7 +251,7 @@ export function paintNurseryDeco(g, kind) {
 
 const NURSERY_TYPES = new Set([
   'crib', 'chest', 'curtain', 'bookshelf', 'blanket', 'blocks', 'sorter',
-  'robot', 'bunny', 'doll', 'horse', 'duck', 'dino', 'nightlight', 'plant', 'door',
+  'robot', 'bunny', 'doll', 'horse', 'duck', 'dino', 'nightlight', 'plant', 'door', 'rocker',
 ]);
 
 export function isNurseryProp(type) {
@@ -190,6 +272,7 @@ export function paintNurseryProp(g, prop, state) {
     case 'bunny': return paintBunny(g);
     case 'doll': return paintDoll(g);
     case 'horse': return paintHorse(g);
+    case 'rocker': return paintRocker(g);
     case 'duck': return paintDuck(g);
     case 'dino': return paintDino(g);
     case 'nightlight': return paintNightlight(g);
@@ -325,77 +408,132 @@ function hole(g, x, y, kind) {
 }
 
 function paintRobot(g) {
-  box(g, '#8aa0b8', -8, -34, 16, 14);
-  box(g, '#d7e2ee', -6, -32, 12, 8);
-  box(g, '#241610', -5, -29, 3, 3);
-  box(g, '#241610', 2, -29, 3, 3);
-  box(g, '#fff8ef', -4, -28, 1, 1);
-  box(g, '#d6453c', -2, -24, 4, 2);
-  box(g, '#6b4228', 6, -30, 6, 3);
-  box(g, '#e6c56a', 10, -32, 3, 6);
-  box(g, '#8aa0b8', -6, -20, 12, 12);
+  box(g, '#2a241c', -10, -38, 20, 18);
+  box(g, '#8aa0b8', -8, -36, 16, 14);
+  box(g, '#d7e2ee', -6, -34, 12, 8);
+  box(g, '#241610', -5, -31, 3, 3);
+  box(g, '#241610', 2, -31, 3, 3);
+  box(g, '#fff8ef', -4, -30, 1, 1);
+  box(g, '#fff8ef', 3, -30, 1, 1);
+  box(g, '#d6453c', -2, -26, 4, 2);
+  box(g, '#6b4228', 8, -32, 6, 3);
+  box(g, '#e6c56a', 12, -34, 3, 7);
+  box(g, '#2a241c', -8, -22, 16, 14);
+  box(g, '#9aafc4', -6, -20, 12, 10);
+  box(g, '#5c6b7a', -6, -20, 3, 10);
   box(g, '#e6c56a', -2, -16, 4, 4);
-  box(g, '#5c6b7a', -8, -10, 4, 8);
-  box(g, '#5c6b7a', 4, -10, 4, 8);
+  box(g, '#2a241c', -9, -10, 5, 8);
+  box(g, '#2a241c', 4, -10, 5, 8);
+  box(g, '#5c6b7a', -8, -9, 3, 6);
+  box(g, '#5c6b7a', 5, -9, 3, 6);
 }
 
 function paintBunny(g) {
-  box(g, '#f4d2dc', -10, -36, 6, 16);
-  box(g, '#f4d2dc', 4, -36, 6, 16);
-  box(g, '#f7a8b8', -8, -32, 2, 10);
-  box(g, '#f7a8b8', 6, -32, 2, 10);
-  box(g, '#f4d2dc', -10, -24, 20, 16);
-  box(g, '#241610', -6, -18, 2, 3);
-  box(g, '#241610', 3, -18, 2, 3);
-  box(g, '#f29682', -2, -14, 3, 2);
-  box(g, '#fff8ef', -6, -12, 12, 6);
+  box(g, '#2a241c', -11, -40, 8, 18);
+  box(g, '#2a241c', 3, -40, 8, 18);
+  box(g, '#f4d2dc', -10, -39, 6, 16);
+  box(g, '#f4d2dc', 4, -39, 6, 16);
+  box(g, '#f7a8b8', -8, -36, 2, 10);
+  box(g, '#f7a8b8', 6, -36, 2, 10);
+  box(g, '#2a241c', -12, -26, 24, 18);
+  box(g, '#f4d2dc', -10, -24, 20, 14);
+  box(g, '#e7b0c0', -10, -14, 6, 4);
+  box(g, '#241610', -6, -20, 2, 3);
+  box(g, '#241610', 4, -20, 2, 3);
+  box(g, '#fff8ef', -6, -20, 1, 1);
+  box(g, '#fff8ef', 4, -20, 1, 1);
+  box(g, '#f29682', -2, -16, 4, 2);
+  box(g, '#fff8ef', -6, -12, 12, 5);
+  box(g, '#241610', -2, -10, 1, 1);
   box(g, '#e7b7c8', -8, -8, 16, 8);
+  box(g, '#d7a0b0', -8, -4, 16, 3);
 }
 
 function paintDoll(g) {
-  box(g, '#6b4228', -8, -36, 16, 5);
-  box(g, '#8c3048', -10, -32, 20, 4);
-  box(g, '#f6c8aa', -6, -28, 12, 10);
+  box(g, '#2a241c', -9, -40, 18, 8);
+  box(g, '#6b4228', -8, -38, 16, 5);
+  box(g, '#8c3048', -11, -34, 22, 4);
+  box(g, '#e6c56a', -2, -37, 3, 2);
+  box(g, '#2a241c', -7, -30, 14, 12);
+  box(g, '#f6c8aa', -6, -28, 12, 9);
+  box(g, '#f0b090', -6, -20, 12, 2);
   box(g, '#241610', -4, -24, 2, 2);
   box(g, '#241610', 2, -24, 2, 2);
+  box(g, '#fff8ef', -4, -24, 1, 1);
+  box(g, '#fff8ef', 2, -24, 1, 1);
+  box(g, '#f29682', -5, -21, 2, 1);
+  box(g, '#f29682', 3, -21, 2, 1);
   box(g, '#d6453c', -2, -20, 4, 1);
-  box(g, '#3d6ea8', -8, -18, 16, 12);
-  box(g, '#e6c56a', -2, -14, 4, 3);
-  box(g, '#6b4228', -8, -8, 4, 6);
-  box(g, '#6b4228', 4, -8, 4, 6);
+  box(g, '#2a241c', -9, -18, 18, 14);
+  box(g, '#3d6ea8', -8, -17, 16, 11);
+  box(g, '#2c507f', -8, -17, 3, 11);
+  box(g, '#e6c56a', -2, -13, 4, 3);
+  box(g, '#6b4228', -8, -7, 4, 6);
+  box(g, '#6b4228', 4, -7, 4, 6);
 }
 
 function paintHorse(g) {
+  box(g, '#2a241c', -14, -22, 26, 14);
   box(g, '#c48a4a', -12, -20, 22, 10);
-  box(g, '#a56b3a', 6, -32, 8, 14);
-  box(g, '#6b4228', 8, -30, 3, 4);
-  box(g, '#241610', 10, -27, 2, 2);
-  box(g, '#8c3048', -4, -24, 8, 4);
-  box(g, '#6b4228', -12, -12, 6, 6);
-  box(g, '#6b4228', 6, -12, 6, 6);
-  box(g, '#f3ead4', -10, -10, 2, 2);
-  box(g, '#f3ead4', 8, -10, 2, 2);
+  box(g, '#a56b3a', -12, -14, 22, 4);
+  box(g, '#2a241c', 6, -36, 10, 18);
+  box(g, '#c48a4a', 7, -34, 8, 14);
+  box(g, '#6b4228', 8, -32, 4, 5);
+  box(g, '#241610', 11, -28, 2, 2);
+  box(g, '#fff8ef', 11, -28, 1, 1);
+  box(g, '#8c3048', -6, -24, 10, 4);
+  box(g, '#2a241c', -14, -12, 8, 8);
+  box(g, '#2a241c', 6, -12, 8, 8);
+  box(g, '#6b4228', -12, -10, 5, 5);
+  box(g, '#6b4228', 8, -10, 5, 5);
+  box(g, '#f3ead4', -11, -9, 2, 2);
+  box(g, '#f3ead4', 9, -9, 2, 2);
+}
+
+function paintRocker(g) {
+  box(g, '#6b4228', -16, -8, 14, 3);
+  box(g, '#6b4228', 2, -8, 14, 3);
+  box(g, '#8a5a32', -14, -10, 10, 3);
+  box(g, '#8a5a32', 4, -10, 10, 3);
+  box(g, '#c48a4a', -10, -28, 18, 18);
+  box(g, '#a56b3a', -10, -16, 18, 6);
+  box(g, '#6b4228', 4, -40, 10, 16);
+  box(g, '#c48a4a', 5, -38, 8, 12);
+  box(g, '#241610', 9, -32, 2, 2);
+  box(g, '#fff8ef', 9, -32, 1, 1);
+  box(g, '#8c3048', -4, -32, 8, 4);
+  box(g, '#e6c56a', -2, -22, 3, 3);
 }
 
 function paintDuck(g) {
-  box(g, '#f5c20e', -10, -22, 18, 14);
-  box(g, '#f5c20e', -4, -30, 12, 12);
-  box(g, '#241610', 2, -26, 2, 2);
-  box(g, '#e07a20', 6, -24, 7, 4);
+  box(g, '#2a241c', -12, -24, 22, 16);
+  box(g, '#f5c20e', -10, -22, 18, 12);
+  box(g, '#e6a010', -10, -12, 18, 3);
+  box(g, '#2a241c', -6, -34, 14, 14);
+  box(g, '#f5c20e', -4, -32, 12, 12);
+  box(g, '#241610', 2, -28, 2, 2);
+  box(g, '#fff8ef', 2, -28, 1, 1);
+  box(g, '#e07a20', 6, -26, 8, 4);
+  box(g, '#c46210', 6, -23, 8, 1);
   box(g, '#fff6d0', -6, -16, 6, 4);
   box(g, '#e07a20', -8, -8, 4, 3);
   box(g, '#e07a20', 2, -8, 4, 3);
 }
 
 function paintDino(g) {
+  box(g, '#2a241c', -10, -30, 18, 14);
   box(g, '#3d8a55', -8, -28, 16, 12);
-  box(g, '#6fbf7a', -4, -34, 8, 8);
-  box(g, '#241610', 0, -30, 2, 2);
-  box(g, '#f29682', 2, -26, 4, 2);
-  box(g, '#2f6b3a', -10, -32, 4, 4);
-  box(g, '#2f6b3a', -2, -36, 4, 4);
+  box(g, '#6fbf7a', -6, -26, 6, 6);
+  box(g, '#2f6b3a', -10, -34, 4, 4);
+  box(g, '#2f6b3a', -2, -38, 4, 4);
+  box(g, '#6fbf7a', 4, -36, 6, 6);
+  box(g, '#241610', 2, -24, 2, 2);
+  box(g, '#fff8ef', 2, -24, 1, 1);
+  box(g, '#f29682', 4, -20, 4, 2);
+  box(g, '#2a241c', -14, -18, 26, 12);
   box(g, '#3d8a55', -12, -16, 22, 10);
-  box(g, '#2f6b3a', 8, -20, 8, 4);
+  box(g, '#2f6b3a', -12, -10, 22, 3);
+  box(g, '#6fbf7a', 8, -20, 8, 4);
   box(g, '#6b4228', -10, -8, 4, 6);
   box(g, '#6b4228', 4, -8, 4, 6);
 }

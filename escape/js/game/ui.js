@@ -177,11 +177,11 @@ function sheet(state) {
   } else if (current.type === 'colors') {
     title = '彩球';
     body = colorBody(state);
-    foot = '<button class="btn btn-primary" data-act="colorSubmit">放好了</button><button class="btn btn-ghost" data-act="closeSheet">离开</button>';
+    foot = '<button class="btn btn-ghost" data-act="closeSheet">离开</button>';
   } else if (current.type === 'shapes') {
     title = '形状盒';
     body = shapeBody(state);
-    foot = '<button class="btn btn-primary" data-act="shapeSubmit">放好了</button><button class="btn btn-ghost" data-act="closeSheet">离开</button>';
+    foot = '<button class="btn btn-ghost" data-act="closeSheet">离开</button>';
   } else if (current.type === 'levels') {
     title = '五次生日';
     body = levelBody(state);
@@ -235,48 +235,43 @@ function candleHud(state) {
 
 function colorBody(state) {
   const colors = [
-    ['red', '红', '#d6453c'],
-    ['blue', '蓝', '#3d6ea8'],
-    ['yellow', '黄', '#f5c20e'],
-    ['green', '绿', '#3d8a55'],
+    ['red', '#d6453c'],
+    ['blue', '#3d6ea8'],
+    ['yellow', '#f5c20e'],
+    ['green', '#3d8a55'],
   ];
   const placed = state.mini?.colors || {};
   const pick = state.mini?.colorPick;
-  const balls = colors.map(([id, name, hex]) => {
-    const used = Object.values(placed).includes(id);
-    return '<button class="swatch toy-ball' + (pick === id ? ' on' : '') + '" style="--swatch:' + hex + '" data-act="colorPick" data-id="' + id + '"' +
-      (used ? ' disabled' : '') + '><span>' + name + '</span></button>';
-  }).join('');
-  const baskets = colors.map(([id, name, hex]) => {
+  const baskets = colors.map(([id, hex]) => {
     const got = placed[id];
-    const label = got ? colors.find((item) => item[0] === got)[1] : '空';
-    return '<button class="basket" style="--swatch:' + hex + '" data-act="colorPlace" data-id="' + id + '">' + name + '篮子<br>' + label + '</button>';
+    const pop = got && state.mini?.pop === id ? ' pop' : '';
+    return '<button class="pix-basket" style="--swatch:' + hex + '" data-act="colorPlace" data-id="' + id + '" data-drop="' + id + '" data-kind="colors" aria-label="' + id + '">' +
+      (got ? '<i class="pix-ball' + pop + '" style="--swatch:' + hex + '"></i>' : '') +
+      '</button>';
   }).join('');
-  const n = Object.keys(placed).length;
-  return '<p>先点一个彩球，再点同样颜色的篮子。放好 ' + n + '/4。</p><div class="swatch-row">' + balls + '</div><div class="swatch-row">' + baskets + '</div>';
+  const balls = colors.filter(([id]) => !Object.values(placed).includes(id)).map(([id, hex]) => (
+    '<button class="chunk' + (pick === id ? ' on' : '') + '" style="--swatch:' + hex + '" data-act="colorPick" data-id="' + id + '" data-drag="' + id + '" data-kind="colors" aria-label="' + id + '">' +
+      '<i class="pix-ball" style="--swatch:' + hex + '"></i></button>'
+  )).join('');
+  return '<p class="toy-hint">把球放进一样颜色的篮子。</p><div class="play-board"><div class="toy-tray baskets">' + baskets + '</div><div class="toy-tray">' + balls + '</div></div>';
 }
 
 function shapeBody(state) {
-  const shapes = [
-    ['circle', '圆'],
-    ['square', '方'],
-    ['triangle', '三角'],
-    ['star', '星'],
-  ];
+  const shapes = ['circle', 'square', 'triangle', 'star'];
   const placed = state.mini?.shapes || {};
   const pick = state.mini?.shapePick;
-  const blocks = shapes.map(([id, name]) => {
-    const used = Object.values(placed).includes(id);
-    return '<button class="shape-btn' + (pick === id ? ' on' : '') + '" data-act="shapePick" data-id="' + id + '"' +
-      (used ? ' disabled' : '') + '><i class="shape-ico ' + id + '"></i>' + name + '</button>';
-  }).join('');
-  const holes = shapes.map(([id, name]) => {
+  const holes = shapes.map((id) => {
     const got = placed[id];
-    const label = got ? shapes.find((item) => item[0] === got)[1] : '空';
-    return '<button class="shape-btn hole" data-act="shapePlace" data-id="' + id + '"><i class="shape-ico ' + id + '"></i>' + name + '洞<br>' + label + '</button>';
+    const pop = got && state.mini?.pop === id ? ' pop' : '';
+    return '<button class="hole-btn ' + id + '" data-act="shapePlace" data-id="' + id + '" data-drop="' + id + '" data-kind="shapes" aria-label="' + id + '">' +
+      (got ? '<i class="pix ' + got + pop + '"></i>' : '') +
+      '</button>';
   }).join('');
-  const n = Object.keys(placed).length;
-  return '<p>先点一块积木，再点同样形状的洞。放好 ' + n + '/4。</p><div class="swatch-row">' + blocks + '</div><div class="swatch-row">' + holes + '</div>';
+  const blocks = shapes.filter((id) => !Object.values(placed).includes(id)).map((id) => (
+    '<button class="chunk' + (pick === id ? ' on' : '') + '" data-act="shapePick" data-id="' + id + '" data-drag="' + id + '" data-kind="shapes" aria-label="' + id + '">' +
+      '<i class="pix ' + id + '"></i></button>'
+  )).join('');
+  return '<p class="toy-hint">把积木放进一样的洞。</p><div class="play-board"><div class="wood-box">' + holes + '</div><div class="toy-tray">' + blocks + '</div></div>';
 }
 
 function levelBody(state) {

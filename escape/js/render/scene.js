@@ -9,7 +9,7 @@ import {
   paintNurseryDeco,
   paintNurseryFrieze,
   paintNurseryProp,
-  paintNurseryWall,
+  paintNurseryTile,
 } from './nursery.js';
 
 export const TILE = 32;
@@ -175,7 +175,9 @@ function blitTile(ctx, cache, room, x, y, cam) {
   const rugKey = rug
     ? [inRug(room.id, x - 1, y), inRug(room.id, x + 1, y), inRug(room.id, x, y - 1), inRug(room.id, x, y + 1)].join('')
     : '';
-  const key = kind + ':' + room.id + ':' + (kind === 'floor' ? (rug ? 'rug' + rugKey : 'wood' + (y % 2) + (x % 3)) : edgeKind(room, x, y));
+  const key = room.id === 'nursery'
+    ? 'nursery:' + kind + ':' + x + ':' + y + ':' + rugKey
+    : kind + ':' + room.id + ':' + (kind === 'floor' ? (rug ? 'rug' + rugKey : 'wood' + (y % 2) + (x % 3)) : edgeKind(room, x, y));
   let canvas = cache.get(key);
   if (!canvas) {
     canvas = document.createElement('canvas');
@@ -183,6 +185,14 @@ function blitTile(ctx, cache, room, x, y, cam) {
     canvas.height = TILE;
     const g = canvas.getContext('2d');
     g.imageSmoothingEnabled = false;
+    if (room.id === 'nursery') {
+      paintNurseryTile(g, kind, x, y, rug, edgeKind(room, x, y));
+      cache.set(key, canvas);
+      const dx0 = Math.round(cam.ox + x * TILE * cam.scale);
+      const dy0 = Math.round(cam.oy + y * TILE * cam.scale);
+      ctx.drawImage(canvas, dx0, dy0, TILE * cam.scale, TILE * cam.scale);
+      return;
+    }
     const small = document.createElement('canvas');
     small.width = 16;
     small.height = 16;
@@ -214,7 +224,7 @@ function inRug(roomId, x, y) {
   if (roomId === 'tower') return x >= 4 && x <= 7 && y >= 5 && y <= 8;
   if (roomId === 'library') return x >= 3 && x <= 8 && y >= 5 && y <= 8;
   if (roomId === 'cloister') return x >= 3 && x <= 8 && y >= 5 && y <= 8;
-  if (roomId === 'nursery') return x >= 3 && x <= 8 && y >= 5 && y <= 9;
+  if (roomId === 'nursery') return x >= 1 && x <= 10 && y >= 2 && y <= 10;
   return x >= 3 && x <= 8 && y >= 4 && y <= 8;
 }
 
@@ -288,10 +298,6 @@ function paintFloor(g, roomId, x, y, rug) {
 }
 
 function paintWall(g, room, x, y) {
-  if (room.id === 'nursery') {
-    paintNurseryWall(g, x, edgeKind(room, x, y));
-    return;
-  }
   const edge = edgeKind(room, x, y);
   const stone = room.id === 'tower';
   g.fillStyle = stone ? '#3e4658' : '#6b4228';
@@ -354,7 +360,7 @@ function paintDoorTile(g, roomId) {
 
 function drawFrieze(ctx, cache, room, cam) {
   const cols = room.map[0].length;
-  const srcH = 32;
+  const srcH = room.id === 'nursery' ? 8 : 32;
   const key = 'frieze:' + room.id;
   let canvas = cache.get(key);
   if (!canvas) {
@@ -364,7 +370,7 @@ function drawFrieze(ctx, cache, room, cam) {
     paintFrieze(canvas.getContext('2d'), room, srcH);
     cache.set(key, canvas);
   }
-  // 16px art shown at 2x: the band is two 32px tiles tall.
+  // 16px art shown at 2x. Nursery keeps only a short wallpaper lip.
   const dw = cols * TILE * cam.scale;
   const dh = srcH * 2 * cam.scale;
   ctx.imageSmoothingEnabled = false;

@@ -360,6 +360,7 @@ export const ROOMS = {
       { id: 'duck', type: 'duck', name: '嘎嘎', x: 10, y: 3, block: false, show: 'seek_curtain', action: 'toyTalk', who: 'duck', hit: 0.85 },
       { id: 'doll', type: 'doll', name: '帽帽', x: 5, y: 8, block: false, show: 'seek_shelf', action: 'toyTalk', who: 'doll', hit: 0.85 },
       { id: 'horse', type: 'horse', name: '木木', x: 2, y: 8, block: false, show: 'seek_crib', action: 'toyTalk', who: 'horse', hit: 0.85 },
+      { id: 'rocker', type: 'rocker', name: '摇摇马', x: 9, y: 5, block: true, hit: 0.9 },
       { id: 'plant', type: 'plant', name: '小盆栽', x: 10, y: 8, block: true, hit: 0.7 },
       { id: 'lamp', type: 'nightlight', name: '小夜灯', x: 10, y: 6, block: false, hit: 0.6 },
       { id: 'mom', type: 'door', name: '房门', x: 5, y: 11, block: false, action: 'mom', exit: 'south', hit: 0.9 },

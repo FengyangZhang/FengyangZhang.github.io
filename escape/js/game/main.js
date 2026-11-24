@@ -50,12 +50,71 @@ const actions = createActions(state, {
 ui = createUI(app, state);
 ui.render();
 
+let swallowClick = false;
+let pieceDrag = null;
+
 app.addEventListener('click', (event) => {
+  if (swallowClick) {
+    swallowClick = false;
+    return;
+  }
   const el = event.target.closest('[data-act]');
   if (!el || el.tagName === 'SELECT') return;
   const fn = actions[el.dataset.act];
   if (typeof fn !== 'function') return;
   fn.call(actions, el.dataset);
+});
+
+app.addEventListener('pointerdown', (event) => {
+  const el = event.target.closest('[data-drag]');
+  if (!el) return;
+  event.preventDefault();
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  ghost.innerHTML = el.innerHTML;
+  ghost.style.left = event.clientX + 'px';
+  ghost.style.top = event.clientY + 'px';
+  document.body.appendChild(ghost);
+  pieceDrag = {
+    id: el.dataset.drag,
+    kind: el.dataset.kind,
+    x: event.clientX,
+    y: event.clientY,
+    moved: false,
+    pointer: event.pointerId,
+    ghost,
+  };
+  el.setPointerCapture?.(event.pointerId);
+});
+
+app.addEventListener('pointermove', (event) => {
+  if (!pieceDrag || pieceDrag.pointer !== event.pointerId) return;
+  const dx = event.clientX - pieceDrag.x;
+  const dy = event.clientY - pieceDrag.y;
+  if (dx * dx + dy * dy > 36) pieceDrag.moved = true;
+  pieceDrag.ghost.style.left = event.clientX + 'px';
+  pieceDrag.ghost.style.top = event.clientY + 'px';
+});
+
+function endPieceDrag(event) {
+  if (!pieceDrag || pieceDrag.pointer !== event.pointerId) return;
+  const drag = pieceDrag;
+  pieceDrag = null;
+  drag.ghost.remove();
+  if (!drag.moved) return;
+  swallowClick = true;
+  const under = document.elementFromPoint(event.clientX, event.clientY);
+  const hole = under && under.closest('[data-drop]');
+  if (!hole || hole.dataset.kind !== drag.kind) return;
+  const fn = drag.kind === 'colors' ? actions.colorPlace : actions.shapePlace;
+  fn.call(actions, { id: hole.dataset.drop, item: drag.id });
+}
+
+app.addEventListener('pointerup', endPieceDrag);
+app.addEventListener('pointercancel', (event) => {
+  if (!pieceDrag || pieceDrag.pointer !== event.pointerId) return;
+  pieceDrag.ghost.remove();
+  pieceDrag = null;
 });
 
 app.addEventListener('change', (event) => {

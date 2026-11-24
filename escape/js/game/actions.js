@@ -779,9 +779,12 @@ export function createActions(state, hooks) {
     },
 
     colorPlace(ds) {
-      const item = state.mini.colorPick;
-      if (!item) {
-        toast('先点一个彩球。');
+      const item = ds.item || state.mini.colorPick;
+      if (!item) return;
+      if (item !== ds.id) {
+        hooks.audio.fail();
+        state.mini.pop = '';
+        refresh();
         return;
       }
       const colors = { ...state.mini.colors };
@@ -791,6 +794,15 @@ export function createActions(state, hooks) {
       colors[ds.id] = item;
       state.mini.colors = colors;
       state.mini.colorPick = null;
+      state.mini.pop = ds.id;
+      if (colorsDone(state.mini.colors)) {
+        state.flags.colors_done = true;
+        state.sheet = null;
+        hooks.audio.success();
+        startDialogue('colorsClear');
+        return;
+      }
+      hooks.audio.tick();
       refresh();
     },
 
@@ -811,9 +823,12 @@ export function createActions(state, hooks) {
     },
 
     shapePlace(ds) {
-      const item = state.mini.shapePick;
-      if (!item) {
-        toast('先点一块积木。');
+      const item = ds.item || state.mini.shapePick;
+      if (!item) return;
+      if (item !== ds.id) {
+        hooks.audio.fail();
+        state.mini.pop = '';
+        refresh();
         return;
       }
       const shapes = { ...state.mini.shapes };
@@ -823,6 +838,14 @@ export function createActions(state, hooks) {
       shapes[ds.id] = item;
       state.mini.shapes = shapes;
       state.mini.shapePick = null;
+      state.mini.pop = ds.id;
+      if (shapesDone(state.mini.shapes)) {
+        state.flags.shapes_done = true;
+        state.sheet = null;
+        awardCandle();
+        return;
+      }
+      hooks.audio.tick();
       refresh();
     },
 
