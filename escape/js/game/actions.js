@@ -22,7 +22,11 @@ import {
   checkDial,
   checkPotion,
   doorMessage,
+  colorsDone,
   isExitOpen,
+  seekDone,
+  SEEK_IDS,
+  shapesDone,
   matchRecipe,
   potionReaction,
   previewCipher,
@@ -70,6 +74,7 @@ export function createActions(state, hooks) {
     const id = state.dialogue?.id;
     state.dialogue = null;
     state.sheet = null;
+    if (id === 'nurseryIntro') state.flags.nurserySeen = true;
     if (id === 'intro') {
       state.flags.introDone = true;
       journal({
@@ -165,6 +170,53 @@ export function createActions(state, hooks) {
     state.sheet = { type: 'slate' };
     state.toast = { text: '浅青色沿着凹槽走了一遍。', until: performance.now() + 2600 };
     refresh();
+  }
+
+  function seekToy(prop) {
+    const key = 'seek_' + prop.seek;
+    if (state.flags[key]) {
+      toast('这里已经找过啦。');
+      return;
+    }
+    state.flags[key] = true;
+    hooks.audio.tick();
+    if (seekDone(state.flags)) startDialogue('toysReady', { x: prop.x + 0.5, y: prop.y + 0.5 });
+    else startDialogue('found_' + prop.seek, { x: prop.x + 0.5, y: prop.y + 0.5 });
+  }
+
+  function openColors() {
+    if (!seekDone(state.flags)) {
+      toast('先把躲起来的五个玩具找齐。毯子、箱子、窗帘、小床、书架。');
+      return;
+    }
+    state.sheet = { type: 'colors' };
+    refresh();
+  }
+
+  function openShapes() {
+    if (!state.flags.colors_done) {
+      toast('先把彩球放进同样颜色的篮子。');
+      return;
+    }
+    state.sheet = { type: 'shapes' };
+    refresh();
+  }
+
+  function awardCandle() {
+    if (state.flags.candle_2) return;
+    state.flags.candle_2 = true;
+    state.flags.colors_done = true;
+    if (!state.candles.includes('candle_2')) state.candles.push('candle_2');
+    state.sparkle = 5;
+    state.sparkleAt = { x: 8.5, y: 6.2 };
+    hooks.audio.success();
+    journal({
+      id: 'candle-2',
+      tag: '生日',
+      title: '第一支蜡烛',
+      body: '两岁的形状盒打开了。第一支生日蜡烛在里面。',
+    });
+    startDialogue('candleGet');
   }
 
   function runProp(prop) {
@@ -292,6 +344,26 @@ export function createActions(state, hooks) {
       case 'stairs':
         toast(state.flags.ending ? '楼梯轻轻动了一格，又像是在等人。' : '楼梯停在半空，像一句说到一半的话。');
         break;
+      case 'seek':
+        seekToy(prop);
+        break;
+      case 'colors':
+        openColors();
+        break;
+      case 'shapes':
+        openShapes();
+        break;
+      case 'toddler':
+        startDialogue(state.flags.candle_2 ? 'candleGet' : 'toddlerTalk', { x: prop.x + 0.5, y: prop.y + 0.5 });
+        break;
+      case 'toyTalk':
+        startDialogue(prop.who + 'Talk', { x: prop.x + 0.5, y: prop.y + 0.5 });
+        break;
+      case 'mom':
+        if (!seekDone(state.flags)) startDialogue('momSeek');
+        else if (!state.flags.colors_done) startDialogue('momColors');
+        else startDialogue('momShapes');
+        break;
       case 'bell':
         toast(state.flags.ending ? '钟自己响起来，又很快停了。' : '现在敲它没有用。归名在星盘上。');
         break;
@@ -331,7 +403,8 @@ export function createActions(state, hooks) {
     tapWorld(wx, wy, screen) {
       if (state.mode !== 'play' || state.sheet) return;
       const room = ROOMS[state.roomId];
-      const prop = screen && state._cam ? pickProp(room.props, state._cam, screen.x, screen.y) : null;
+      const visible = room.props.filter((item) => !item.show || state.flags[item.show]);
+      const prop = screen && state._cam ? pickProp(visible, state._cam, screen.x, screen.y) : null;
       if (prop) {
         interact(prop);
         return;
@@ -363,8 +436,13 @@ export function createActions(state, hooks) {
       clearSave();
       state.mode = 'play';
       state.camSnap = true;
+      state.roomId = 'nursery';
+      state.levelId = 'age2';
+      state.player.x = 6.5;
+      state.player.y = 6.6;
+      state.player.facing = 'down';
       hooks.audio.unlock();
-      startDialogue('intro');
+      startDialogue('nurseryIntro');
     },
 
     continueGame() {
@@ -372,7 +450,10 @@ export function createActions(state, hooks) {
       state.camSnap = true;
       state.sheet = null;
       hooks.audio.unlock();
-      if (!state.flags.introDone) startDialogue('intro');
+      if (state.roomId === 'nursery') {
+        if (!state.flags.nurserySeen) startDialogue('nurseryIntro');
+        else refresh();
+      } else if (!state.flags.introDone) startDialogue('intro');
       else refresh();
     },
 
@@ -410,7 +491,12 @@ export function createActions(state, hooks) {
     },
 
     openHint() {
-      const puzzle = hooks.puzzleForHint();
+      let puzzle = hooks.puzzleForHint();
+      if (state.roomId === 'nursery' && !state.flags.candle_2) {
+        if (!seekDone(state.flags)) puzzle = 'seek';
+        else if (!state.flags.colors_done) puzzle = 'colors';
+        else puzzle = 'shapes';
+      }
       state.sheet = { type: 'hints', puzzle };
       refresh();
     },
@@ -684,6 +770,74 @@ export function createActions(state, hooks) {
 
     openDial() {
       state.sheet = { type: 'puzzle', puzzle: 'dial' };
+      refresh();
+    },
+
+    colorPick(ds) {
+      state.mini.colorPick = ds.id;
+      refresh();
+    },
+
+    colorPlace(ds) {
+      const item = state.mini.colorPick;
+      if (!item) {
+        toast('先点一个彩球。');
+        return;
+      }
+      const colors = { ...state.mini.colors };
+      for (const key of Object.keys(colors)) {
+        if (colors[key] === item) delete colors[key];
+      }
+      colors[ds.id] = item;
+      state.mini.colors = colors;
+      state.mini.colorPick = null;
+      refresh();
+    },
+
+    colorSubmit() {
+      if (!colorsDone(state.mini.colors)) {
+        toast('还有篮子颜色对不上。红的跟红的。');
+        return;
+      }
+      state.flags.colors_done = true;
+      state.sheet = null;
+      hooks.audio.success();
+      startDialogue('colorsClear');
+    },
+
+    shapePick(ds) {
+      state.mini.shapePick = ds.id;
+      refresh();
+    },
+
+    shapePlace(ds) {
+      const item = state.mini.shapePick;
+      if (!item) {
+        toast('先点一块积木。');
+        return;
+      }
+      const shapes = { ...state.mini.shapes };
+      for (const key of Object.keys(shapes)) {
+        if (shapes[key] === item) delete shapes[key];
+      }
+      shapes[ds.id] = item;
+      state.mini.shapes = shapes;
+      state.mini.shapePick = null;
+      refresh();
+    },
+
+    shapeSubmit() {
+      if (!shapesDone(state.mini.shapes)) {
+        toast('还有积木没进对的洞。看形状，不看名字。');
+        return;
+      }
+      state.flags.shapes_done = true;
+      state.sheet = null;
+      awardCandle();
+    },
+
+    openLevels() {
+      state.sheet = { type: 'levels' };
       refresh();
     },
   };

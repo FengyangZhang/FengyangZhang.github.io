@@ -1,17 +1,31 @@
 /** Top-down 16px interiors. Integer scale, no smoothing. Walls carry the decoration. */
 
 import { ROOMS } from '../data/rooms.js';
-import { FRAME_H, drawCharacter, PLAYER_LOOK } from './character.js';
+import { FRAME_H, LOOKS, drawCharacter, PLAYER_LOOK } from './character.js';
+import {
+  drawFloatingCandle,
+  isNurseryProp,
+  nurseryDecos,
+  paintNurseryDeco,
+  paintNurseryFrieze,
+  paintNurseryProp,
+  paintNurseryWall,
+} from './nursery.js';
 
 export const TILE = 32;
 
-let sheet = null;
-function spriteSheet() {
-  if (!sheet && typeof Image !== 'undefined') {
-    sheet = new Image();
-    sheet.src = new URL('../../sprites/wife.png', import.meta.url).href;
+const sheets = new Map();
+function sheetFor(look) {
+  const file = look?.sheet || 'sprites/wife.png';
+  if (!sheets.has(file) && typeof Image !== 'undefined') {
+    const img = new Image();
+    img.src = new URL('../../' + file, import.meta.url).href;
+    sheets.set(file, img);
   }
-  return sheet;
+  return sheets.get(file) || null;
+}
+function spriteSheet() {
+  return sheetFor(PLAYER_LOOK);
 }
 
 function scaleFor(viewW) {
@@ -54,6 +68,7 @@ export function createScene() {
         });
       }
       for (const prop of room.props) {
+        if (prop.show && !state.flags?.[prop.show]) continue;
         sprites.push({
           y: prop.y + (prop.h || 1) - 0.15,
           draw: () => drawProp(ctx, prop, cam, state, room),
@@ -66,6 +81,19 @@ export function createScene() {
       sprites.sort((a, b) => a.y - b.y);
       for (const sprite of sprites) sprite.draw();
 
+      if (state.sparkle > 0) {
+        const at = state.sparkleAt || { x: state.player.x, y: state.player.y - 0.6 };
+        const p = origin(cam, at.x, at.y);
+        ctx.fillStyle = '#fff6d0';
+        for (let i = 0; i < 12; i++) {
+          const a = time * 3 + i;
+          const rad = 18 + (i % 3) * 10;
+          ctx.fillRect(p.x + Math.cos(a) * rad, p.y + Math.sin(a) * rad * 0.6, 4, 4);
+        }
+        const bob = Math.sin(time * 6) * 6;
+        drawFloatingCandle(ctx, view.w / 2, 150 + bob);
+        state.sparkle = Math.max(0, state.sparkle - dt);
+      }
       if (state.fade > 0.01) {
         ctx.fillStyle = `rgba(20, 14, 10, ${Math.min(1, state.fade)})`;
         ctx.fillRect(0, 0, view.w, view.h);
@@ -102,7 +130,15 @@ function camera(view, state, room, dt) {
   // Never float the south wall above the toolbar, and never hide all the floor.
   const minOy = view.h - toolbar - roomH;
   const maxOy = view.h - toolbar - 4 * tilePx;
-  const oy = Math.max(minOy, Math.min(maxOy, follow));
+  let oy = Math.max(minOy, Math.min(maxOy, follow));
+  if (room.id === 'nursery') {
+    const top = 62;
+    const playerScreen = top + state._look.y * tilePx;
+    const maxPlayer = view.h - toolbar - 72;
+    oy = top;
+    if (playerScreen > maxPlayer) oy -= playerScreen - maxPlayer;
+    oy = Math.max(minOy, Math.min(oy, top));
+  }
   void rows;
   return { scale, ox, oy, tx: state._look.x, ty: state._look.y };
 }
@@ -178,6 +214,7 @@ function inRug(roomId, x, y) {
   if (roomId === 'tower') return x >= 4 && x <= 7 && y >= 5 && y <= 8;
   if (roomId === 'library') return x >= 3 && x <= 8 && y >= 5 && y <= 8;
   if (roomId === 'cloister') return x >= 3 && x <= 8 && y >= 5 && y <= 8;
+  if (roomId === 'nursery') return x >= 3 && x <= 8 && y >= 5 && y <= 9;
   return x >= 3 && x <= 8 && y >= 4 && y <= 8;
 }
 
@@ -197,6 +234,29 @@ function paintFloor(g, roomId, x, y, rug) {
     g.fillStyle = '#6b5640';
     g.fillRect(0, 0, 16, 1);
     g.fillRect((x * 5) % 16, 0, 1, 16);
+  } else if (roomId === 'nursery') {
+    g.fillStyle = (x + y) % 2 ? '#f0d2ae' : '#e7c39a';
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#c4925a';
+    g.fillRect(0, 0, 16, 1);
+    g.fillStyle = '#f6e2c4';
+    g.fillRect(0, 1, 16, 1);
+    if (!rug) return;
+    g.fillStyle = '#f7e7c8';
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#e7b7c8';
+    if (!inRug(roomId, x - 1, y)) g.fillRect(0, 0, 3, 16);
+    if (!inRug(roomId, x + 1, y)) g.fillRect(13, 0, 3, 16);
+    if (!inRug(roomId, x, y - 1)) g.fillRect(0, 0, 16, 3);
+    if (!inRug(roomId, x, y + 1)) g.fillRect(0, 13, 16, 3);
+    g.fillStyle = '#f2a0b8';
+    if ((x + y) % 2 === 0) {
+      g.fillRect(7, 6, 2, 2);
+      g.fillRect(6, 7, 4, 1);
+    }
+    g.fillStyle = '#fff8ef';
+    if ((x * 3 + y) % 5 === 0) g.fillRect(4, 4, 2, 2);
+    return;
   } else {
     g.fillStyle = y % 2 ? '#c4925a' : '#b8884e';
     g.fillRect(0, 0, 16, 16);
@@ -214,7 +274,7 @@ function paintFloor(g, roomId, x, y, rug) {
     }
   }
   if (!rug) return;
-  const color = roomId === 'library' ? '#2f5a45' : roomId === 'tower' ? '#3d4a78' : roomId === 'cloister' ? '#6e4a38' : '#8d3b3b';
+  const color = roomId === 'library' ? '#2f5a45' : roomId === 'tower' ? '#3d4a78' : roomId === 'cloister' ? '#6e4a38' : roomId === 'nursery' ? '#e7b7c8' : '#8d3b3b';
   const edge = roomId === 'library' ? '#1d3d2e' : roomId === 'tower' ? '#2a3458' : '#5c2a28';
   g.fillStyle = color;
   g.fillRect(0, 0, 16, 16);
@@ -228,6 +288,10 @@ function paintFloor(g, roomId, x, y, rug) {
 }
 
 function paintWall(g, room, x, y) {
+  if (room.id === 'nursery') {
+    paintNurseryWall(g, x, edgeKind(room, x, y));
+    return;
+  }
   const edge = edgeKind(room, x, y);
   const stone = room.id === 'tower';
   g.fillStyle = stone ? '#3e4658' : '#6b4228';
@@ -310,6 +374,10 @@ function drawFrieze(ctx, cache, room, cam) {
 function paintFrieze(g, room, height) {
   const cols = room.map[0].length;
   const width = cols * 16;
+  if (room.id === 'nursery') {
+    paintNurseryFrieze(g, width, height);
+    return;
+  }
   const stone = room.id === 'tower';
   const paper = stone ? '#5c677c' : room.id === 'cloister' ? '#cbb892' : '#f0ddb4';
   g.fillStyle = paper;
@@ -403,6 +471,21 @@ function drawLights(ctx, room, cam, time) {
     ctx.ellipse(p.x, p.y, 22 * cam.scale / 2, 12 * cam.scale / 2, 0, 0, Math.PI * 2);
     ctx.fill();
   }
+  if (room.id === 'nursery') {
+    const win = origin(cam, 6.2, 1.15);
+    ctx.fillStyle = `rgba(255, 244, 210, ${0.28 * flick})`;
+    ctx.beginPath();
+    ctx.ellipse(win.x, win.y, 54 * cam.scale / 2, 22 * cam.scale / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const lamp = room.props.find((prop) => prop.type === 'nightlight');
+    if (lamp) {
+      const p = origin(cam, lamp.x + 0.5, lamp.y + 0.4);
+      ctx.fillStyle = `rgba(255, 230, 150, ${0.35 * flick})`;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, 36, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
   for (const prop of room.props) {
     if (prop.type !== 'candle' && prop.type !== 'brazier') continue;
     const p = origin(cam, prop.x + 0.5, prop.y + 0.8);
@@ -414,7 +497,20 @@ function drawLights(ctx, room, cam, time) {
   ctx.restore();
 }
 
+function decoFree(room, item) {
+  const tx = Math.floor(item.x);
+  const ty = Math.floor(item.y);
+  const ch = room.map[ty]?.[tx];
+  if (ch !== '.') return false;
+  return !room.props.some((prop) => {
+    const w = prop.w || 1;
+    const h = prop.h || 1;
+    return tx >= prop.x && tx < prop.x + w && ty >= prop.y && ty < prop.y + h;
+  });
+}
+
 function decos(room) {
+  if (room.id === 'nursery') return nurseryDecos().filter((item) => decoFree(room, item));
   const cols = room.map[0].length;
   const rows = room.map.length;
   const list = [
@@ -441,17 +537,7 @@ function decos(room) {
   if (room.id === 'tower') {
     list.push({ kind: 'chair', x: 8.4, y: 6.5 });
   }
-  return list.filter((item) => {
-    const tx = Math.floor(item.x);
-    const ty = Math.floor(item.y);
-    const ch = room.map[ty]?.[tx];
-    if (ch !== '.') return false;
-    return !room.props.some((prop) => {
-      const w = prop.w || 1;
-      const h = prop.h || 1;
-      return tx >= prop.x && tx < prop.x + w && ty >= prop.y && ty < prop.y + h;
-    });
-  });
+  return list.filter((item) => decoFree(room, item));
 }
 
 function drawDeco(ctx, deco, cam, time) {
@@ -460,6 +546,10 @@ function drawDeco(ctx, deco, cam, time) {
   ctx.translate(p.x, p.y);
   ctx.scale(cam.scale * 2, cam.scale * 2);
   ctx.translate(-8, -16);
+  if (paintNurseryDeco(ctx, deco.kind)) {
+    ctx.restore();
+    return;
+  }
   if (deco.kind === 'plant' || deco.kind === 'plants') paintPlant(ctx, deco.kind === 'plants');
   else if (deco.kind === 'shelf') paintShelf(ctx);
   else if (deco.kind === 'table') paintTable(ctx);
@@ -545,13 +635,29 @@ function drawPlayer(ctx, player, cam) {
 }
 
 function drawProp(ctx, prop, cam, state, room) {
+  if (prop.show && !state.flags?.[prop.show]) return;
   if (prop.type === 'bottle' && state.inv.includes(prop.item)) return;
+  if (prop.type === 'npc') {
+    const p = origin(cam, prop.x + 0.5, prop.y + 0.42);
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.scale(cam.scale, cam.scale);
+    const look = LOOKS[prop.look] || PLAYER_LOOK;
+    drawCharacter(ctx, look, { facing: prop.facing || 'down', moving: false, walkPhase: 0 }, sheetFor(look));
+    ctx.restore();
+    return;
+  }
   const p = origin(cam, prop.x + (prop.w || 1) / 2, prop.y + (prop.h || 1));
   ctx.save();
   ctx.translate(p.x, p.y);
-  ctx.scale(cam.scale * 2, cam.scale * 2);
-  ctx.translate(-8, -20);
-  paintProp(ctx, prop, state, room);
+  if (room.id === 'nursery' && isNurseryProp(prop.type)) {
+    ctx.scale(cam.scale, cam.scale);
+    paintNurseryProp(ctx, prop, state);
+  } else {
+    ctx.scale(cam.scale * 2, cam.scale * 2);
+    ctx.translate(-8, -20);
+    paintProp(ctx, prop, state, room);
+  }
   ctx.restore();
 }
 
@@ -718,9 +824,118 @@ function paintProp(g, prop, state, room) {
       g.fillStyle = '#e6c56a';
       g.fillRect(7, 8, 2, 3);
       break;
-    case 'npc':
-      drawCharacter(g, PLAYER_LOOK, { facing: prop.facing || 'down', moving: false, walkPhase: 0 }, spriteSheet());
+    case 'crib':
+      g.fillStyle = '#f4efe6';
+      g.fillRect(0, 2, 16, 14);
+      g.fillStyle = '#e7b7c8';
+      g.fillRect(1, 8, 14, 6);
+      g.fillStyle = '#c9a27a';
+      g.fillRect(0, 2, 2, 14);
+      g.fillRect(14, 2, 2, 14);
+      g.fillRect(0, 2, 16, 2);
       break;
+    case 'chest':
+      g.fillStyle = '#8a5a32';
+      g.fillRect(1, 6, 14, 10);
+      g.fillStyle = '#c4a070';
+      g.fillRect(1, 4, 14, 4);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(6, 9, 4, 2);
+      if (state.flags?.seek_chest) {
+        g.fillStyle = '#3d8a55';
+        g.fillRect(4, 1, 8, 4);
+      }
+      break;
+    case 'curtain':
+      g.fillStyle = '#e7b7c8';
+      g.fillRect(0, 0, 7, 16);
+      g.fillRect(9, 0, 7, 16);
+      g.fillStyle = '#f6e4ea';
+      g.fillRect(7, 0, 2, 16);
+      g.fillStyle = '#fff6d0';
+      g.fillRect(2, 4, 3, 6);
+      break;
+    case 'blanket':
+      g.fillStyle = '#d98b8b';
+      g.fillRect(0, 6, 16, 8);
+      g.fillStyle = '#f2c2c2';
+      g.fillRect(0, 6, 16, 2);
+      g.fillStyle = '#6b4228';
+      g.fillRect(2, 4, 3, 3);
+      break;
+    case 'blocks':
+      g.fillStyle = '#d6453c';
+      g.fillRect(1, 10, 5, 5);
+      g.fillStyle = '#3d6ea8';
+      g.fillRect(6, 8, 5, 7);
+      g.fillStyle = '#f5c20e';
+      g.fillRect(10, 12, 5, 4);
+      g.fillStyle = '#3d8a55';
+      g.fillRect(4, 6, 4, 4);
+      break;
+    case 'sorter':
+      g.fillStyle = '#6b4228';
+      g.fillRect(1, 6, 14, 12);
+      g.fillStyle = '#f3ead4';
+      g.fillRect(3, 8, 4, 4);
+      g.fillRect(9, 8, 4, 4);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(6, 13, 4, 3);
+      break;
+    case 'robot':
+      g.fillStyle = '#8aa0b8';
+      g.fillRect(3, 2, 10, 8);
+      g.fillRect(5, 10, 6, 6);
+      g.fillStyle = '#1a2430';
+      g.fillRect(5, 4, 2, 2);
+      g.fillRect(9, 4, 2, 2);
+      g.fillStyle = '#d6453c';
+      g.fillRect(7, 11, 2, 2);
+      break;
+    case 'bunny':
+      g.fillStyle = '#f4d2dc';
+      g.fillRect(4, 6, 8, 8);
+      g.fillRect(3, 2, 3, 5);
+      g.fillRect(10, 2, 3, 5);
+      g.fillStyle = '#241610';
+      g.fillRect(6, 8, 1, 1);
+      g.fillRect(9, 8, 1, 1);
+      break;
+    case 'doll':
+      g.fillStyle = '#f6c8aa';
+      g.fillRect(5, 4, 6, 5);
+      g.fillStyle = '#d6453c';
+      g.fillRect(4, 2, 8, 3);
+      g.fillStyle = '#6b8cae';
+      g.fillRect(4, 9, 8, 6);
+      break;
+    case 'horse':
+      g.fillStyle = '#c48a4a';
+      g.fillRect(2, 6, 12, 6);
+      g.fillRect(10, 2, 4, 6);
+      g.fillStyle = '#6b4228';
+      g.fillRect(2, 12, 3, 3);
+      g.fillRect(11, 12, 3, 3);
+      break;
+    case 'nightlight':
+      g.fillStyle = '#fff1c4';
+      g.fillRect(5, 4, 6, 8);
+      g.fillStyle = '#e6c56a';
+      g.fillRect(4, 12, 8, 3);
+      break;
+    case 'plant':
+      g.fillStyle = '#6b4228';
+      g.fillRect(5, 10, 6, 6);
+      g.fillStyle = '#3d8a55';
+      g.fillRect(3, 4, 10, 7);
+      g.fillStyle = '#6fbf7a';
+      g.fillRect(6, 2, 4, 4);
+      break;
+    case 'npc': {
+      const look = LOOKS[prop.look] || PLAYER_LOOK;
+      drawCharacter(g, look, { facing: prop.facing || 'down', moving: false, walkPhase: 0 }, sheetFor(look));
+      break;
+    }
     default:
       g.fillStyle = '#c4a882';
       g.fillRect(2, 8, 12, 8);

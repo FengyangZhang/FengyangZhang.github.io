@@ -1,5 +1,5 @@
 /* Offline cache for /escape/ only. Bump CACHE when assets change. */
-const CACHE = 'xingzhu-escape-v8';
+const CACHE = 'xingzhu-escape-v10';
 
 const ASSETS = [
   './',
@@ -13,12 +13,23 @@ const ASSETS = [
   './js/render/art.js',
   './js/render/character.js',
   './js/render/scene.js',
+  './js/render/nursery.js',
   './sprites/wife.png',
   './sprites/portrait.png',
   './sprites/silhouette.png',
+  './sprites/toddler.png',
+  './sprites/toddler-portrait.png',
+  './sprites/toy-robot.png',
+  './sprites/toy-bunny.png',
+  './sprites/toy-doll.png',
+  './sprites/toy-horse.png',
+  './sprites/toy-duck.png',
+  './sprites/toy-dino.png',
+  './sprites/parent-mom.png',
   './fonts/fusion-pixel-12px-zh_hans.woff2',
   './fonts/OFL.txt',
   './js/data/world.js',
+  './js/data/levels.js',
   './js/data/rooms.js',
   './js/game/logic.js',
   './js/game/grid.js',

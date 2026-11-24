@@ -4,6 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { CANDLE_TOTAL, LEVELS, candleCount } from '../js/data/levels.js';
 import { ROOMS } from '../js/data/rooms.js';
 import { ALPHABET, CANDLE_ALIAS, INGREDIENTS, SOLUTIONS } from '../js/data/world.js';
 import { findPath } from '../js/engine/path.js';
@@ -16,7 +17,11 @@ import {
   checkCipherKey,
   checkDial,
   checkPotion,
+  colorsDone,
   decryptWithKey,
+  seekCount,
+  seekDone,
+  shapesDone,
   encryptWithKey,
   potionReaction,
   shiftChar,
@@ -216,6 +221,37 @@ function alphabetDelta(ch) {
   return ALPHABET.indexOf(ch);
 }
 
+test('level 1 puzzles are observation only and check cleanly', () => {
+  const none = {};
+  assert.equal(seekCount(none), 0);
+  assert.equal(seekDone(none), false);
+  const some = { seek_blanket: true, seek_chest: true };
+  assert.equal(seekCount(some), 2);
+  const all = {};
+  for (const id of ['blanket', 'chest', 'curtain', 'crib', 'shelf']) all['seek_' + id] = true;
+  assert.equal(seekDone(all), true);
+  assert.equal(colorsDone({ red: 'red', blue: 'blue', yellow: 'yellow', green: 'green' }), true);
+  assert.equal(colorsDone({ red: 'blue', blue: 'red', yellow: 'yellow', green: 'green' }), false);
+  assert.equal(colorsDone({}), false);
+  assert.equal(shapesDone({ circle: 'circle', square: 'square', triangle: 'triangle', star: 'star' }), true);
+  assert.equal(shapesDone({ circle: 'star', square: 'square', triangle: 'triangle', star: 'circle' }), false);
+  assert.equal(colorsDone({ red: 'red', blue: 'blue', yellow: 'yellow' }), false);
+  assert.equal(shapesDone({ circle: 'circle' }), false);
+  assert.equal(seekCount({ seek_blanket: true, read_tapestry: true }), 1);
+});
+
+test('five birthdays share one candle counter and only age 2 is built', () => {
+  assert.equal(LEVELS.length, 5);
+  assert.deepEqual(LEVELS.map((level) => level.age), [2, 4, 8, 16, 32]);
+  assert.equal(CANDLE_TOTAL, 5);
+  assert.deepEqual(LEVELS.filter((level) => level.implemented).map((level) => level.id), ['age2']);
+  assert.equal(LEVELS[0].room, 'nursery');
+  assert.equal(candleCount([]), 0);
+  assert.equal(candleCount(['candle_2']), 1);
+  const seeks = ROOMS.nursery.props.filter((prop) => prop.action === 'seek').map((prop) => prop.seek).sort();
+  assert.deepEqual(seeks, ['blanket', 'chest', 'crib', 'curtain', 'shelf']);
+});
+
 test('service worker lists every file the page needs', () => {
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   const needed = [
@@ -235,7 +271,7 @@ test('service worker lists every file the page needs', () => {
     'icons/icon-192.png',
     'icons/icon-512.png',
   ];
-  assert.match(sw, /xingzhu-escape-v8/);
+  assert.match(sw, /xingzhu-escape-v10/);
   for (const file of needed) {
     assert.equal(fs.existsSync(path.join(root, file)), true, file);
     assert.match(sw, new RegExp(file.replace('.', '\\.')));

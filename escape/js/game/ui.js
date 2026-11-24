@@ -16,9 +16,10 @@ import {
   OBJECTIVES,
   SUBJECTS,
 } from '../data/world.js';
-import { cipherCiphertext, currentObjective } from './logic.js';
+import { CANDLE_TOTAL, LEVELS, candleCount } from '../data/levels.js';
+import { cipherCiphertext, currentObjective, seekCount, seekDone } from './logic.js';
 
-const TAGS = ['线索', '配方', '星盘', '记事', '闲话'];
+const TAGS = ['线索', '配方', '星盘', '记事', '闲话', '生日'];
 
 function esc(text) {
   return String(text).replace(/[&<>"']/g, (ch) => (
@@ -46,6 +47,14 @@ function clock(ms) {
 }
 
 function objectiveText(state) {
+  if (state.roomId === 'nursery') {
+    if (!state.flags.candle_2) {
+      if (!seekDone(state.flags)) return '找躲起来的玩具 ' + seekCount(state.flags) + '/5';
+      if (!state.flags.colors_done) return '把彩球放进同样颜色的篮子';
+      return '把积木放进形状盒';
+    }
+    return '第一支蜡烛找到了';
+  }
   const current = currentObjective(state, OBJECTIVES);
   if (!current) return '西翼的锁开了';
   return typeof current.text === 'function' ? current.text(state) : current.text;
@@ -73,6 +82,7 @@ export function createUI(root, state) {
 
 function roomTitle(state) {
   const names = {
+    nursery: ['两岁的房间', '玩具醒着的下午'],
     atrium: ['烛火中庭', '西翼 · 第一扇门'],
     library: ['回响书廊', '西翼 · 第二扇门'],
     cloister: ['药剂回廊', '西翼 · 第三扇门'],
@@ -87,6 +97,7 @@ function hud(state, roomName) {
     '<header class="hud-top">' +
       '<div class="room-block"><div class="room-name">' + esc(pair[0]) + '</div>' +
       '<div class="room-sub">' + esc(pair[1] || '') + '</div></div>' +
+      candleHud(state) +
       '<button class="icon-btn" data-act="toggleSound" aria-label="声音">' + (soundOn() ? '声音开' : '声音关') + '</button>' +
       '<button class="icon-btn" data-act="openMenu" aria-label="菜单">菜单</button>' +
     '</header>' +
@@ -107,12 +118,12 @@ function titleScreen(state) {
         '<div class="eyebrow">云海上的学院 · 不考咒语</div>' +
         '<h1>星烛学院</h1>' +
         '<p class="subtitle">缄默夜</p>' +
-        '<p class="blurb">一年级的林小烛被关在西翼。活楼梯停了。今夜，门只认想得通的顺序。</p>' +
+        '<p class="blurb">今天是三十二岁。五次生日，五支蜡烛。先回到两岁的房间，玩具醒着，她在哭。</p>' +
         '<div class="title-actions">' +
           (saved
-            ? '<button class="btn btn-primary" data-act="continueGame">继续未完的夜</button>' +
+            ? '<button class="btn btn-primary" data-act="continueGame">继续这个下午</button>' +
               '<button class="btn btn-ghost" data-act="askRestart">从头再走</button>'
-            : '<button class="btn btn-primary" data-act="startNew">进入西翼</button>') +
+            : '<button class="btn btn-primary" data-act="startNew">从两岁开始</button>') +
           '<button class="btn btn-ghost" data-act="openHelp">怎么走</button>' +
         '</div>' +
       '</div>' +
@@ -163,6 +174,18 @@ function sheet(state) {
     title = '星盘石面';
     body = slateBody(state);
     foot = '<button class="btn btn-primary" data-act="openDial">去转动星盘</button><button class="btn btn-ghost" data-act="closeSheet">离开</button>';
+  } else if (current.type === 'colors') {
+    title = '彩球';
+    body = colorBody(state);
+    foot = '<button class="btn btn-primary" data-act="colorSubmit">放好了</button><button class="btn btn-ghost" data-act="closeSheet">离开</button>';
+  } else if (current.type === 'shapes') {
+    title = '形状盒';
+    body = shapeBody(state);
+    foot = '<button class="btn btn-primary" data-act="shapeSubmit">放好了</button><button class="btn btn-ghost" data-act="closeSheet">离开</button>';
+  } else if (current.type === 'levels') {
+    title = '五次生日';
+    body = levelBody(state);
+    foot = '<button class="btn btn-ghost" data-act="closeSheet">回去</button>';
   } else if (current.type === 'puzzle') {
     const built = puzzle(state, current.puzzle);
     title = built.title;
@@ -188,8 +211,80 @@ function panel(title, body, foot, backdropCloses) {
 
 function portraitFor(who) {
   if (who === '林小烛') return 'sprites/portrait.png';
+  if (who === '小小烛') return 'sprites/toddler-portrait.png';
+  if (who === '发条') return 'sprites/toy-robot.png';
+  if (who === '咚咚') return 'sprites/toy-dino.png';
+  if (who === '绒绒') return 'sprites/toy-bunny.png';
+  if (who === '帽帽') return 'sprites/toy-doll.png';
+  if (who === '木木') return 'sprites/toy-horse.png';
+  if (who === '嘎嘎') return 'sprites/toy-duck.png';
+  if (who === '妈妈') return 'sprites/parent-mom.png';
   if (!who) return '';
   return 'sprites/silhouette.png';
+}
+
+function candleHud(state) {
+  const n = candleCount(state.candles);
+  let icons = '';
+  for (let i = 0; i < CANDLE_TOTAL; i++) {
+    icons += '<i class="pixel-candle' + (i < n ? ' lit' : '') + '"></i>';
+  }
+  return '<div class="candle-row" aria-label="生日蜡烛 ' + n + '/' + CANDLE_TOTAL + '">' + icons +
+    '<span>' + n + '/' + CANDLE_TOTAL + '</span></div>';
+}
+
+function colorBody(state) {
+  const colors = [
+    ['red', '红', '#d6453c'],
+    ['blue', '蓝', '#3d6ea8'],
+    ['yellow', '黄', '#f5c20e'],
+    ['green', '绿', '#3d8a55'],
+  ];
+  const placed = state.mini?.colors || {};
+  const pick = state.mini?.colorPick;
+  const balls = colors.map(([id, name, hex]) => {
+    const used = Object.values(placed).includes(id);
+    return '<button class="swatch toy-ball' + (pick === id ? ' on' : '') + '" style="--swatch:' + hex + '" data-act="colorPick" data-id="' + id + '"' +
+      (used ? ' disabled' : '') + '><span>' + name + '</span></button>';
+  }).join('');
+  const baskets = colors.map(([id, name, hex]) => {
+    const got = placed[id];
+    const label = got ? colors.find((item) => item[0] === got)[1] : '空';
+    return '<button class="basket" style="--swatch:' + hex + '" data-act="colorPlace" data-id="' + id + '">' + name + '篮子<br>' + label + '</button>';
+  }).join('');
+  const n = Object.keys(placed).length;
+  return '<p>先点一个彩球，再点同样颜色的篮子。放好 ' + n + '/4。</p><div class="swatch-row">' + balls + '</div><div class="swatch-row">' + baskets + '</div>';
+}
+
+function shapeBody(state) {
+  const shapes = [
+    ['circle', '圆'],
+    ['square', '方'],
+    ['triangle', '三角'],
+    ['star', '星'],
+  ];
+  const placed = state.mini?.shapes || {};
+  const pick = state.mini?.shapePick;
+  const blocks = shapes.map(([id, name]) => {
+    const used = Object.values(placed).includes(id);
+    return '<button class="shape-btn' + (pick === id ? ' on' : '') + '" data-act="shapePick" data-id="' + id + '"' +
+      (used ? ' disabled' : '') + '><i class="shape-ico ' + id + '"></i>' + name + '</button>';
+  }).join('');
+  const holes = shapes.map(([id, name]) => {
+    const got = placed[id];
+    const label = got ? shapes.find((item) => item[0] === got)[1] : '空';
+    return '<button class="shape-btn hole" data-act="shapePlace" data-id="' + id + '"><i class="shape-ico ' + id + '"></i>' + name + '洞<br>' + label + '</button>';
+  }).join('');
+  const n = Object.keys(placed).length;
+  return '<p>先点一块积木，再点同样形状的洞。放好 ' + n + '/4。</p><div class="swatch-row">' + blocks + '</div><div class="swatch-row">' + holes + '</div>';
+}
+
+function levelBody(state) {
+  return '<ul class="plain">' + LEVELS.map((level) => {
+    const have = state.candles?.includes(level.candle);
+    const note = !level.implemented ? '还没到' : have ? '蜡烛已点亮' : '可以去';
+    return '<li><b>' + level.age + ' 岁 · ' + esc(level.title) + '</b> ' + esc(level.subtitle) + ' · ' + note + '</li>';
+  }).join('') + '</ul>';
 }
 
 function dialogue(state) {
@@ -234,13 +329,18 @@ function menuBody(state) {
       '<button class="btn btn-ghost" data-act="toggleSound">' + (soundOn() ? '关掉声音' : '打开声音') + '</button>' +
       '<button class="btn btn-ghost" data-act="openHelp">怎么走</button>' +
       (state.flags.ending ? '<button class="btn btn-ghost" data-act="showEndingCard">再看一遍结局</button>' : '') +
+      '<button class="btn btn-ghost" data-act="openLevels">五次生日</button>' +
       '<button class="btn btn-ghost" data-act="askRestart">重新开始</button>' +
     '</div>'
   );
 }
 
 function journalBody(state) {
-  if (!state.journal.length) return '<p>还没有记下什么。先去看看挂毯和青铜碑。</p>';
+  if (!state.journal.length) {
+    return state.roomId === 'nursery'
+      ? '<p>还没有记下什么。先在房间里找一找躲起来的玩具。</p>'
+      : '<p>还没有记下什么。先去看看挂毯和青铜碑。</p>';
+  }
   const chunks = [];
   for (const tag of TAGS) {
     const items = state.journal.filter((entry) => entry.tag === tag);

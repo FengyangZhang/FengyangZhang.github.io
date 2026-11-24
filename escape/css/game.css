@@ -255,6 +255,80 @@ body[data-mode="title"] .hud-bottom { display: none; }
 }
 
 .dialogue-card, .ending-card { margin-bottom: 0; }
+.candle-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  pointer-events: none;
+  background: #f3e0b8;
+  border: 3px solid #4a2c18;
+  padding: 4px 6px;
+  color: #3a2a1a;
+}
+.pixel-candle {
+  width: 8px;
+  height: 16px;
+  background: #f3ead4;
+  box-shadow: inset -2px 0 0 #c4a882, inset 0 -4px 0 #6b4228;
+  position: relative;
+}
+.pixel-candle::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -3px;
+  width: 2px;
+  height: 3px;
+  background: #6b4228;
+}
+.pixel-candle.lit {
+  background: #fff1c4;
+  box-shadow: inset -2px 0 0 #e0a050, inset 0 -4px 0 #6b4228;
+}
+.pixel-candle.lit::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: -7px;
+  width: 4px;
+  height: 5px;
+  background: #fff6d0;
+  box-shadow: 0 0 0 1px #e07a20;
+}
+.toy-ball {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: #3a2a1a;
+  font-size: 14px;
+}
+.shape-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 76px; }
+.shape-ico { width: 22px; height: 22px; display: block; background: #e6c56a; }
+.shape-ico.circle { border-radius: 50%; background: #f5c20e; }
+.shape-ico.square { background: #3d6ea8; }
+.shape-ico.triangle {
+  width: 0; height: 0; background: transparent;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-bottom: 18px solid #3d8a55;
+}
+.shape-ico.star {
+  background: #f5c20e;
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+.shape-btn.hole .shape-ico { outline: 2px solid #3a2a1a; }
+.swatch:disabled, .shape-btn:disabled { opacity: 0.35; }
+.swatch-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.swatch, .shape-btn, .basket {
+  min-height: 48px;
+  min-width: 72px;
+  border: 3px solid #4a2c18;
+  background: #f3e0b8;
+  color: #3a2a1a;
+}
+.swatch { background: var(--swatch); }
+.basket { box-shadow: inset 0 0 0 4px var(--swatch); }
+.shape-btn.on, .swatch.on { outline: 3px solid #c47a32; }
 .dialogue-row { display: flex; gap: 10px; align-items: flex-start; }
 .dialogue-copy { flex: 1; min-width: 0; }
 img.portrait {

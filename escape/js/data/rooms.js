@@ -297,9 +297,77 @@ export const ROOMS = {
       { id: 'west-door', type: 'door', name: '回回廊', x: 0, y: 5, block: false, action: 'door', exit: 'west', hit: 0.9 },
     ],
   },
+  nursery: {
+    id: 'nursery',
+    name: '两岁的房间',
+    subtitle: '玩具醒着的下午',
+    map: [
+      '############',
+      '#..........#',
+      '#..........#',
+      '#..........#',
+      '#..........#',
+      '#..........#',
+      '#..........#',
+      '#..........#',
+      '#..........#',
+      '#..........#',
+      '#..........#',
+      '#####+######',
+    ],
+    spawn: { x: 6, y: 8 },
+    theme: {
+      floorA: '#e7c39a',
+      floorB: '#f0d2ae',
+      floorC: '#d7b48a',
+      wall: '#f6e4ea',
+      wallDark: '#e7c9c4',
+      wallTop: '#fff6ea',
+      lip: '#c9a27a',
+      skyTop: '#f6e4ea',
+      skyMid: '#f3d5cf',
+      skyBot: '#e7c39a',
+      darkness: 0.05,
+      cloud: 'rgba(255, 244, 230, 0.35)',
+    },
+    lights: [
+      { x: 6.2, y: 1.2, color: '#fff4d0', radius: 160, phase: 0.2 },
+      { x: 10.2, y: 6.4, color: '#ffe6a8', radius: 120, phase: 0.4 },
+    ],
+    exits: [
+      {
+        id: 'south',
+        x: 5,
+        y: 11,
+        to: 'atrium',
+        spawn: { x: 6, y: 6 },
+        needFlag: 'candle_2',
+        lock: 'grownDoor',
+      },
+    ],
+    props: [
+      { id: 'crib', type: 'crib', name: '小床', x: 2, y: 2, w: 2, h: 2, block: true, action: 'seek', seek: 'crib', hit: 1.1 },
+      { id: 'chest', type: 'chest', name: '玩具箱', x: 8, y: 2, block: true, action: 'seek', seek: 'chest', hit: 0.9 },
+      { id: 'curtain', type: 'curtain', name: '窗帘', x: 9, y: 1, block: true, action: 'seek', seek: 'curtain', hit: 0.9 },
+      { id: 'shelf', type: 'bookshelf', name: '图画书架', x: 1, y: 5, h: 2, block: true, action: 'seek', seek: 'shelf', hit: 1 },
+      { id: 'blanket', type: 'blanket', name: '毯子', x: 4, y: 7, block: false, action: 'seek', seek: 'blanket', hit: 0.8 },
+      { id: 'blocks', type: 'blocks', name: '积木堆', x: 4, y: 4, block: true, action: 'colors', hit: 0.9 },
+      { id: 'sorter', type: 'sorter', name: '形状盒', x: 8, y: 6, block: true, action: 'shapes', hit: 0.95 },
+      { id: 'toddler', type: 'npc', name: '小小烛', x: 6, y: 5, block: true, look: 'toddler', facing: 'down', action: 'toddler', hit: 0.9 },
+      { id: 'robot', type: 'robot', name: '发条', x: 3, y: 5, block: true, action: 'toyTalk', who: 'robot', hit: 0.85 },
+      { id: 'bunny', type: 'bunny', name: '绒绒', x: 7, y: 4, block: false, show: 'seek_blanket', action: 'toyTalk', who: 'bunny', hit: 0.85 },
+      { id: 'dino', type: 'dino', name: '咚咚', x: 8, y: 3, block: false, show: 'seek_chest', action: 'toyTalk', who: 'dino', hit: 0.85 },
+      { id: 'duck', type: 'duck', name: '嘎嘎', x: 10, y: 3, block: false, show: 'seek_curtain', action: 'toyTalk', who: 'duck', hit: 0.85 },
+      { id: 'doll', type: 'doll', name: '帽帽', x: 5, y: 8, block: false, show: 'seek_shelf', action: 'toyTalk', who: 'doll', hit: 0.85 },
+      { id: 'horse', type: 'horse', name: '木木', x: 2, y: 8, block: false, show: 'seek_crib', action: 'toyTalk', who: 'horse', hit: 0.85 },
+      { id: 'plant', type: 'plant', name: '小盆栽', x: 10, y: 8, block: true, hit: 0.7 },
+      { id: 'lamp', type: 'nightlight', name: '小夜灯', x: 10, y: 6, block: false, hit: 0.6 },
+      { id: 'mom', type: 'door', name: '房门', x: 5, y: 11, block: false, action: 'mom', exit: 'south', hit: 0.9 },
+    ],
+  },
 };
 
-export const ROOM_ORDER = ['atrium', 'library', 'cloister', 'tower'];
+export const ROOM_ORDER = ['nursery', 'atrium', 'library', 'cloister', 'tower'];
 
 export function roomById(id) {
   return ROOMS[id];

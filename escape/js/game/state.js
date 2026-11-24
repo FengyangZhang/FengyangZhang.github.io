@@ -8,11 +8,14 @@ export function blankState() {
   return {
     v: 1,
     mode: 'title',
-    roomId: 'atrium',
+    roomId: 'nursery',
+    levelId: 'age2',
+    candles: [],
+    mini: { colorPick: null, colors: {}, shapePick: null, shapes: {} },
     player: {
       x: 6.5,
-      y: 9.5,
-      facing: 'se',
+      y: 6.6,
+      facing: 'down',
       path: [],
       arrive: null,
       moving: false,
@@ -52,6 +55,9 @@ export function serialize(state) {
   return {
     v: 1,
     roomId: state.roomId,
+    levelId: state.levelId || 'age2',
+    candles: state.candles || [],
+    mini: state.mini || { colorPick: null, colors: {}, shapePick: null, shapes: {} },
     player: {
       x: state.player.x,
       y: state.player.y,
@@ -100,6 +106,14 @@ export function createState() {
   if (!data) return blankState();
   const state = blankState();
   state.roomId = data.roomId;
+  state.levelId = data.levelId || 'age2';
+  state.candles = Array.isArray(data.candles) ? data.candles : [];
+  state.mini = {
+    colorPick: null,
+    colors: data.mini?.colors || {},
+    shapePick: null,
+    shapes: data.mini?.shapes || {},
+  };
   state.player.x = data.player?.x ?? state.player.x;
   state.player.y = data.player?.y ?? state.player.y;
   state.player.facing = data.player?.facing || 'se';
