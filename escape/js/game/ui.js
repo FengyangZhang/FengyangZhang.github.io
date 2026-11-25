@@ -118,7 +118,7 @@ function titleScreen(state) {
         '<div class="eyebrow">云海上的学院 · 不考咒语</div>' +
         '<h1>星烛学院</h1>' +
         '<p class="subtitle">缄默夜</p>' +
-        '<p class="blurb">今天是三十二岁。五次生日，五支蜡烛。先回到两岁的房间，玩具醒着，她在哭。</p>' +
+        '<p class="blurb">五次生日，五支蜡烛。你先当两岁的小小烛。玩具醒着，它们藏起来了。</p>' +
         '<div class="title-actions">' +
           (saved
             ? '<button class="btn btn-primary" data-act="continueGame">继续这个下午</button>' +
@@ -212,12 +212,16 @@ function panel(title, body, foot, backdropCloses) {
 function portraitFor(who) {
   if (who === '林小烛') return 'sprites/portrait.png';
   if (who === '小小烛') return 'sprites/toddler-portrait.png';
-  if (who === '发条') return 'sprites/toy-robot.png';
-  if (who === '咚咚') return 'sprites/toy-dino.png';
-  if (who === '绒绒') return 'sprites/toy-bunny.png';
-  if (who === '帽帽') return 'sprites/toy-doll.png';
+  if (who === '星卫') return 'sprites/toy-ranger.png';
+  if (who === '线仔') return 'sprites/toy-cowboy.png';
+  if (who === '小穗') return 'sprites/toy-cowgirl.png';
+  if (who === '青青') return 'sprites/toy-dino.png';
+  if (who === '存存') return 'sprites/toy-pig.png';
+  if (who === '豆豆') return 'sprites/toy-potato.png';
+  if (who === '圈圈') return 'sprites/toy-slinky.png';
+  if (who === '三目') return 'sprites/toy-alien.png';
   if (who === '木木') return 'sprites/toy-horse.png';
-  if (who === '嘎嘎') return 'sprites/toy-duck.png';
+  if (who === '绿兵') return 'sprites/toy-army.png';
   if (who === '妈妈') return 'sprites/parent-mom.png';
   if (!who) return '';
   return 'sprites/silhouette.png';

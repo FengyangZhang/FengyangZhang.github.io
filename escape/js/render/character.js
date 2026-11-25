@@ -55,6 +55,10 @@ LOOKS.xiaozhu.frameH = FRAME_H;
 
 export const PLAYER_LOOK = LOOKS.xiaozhu;
 
+export function playerLook(roomId) {
+  return roomId === 'nursery' ? LOOKS.toddler : PLAYER_LOOK;
+}
+
 const BACK = new Set(['up', 'ne', 'nw']);
 const ROW = { down: 0, left: 1, right: 2, up: 3 };
 

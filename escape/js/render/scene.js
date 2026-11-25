@@ -1,7 +1,7 @@
 /** Top-down 16px interiors. Integer scale, no smoothing. Walls carry the decoration. */
 
 import { ROOMS } from '../data/rooms.js';
-import { FRAME_H, LOOKS, drawCharacter, PLAYER_LOOK } from './character.js';
+import { FRAME_H, LOOKS, drawCharacter, PLAYER_LOOK, playerLook } from './character.js';
 import {
   drawFloatingCandle,
   isNurseryProp,
@@ -76,7 +76,7 @@ export function createScene() {
       }
       sprites.push({
         y: state.player.y,
-        draw: () => drawPlayer(ctx, state.player, cam),
+        draw: () => drawPlayer(ctx, state, cam),
       });
       sprites.sort((a, b) => a.y - b.y);
       for (const sprite of sprites) sprite.draw();
@@ -631,12 +631,13 @@ function paintTable(g) {
   g.fillRect(10, 4, 3, 4);
 }
 
-function drawPlayer(ctx, player, cam) {
-  const p = origin(cam, player.x, player.y + 0.42);
+function drawPlayer(ctx, state, cam) {
+  const look = playerLook(state.roomId);
+  const p = origin(cam, state.player.x, state.player.y + 0.42);
   ctx.save();
   ctx.translate(p.x, p.y);
   ctx.scale(cam.scale, cam.scale);
-  drawCharacter(ctx, PLAYER_LOOK, player, spriteSheet());
+  drawCharacter(ctx, look, state.player, sheetFor(look));
   ctx.restore();
 }
 

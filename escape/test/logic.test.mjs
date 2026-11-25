@@ -9,7 +9,7 @@ import { ROOMS } from '../js/data/rooms.js';
 import { ALPHABET, CANDLE_ALIAS, INGREDIENTS, SOLUTIONS } from '../js/data/world.js';
 import { findPath } from '../js/engine/path.js';
 import { buildWalkGrid, footprintTiles, standTiles } from '../js/game/grid.js';
-import { LOOKS, PLAYER_LOOK, showsFace } from '../js/render/character.js';
+import { LOOKS, PLAYER_LOOK, playerLook, showsFace } from '../js/render/character.js';
 import { nearestFloor, pickProp, propAnchor } from '../js/game/pick.js';
 import {
   checkBooks,
@@ -215,6 +215,9 @@ test('player look can be swapped for another age and hair', () => {
   assert.equal(showsFace('sw'), true);
   assert.equal(showsFace('ne'), false);
   assert.equal(showsFace('nw'), false);
+  assert.equal(playerLook('nursery'), LOOKS.toddler);
+  assert.equal(playerLook('atrium'), LOOKS.xiaozhu);
+  assert.equal(LOOKS.toddler.frameH < LOOKS.xiaozhu.frameH * 0.65, true);
 });
 
 function alphabetDelta(ch) {
@@ -271,7 +274,7 @@ test('service worker lists every file the page needs', () => {
     'icons/icon-192.png',
     'icons/icon-512.png',
   ];
-  assert.match(sw, /xingzhu-escape-v11/);
+  assert.match(sw, /xingzhu-escape-v12/);
   for (const file of needed) {
     assert.equal(fs.existsSync(path.join(root, file)), true, file);
     assert.match(sw, new RegExp(file.replace('.', '\\.')));

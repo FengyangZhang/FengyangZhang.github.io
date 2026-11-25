@@ -1,5 +1,5 @@
 /* Offline cache for /escape/ only. Bump CACHE when assets change. */
-const CACHE = 'xingzhu-escape-v11';
+const CACHE = 'xingzhu-escape-v12';
 
 const ASSETS = [
   './',
@@ -19,12 +19,16 @@ const ASSETS = [
   './sprites/silhouette.png',
   './sprites/toddler.png',
   './sprites/toddler-portrait.png',
-  './sprites/toy-robot.png',
-  './sprites/toy-bunny.png',
-  './sprites/toy-doll.png',
-  './sprites/toy-horse.png',
-  './sprites/toy-duck.png',
+  './sprites/toy-ranger.png',
+  './sprites/toy-cowboy.png',
+  './sprites/toy-cowgirl.png',
   './sprites/toy-dino.png',
+  './sprites/toy-pig.png',
+  './sprites/toy-potato.png',
+  './sprites/toy-slinky.png',
+  './sprites/toy-alien.png',
+  './sprites/toy-horse.png',
+  './sprites/toy-army.png',
   './sprites/parent-mom.png',
   './fonts/fusion-pixel-12px-zh_hans.woff2',
   './fonts/OFL.txt',

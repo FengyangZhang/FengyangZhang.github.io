@@ -3,6 +3,7 @@
 import { OBJECTIVES } from '../data/world.js';
 import { createAudio } from '../engine/audio.js';
 import { showsFace } from '../render/character.js';
+import { paintNurseryProp } from '../render/nursery.js';
 import { createScene, projectTile, viewToTile } from '../render/scene.js';
 import { createActions } from './actions.js';
 import { currentObjective } from './logic.js';
@@ -217,5 +218,16 @@ if (params.has('dev')) {
     project: (x, y) => projectTile(state, view, x, y),
     tileAt: (px, py) => viewToTile(state, view, px, py),
     showsFace,
+    paintToy(canvas, type) {
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height - 16);
+      ctx.scale(3, 3);
+      paintNurseryProp(ctx, { type }, { flags: {} });
+      ctx.restore();
+    },
   };
 }

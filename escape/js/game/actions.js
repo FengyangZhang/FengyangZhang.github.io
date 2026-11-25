@@ -353,9 +353,6 @@ export function createActions(state, hooks) {
       case 'shapes':
         openShapes();
         break;
-      case 'toddler':
-        startDialogue(state.flags.candle_2 ? 'candleGet' : 'toddlerTalk', { x: prop.x + 0.5, y: prop.y + 0.5 });
-        break;
       case 'toyTalk':
         startDialogue(prop.who + 'Talk', { x: prop.x + 0.5, y: prop.y + 0.5 });
         break;
