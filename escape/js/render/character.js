@@ -30,8 +30,8 @@ export const LOOKS = {
   toddler: {
     sprite: 'toddler',
     sheet: 'sprites/toddler.png',
-    frameW: 26,
-    frameH: 48,
+    frameW: 24,
+    frameH: 50,
     age: 'toddler',
     skin: '#ffd6ba',
     blush: '#f29682',

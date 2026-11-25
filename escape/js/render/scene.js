@@ -154,12 +154,10 @@ function camera(view, state, room, dt) {
   const maxOy = view.h - toolbar - 4 * tilePx;
   let oy = Math.max(minOy, Math.min(maxOy, follow));
   if (room.id === 'nursery') {
-    const top = 62;
-    const playerScreen = top + state._look.y * tilePx;
-    const maxPlayer = view.h - toolbar - 72;
-    oy = top;
-    if (playerScreen > maxPlayer) oy -= playerScreen - maxPlayer;
-    oy = Math.max(minOy, Math.min(oy, top));
+    // Keep her in the upper-middle, above the dialogue card, and still inside the room.
+    const target = Math.round(view.h * 0.40);
+    const want = target - state._look.y * tilePx;
+    oy = Math.max(minOy, Math.min(maxOy, want));
   }
   void rows;
   return { scale, ox, oy, tx: state._look.x, ty: state._look.y };
