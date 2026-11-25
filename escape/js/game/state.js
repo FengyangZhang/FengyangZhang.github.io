@@ -14,7 +14,7 @@ export function blankState() {
     mini: { colorPick: null, colors: {}, shapePick: null, shapes: {} },
     player: {
       x: 6.5,
-      y: 6.6,
+      y: 10.5,
       facing: 'down',
       path: [],
       arrive: null,

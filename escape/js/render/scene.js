@@ -50,24 +50,46 @@ export function createScene() {
       ctx.fillStyle = room.id === 'tower' ? '#1a2030' : '#2a211c';
       ctx.fillRect(0, 0, view.w, view.h);
 
-      drawFrieze(ctx, cache, room, cam);
-      const rows = room.map.length;
-      const cols = room.map[0].length;
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          blitTile(ctx, cache, room, x, y, cam);
+      if (room.backdrop) {
+        drawBackdrop(ctx, room, cam);
+      } else {
+        drawFrieze(ctx, cache, room, cam);
+        const rows = room.map.length;
+        const cols = room.map[0].length;
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            blitTile(ctx, cache, room, x, y, cam);
+          }
         }
+        drawLights(ctx, room, cam, time);
       }
-      drawLights(ctx, room, cam, time);
 
       const sprites = [];
-      for (const deco of decos(room)) {
+      if (room.backdrop) {
+        for (const occ of room.occluders || []) {
+          sprites.push({
+            y: (occ.py + occ.ph) / TILE,
+            draw: () => drawBackdropPiece(ctx, occ, cam),
+          });
+        }
+      }
+      for (const deco of room.backdrop ? [] : decos(room)) {
         sprites.push({
           y: deco.y,
           draw: () => drawDeco(ctx, deco, cam, time),
         });
       }
       for (const prop of room.props) {
+        if (prop.sprite) {
+          const hidden = prop.show && !state.flags?.[prop.show];
+          const py = hidden ? (prop.peekSort ?? prop.peekY ?? prop.y) : prop.y + (prop.h || 1) - 0.15;
+          sprites.push({
+            y: py,
+            draw: () => drawSpriteProp(ctx, prop, cam, hidden),
+          });
+          continue;
+        }
+        if (room.backdrop) continue;
         if (prop.show && !state.flags?.[prop.show]) continue;
         sprites.push({
           y: prop.y + (prop.h || 1) - 0.15,
@@ -515,8 +537,55 @@ function decoFree(room, item) {
   });
 }
 
+function drawBackdrop(ctx, room, cam) {
+  const img = sheetFor({ sheet: room.backdrop });
+  if (!img || !img.complete || !img.naturalWidth) return;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(
+    img,
+    Math.round(cam.ox),
+    Math.round(cam.oy),
+    room.map[0].length * TILE * cam.scale,
+    room.map.length * TILE * cam.scale,
+  );
+}
+
+function drawBackdropPiece(ctx, occ, cam) {
+  const img = sheetFor({ sheet: occ.src });
+  if (!img || !img.complete || !img.naturalWidth) return;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(
+    img,
+    Math.round(cam.ox + occ.px * cam.scale),
+    Math.round(cam.oy + occ.py * cam.scale),
+    occ.pw * cam.scale,
+    occ.ph * cam.scale,
+  );
+}
+
+function drawSpriteProp(ctx, prop, cam, hidden) {
+  const img = sheetFor({ sheet: prop.sprite });
+  if (!img || !img.complete || !img.naturalWidth) return;
+  const x = hidden ? (prop.peekX ?? prop.x) : prop.x;
+  const y = hidden ? (prop.peekY ?? prop.y) : prop.y;
+  const p = origin(cam, x + 0.5, y + 1);
+  const fw = img.naturalWidth;
+  const fh = img.naturalHeight;
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.scale(cam.scale, cam.scale);
+  ctx.imageSmoothingEnabled = false;
+  if (hidden) {
+    const ch = Math.max(8, Math.round(fh * 0.42));
+    ctx.drawImage(img, 0, 0, fw, ch, Math.round(-fw / 2), Math.round(-fh + 4), fw, ch);
+  } else {
+    ctx.drawImage(img, Math.round(-fw / 2), Math.round(-fh + 4), fw, fh);
+  }
+  ctx.restore();
+}
+
 function decos(room) {
-  if (room.id === 'nursery') return nurseryDecos().filter((item) => decoFree(room, item));
+  if (room.id === 'nursery') return [];
   const cols = room.map[0].length;
   const rows = room.map.length;
   const list = [

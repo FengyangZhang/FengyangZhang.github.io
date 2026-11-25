@@ -40,8 +40,16 @@ function perms(arr) {
 
 test('maps are rectangular and exits sit on door tiles', () => {
   for (const room of Object.values(ROOMS)) {
-    assert.equal(room.map.length, 12, room.id);
-    for (const row of room.map) assert.equal(row.length, 12, room.id + ' ' + row);
+    const cols = room.map[0].length;
+    const rows = room.map.length;
+    if (room.id === 'nursery') {
+      assert.equal(cols, 13, room.id);
+      assert.equal(rows, 18, room.id);
+    } else {
+      assert.equal(cols, 12, room.id);
+      assert.equal(rows, 12, room.id);
+    }
+    for (const row of room.map) assert.equal(row.length, cols, room.id + ' ' + row);
     for (const exit of room.exits) {
       assert.equal(room.map[exit.y][exit.x], '+', room.id + ' exit ' + exit.id);
       assert.ok(ROOMS[exit.to], exit.to);
@@ -54,7 +62,7 @@ test('props stay inside the room and do not pile onto the same tile', () => {
     const used = new Set();
     for (const prop of room.props) {
       for (const tile of footprintTiles(prop)) {
-        assert.ok(tile.x >= 0 && tile.y >= 0 && tile.x < 12 && tile.y < 12, prop.id);
+        assert.ok(tile.x >= 0 && tile.y >= 0 && tile.x < room.map[0].length && tile.y < room.map.length, prop.id);
         const ch = room.map[tile.y][tile.x];
         if (prop.exit) assert.equal(ch, '+', prop.id);
         else assert.ok(ch === '.' || ch === ',', prop.id + ' on ' + ch);
@@ -274,7 +282,7 @@ test('service worker lists every file the page needs', () => {
     'icons/icon-192.png',
     'icons/icon-512.png',
   ];
-  assert.match(sw, /xingzhu-escape-v12/);
+  assert.match(sw, /xingzhu-escape-v13/);
   for (const file of needed) {
     assert.equal(fs.existsSync(path.join(root, file)), true, file);
     assert.match(sw, new RegExp(file.replace('.', '\\.')));

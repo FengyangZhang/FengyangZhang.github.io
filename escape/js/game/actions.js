@@ -436,7 +436,7 @@ export function createActions(state, hooks) {
       state.roomId = 'nursery';
       state.levelId = 'age2';
       state.player.x = 6.5;
-      state.player.y = 6.6;
+      state.player.y = 10.5;
       state.player.facing = 'down';
       hooks.audio.unlock();
       startDialogue('nurseryIntro');
