@@ -4,11 +4,12 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { CANDLE_TOTAL, LEVELS, candleCount } from '../js/data/levels.js';
 import { ROOMS } from '../js/data/rooms.js';
 import { ALPHABET, CANDLE_ALIAS, INGREDIENTS, SOLUTIONS } from '../js/data/world.js';
 import { findPath } from '../js/engine/path.js';
 import { buildWalkGrid, footprintTiles, standTiles } from '../js/game/grid.js';
-import { LOOKS, PLAYER_LOOK, showsFace } from '../js/render/character.js';
+import { LOOKS, PLAYER_LOOK, playerLook, showsFace } from '../js/render/character.js';
 import { nearestFloor, pickProp, propAnchor } from '../js/game/pick.js';
 import {
   checkBooks,
@@ -16,7 +17,11 @@ import {
   checkCipherKey,
   checkDial,
   checkPotion,
+  colorsDone,
   decryptWithKey,
+  seekCount,
+  seekDone,
+  shapesDone,
   encryptWithKey,
   potionReaction,
   shiftChar,
@@ -35,8 +40,16 @@ function perms(arr) {
 
 test('maps are rectangular and exits sit on door tiles', () => {
   for (const room of Object.values(ROOMS)) {
-    assert.equal(room.map.length, 12, room.id);
-    for (const row of room.map) assert.equal(row.length, 12, room.id + ' ' + row);
+    const cols = room.map[0].length;
+    const rows = room.map.length;
+    if (room.id === 'nursery') {
+      assert.equal(cols, 13, room.id);
+      assert.equal(rows, 18, room.id);
+    } else {
+      assert.equal(cols, 12, room.id);
+      assert.equal(rows, 12, room.id);
+    }
+    for (const row of room.map) assert.equal(row.length, cols, room.id + ' ' + row);
     for (const exit of room.exits) {
       assert.equal(room.map[exit.y][exit.x], '+', room.id + ' exit ' + exit.id);
       assert.ok(ROOMS[exit.to], exit.to);
@@ -49,7 +62,7 @@ test('props stay inside the room and do not pile onto the same tile', () => {
     const used = new Set();
     for (const prop of room.props) {
       for (const tile of footprintTiles(prop)) {
-        assert.ok(tile.x >= 0 && tile.y >= 0 && tile.x < 12 && tile.y < 12, prop.id);
+        assert.ok(tile.x >= 0 && tile.y >= 0 && tile.x < room.map[0].length && tile.y < room.map.length, prop.id);
         const ch = room.map[tile.y][tile.x];
         if (prop.exit) assert.equal(ch, '+', prop.id);
         else assert.ok(ch === '.' || ch === ',', prop.id + ' on ' + ch);
@@ -210,11 +223,45 @@ test('player look can be swapped for another age and hair', () => {
   assert.equal(showsFace('sw'), true);
   assert.equal(showsFace('ne'), false);
   assert.equal(showsFace('nw'), false);
+  assert.equal(playerLook('nursery'), LOOKS.toddler);
+  assert.equal(playerLook('atrium'), LOOKS.xiaozhu);
+  assert.equal(LOOKS.toddler.frameH < LOOKS.xiaozhu.frameH * 0.65, true);
 });
 
 function alphabetDelta(ch) {
   return ALPHABET.indexOf(ch);
 }
+
+test('level 1 puzzles are observation only and check cleanly', () => {
+  const none = {};
+  assert.equal(seekCount(none), 0);
+  assert.equal(seekDone(none), false);
+  const some = { seek_blanket: true, seek_chest: true };
+  assert.equal(seekCount(some), 2);
+  const all = {};
+  for (const id of ['blanket', 'chest', 'curtain', 'crib', 'shelf']) all['seek_' + id] = true;
+  assert.equal(seekDone(all), true);
+  assert.equal(colorsDone({ red: 'red', blue: 'blue', yellow: 'yellow', green: 'green' }), true);
+  assert.equal(colorsDone({ red: 'blue', blue: 'red', yellow: 'yellow', green: 'green' }), false);
+  assert.equal(colorsDone({}), false);
+  assert.equal(shapesDone({ circle: 'circle', square: 'square', triangle: 'triangle', star: 'star' }), true);
+  assert.equal(shapesDone({ circle: 'star', square: 'square', triangle: 'triangle', star: 'circle' }), false);
+  assert.equal(colorsDone({ red: 'red', blue: 'blue', yellow: 'yellow' }), false);
+  assert.equal(shapesDone({ circle: 'circle' }), false);
+  assert.equal(seekCount({ seek_blanket: true, read_tapestry: true }), 1);
+});
+
+test('five birthdays share one candle counter and only age 2 is built', () => {
+  assert.equal(LEVELS.length, 5);
+  assert.deepEqual(LEVELS.map((level) => level.age), [2, 4, 8, 16, 32]);
+  assert.equal(CANDLE_TOTAL, 5);
+  assert.deepEqual(LEVELS.filter((level) => level.implemented).map((level) => level.id), ['age2']);
+  assert.equal(LEVELS[0].room, 'nursery');
+  assert.equal(candleCount([]), 0);
+  assert.equal(candleCount(['candle_2']), 1);
+  const seeks = ROOMS.nursery.props.filter((prop) => prop.action === 'seek').map((prop) => prop.seek).sort();
+  assert.deepEqual(seeks, ['blanket', 'chest', 'crib', 'curtain', 'shelf']);
+});
 
 test('service worker lists every file the page needs', () => {
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
@@ -235,7 +282,7 @@ test('service worker lists every file the page needs', () => {
     'icons/icon-192.png',
     'icons/icon-512.png',
   ];
-  assert.match(sw, /xingzhu-escape-v8/);
+  assert.match(sw, /xingzhu-escape-v14/);
   for (const file of needed) {
     assert.equal(fs.existsSync(path.join(root, file)), true, file);
     assert.match(sw, new RegExp(file.replace('.', '\\.')));

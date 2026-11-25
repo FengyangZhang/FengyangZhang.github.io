@@ -16,9 +16,10 @@ import {
   OBJECTIVES,
   SUBJECTS,
 } from '../data/world.js';
-import { cipherCiphertext, currentObjective } from './logic.js';
+import { CANDLE_TOTAL, LEVELS, candleCount } from '../data/levels.js';
+import { cipherCiphertext, currentObjective, seekCount, seekDone } from './logic.js';
 
-const TAGS = ['线索', '配方', '星盘', '记事', '闲话'];
+const TAGS = ['线索', '配方', '星盘', '记事', '闲话', '生日'];
 
 function esc(text) {
   return String(text).replace(/[&<>"']/g, (ch) => (
@@ -46,6 +47,14 @@ function clock(ms) {
 }
 
 function objectiveText(state) {
+  if (state.roomId === 'nursery') {
+    if (!state.flags.candle_2) {
+      if (!seekDone(state.flags)) return '找躲起来的玩具 ' + seekCount(state.flags) + '/5';
+      if (!state.flags.colors_done) return '把彩球放进同样颜色的篮子';
+      return '把积木放进形状盒';
+    }
+    return '第一支蜡烛找到了';
+  }
   const current = currentObjective(state, OBJECTIVES);
   if (!current) return '西翼的锁开了';
   return typeof current.text === 'function' ? current.text(state) : current.text;
@@ -73,6 +82,7 @@ export function createUI(root, state) {
 
 function roomTitle(state) {
   const names = {
+    nursery: ['两岁的房间', '玩具醒着的下午'],
     atrium: ['烛火中庭', '西翼 · 第一扇门'],
     library: ['回响书廊', '西翼 · 第二扇门'],
     cloister: ['药剂回廊', '西翼 · 第三扇门'],
@@ -87,6 +97,7 @@ function hud(state, roomName) {
     '<header class="hud-top">' +
       '<div class="room-block"><div class="room-name">' + esc(pair[0]) + '</div>' +
       '<div class="room-sub">' + esc(pair[1] || '') + '</div></div>' +
+      candleHud(state) +
       '<button class="icon-btn" data-act="toggleSound" aria-label="声音">' + (soundOn() ? '声音开' : '声音关') + '</button>' +
       '<button class="icon-btn" data-act="openMenu" aria-label="菜单">菜单</button>' +
     '</header>' +
@@ -107,12 +118,12 @@ function titleScreen(state) {
         '<div class="eyebrow">云海上的学院 · 不考咒语</div>' +
         '<h1>星烛学院</h1>' +
         '<p class="subtitle">缄默夜</p>' +
-        '<p class="blurb">一年级的林小烛被关在西翼。活楼梯停了。今夜，门只认想得通的顺序。</p>' +
+        '<p class="blurb">五次生日，五支蜡烛。你先当两岁的小小烛。玩具醒着，它们藏起来了。</p>' +
         '<div class="title-actions">' +
           (saved
-            ? '<button class="btn btn-primary" data-act="continueGame">继续未完的夜</button>' +
+            ? '<button class="btn btn-primary" data-act="continueGame">继续这个下午</button>' +
               '<button class="btn btn-ghost" data-act="askRestart">从头再走</button>'
-            : '<button class="btn btn-primary" data-act="startNew">进入西翼</button>') +
+            : '<button class="btn btn-primary" data-act="startNew">从两岁开始</button>') +
           '<button class="btn btn-ghost" data-act="openHelp">怎么走</button>' +
         '</div>' +
       '</div>' +
@@ -163,6 +174,18 @@ function sheet(state) {
     title = '星盘石面';
     body = slateBody(state);
     foot = '<button class="btn btn-primary" data-act="openDial">去转动星盘</button><button class="btn btn-ghost" data-act="closeSheet">离开</button>';
+  } else if (current.type === 'colors') {
+    title = '彩球';
+    body = colorBody(state);
+    foot = '<button class="btn btn-ghost" data-act="closeSheet">离开</button>';
+  } else if (current.type === 'shapes') {
+    title = '形状盒';
+    body = shapeBody(state);
+    foot = '<button class="btn btn-ghost" data-act="closeSheet">离开</button>';
+  } else if (current.type === 'levels') {
+    title = '五次生日';
+    body = levelBody(state);
+    foot = '<button class="btn btn-ghost" data-act="closeSheet">回去</button>';
   } else if (current.type === 'puzzle') {
     const built = puzzle(state, current.puzzle);
     title = built.title;
@@ -188,8 +211,79 @@ function panel(title, body, foot, backdropCloses) {
 
 function portraitFor(who) {
   if (who === '林小烛') return 'sprites/portrait.png';
+  if (who === '小小烛') return 'sprites/toddler-portrait.png';
+  if (who === '星卫') return 'sprites/toy-ranger.png';
+  if (who === '线仔') return 'sprites/toy-cowboy.png';
+  if (who === '小穗') return 'sprites/toy-cowgirl.png';
+  if (who === '青青') return 'sprites/toy-dino.png';
+  if (who === '存存') return 'sprites/toy-pig.png';
+  if (who === '豆豆') return 'sprites/toy-potato.png';
+  if (who === '圈圈') return 'sprites/toy-slinky.png';
+  if (who === '三目') return 'sprites/toy-alien.png';
+  if (who === '木木') return 'sprites/toy-horse.png';
+  if (who === '绿兵') return 'sprites/toy-army.png';
+  if (who === '妈妈') return 'sprites/parent-mom.png';
   if (!who) return '';
   return 'sprites/silhouette.png';
+}
+
+function candleHud(state) {
+  const n = candleCount(state.candles);
+  let icons = '';
+  for (let i = 0; i < CANDLE_TOTAL; i++) {
+    icons += '<i class="pixel-candle' + (i < n ? ' lit' : '') + '"></i>';
+  }
+  return '<div class="candle-row" aria-label="生日蜡烛 ' + n + '/' + CANDLE_TOTAL + '">' + icons +
+    '<span>' + n + '/' + CANDLE_TOTAL + '</span></div>';
+}
+
+function colorBody(state) {
+  const colors = [
+    ['red', '#d6453c'],
+    ['blue', '#3d6ea8'],
+    ['yellow', '#f5c20e'],
+    ['green', '#3d8a55'],
+  ];
+  const placed = state.mini?.colors || {};
+  const pick = state.mini?.colorPick;
+  const baskets = colors.map(([id, hex]) => {
+    const got = placed[id];
+    const pop = got && state.mini?.pop === id ? ' pop' : '';
+    return '<button class="pix-basket" style="--swatch:' + hex + '" data-act="colorPlace" data-id="' + id + '" data-drop="' + id + '" data-kind="colors" aria-label="' + id + '">' +
+      (got ? '<i class="pix-ball' + pop + '" style="--swatch:' + hex + '"></i>' : '') +
+      '</button>';
+  }).join('');
+  const balls = colors.filter(([id]) => !Object.values(placed).includes(id)).map(([id, hex]) => (
+    '<button class="chunk' + (pick === id ? ' on' : '') + '" style="--swatch:' + hex + '" data-act="colorPick" data-id="' + id + '" data-drag="' + id + '" data-kind="colors" aria-label="' + id + '">' +
+      '<i class="pix-ball" style="--swatch:' + hex + '"></i></button>'
+  )).join('');
+  return '<p class="toy-hint">把球放进一样颜色的篮子。</p><div class="play-board"><div class="toy-tray baskets">' + baskets + '</div><div class="toy-tray">' + balls + '</div></div>';
+}
+
+function shapeBody(state) {
+  const shapes = ['circle', 'square', 'triangle', 'star'];
+  const placed = state.mini?.shapes || {};
+  const pick = state.mini?.shapePick;
+  const holes = shapes.map((id) => {
+    const got = placed[id];
+    const pop = got && state.mini?.pop === id ? ' pop' : '';
+    return '<button class="hole-btn ' + id + '" data-act="shapePlace" data-id="' + id + '" data-drop="' + id + '" data-kind="shapes" aria-label="' + id + '">' +
+      (got ? '<i class="pix ' + got + pop + '"></i>' : '') +
+      '</button>';
+  }).join('');
+  const blocks = shapes.filter((id) => !Object.values(placed).includes(id)).map((id) => (
+    '<button class="chunk' + (pick === id ? ' on' : '') + '" data-act="shapePick" data-id="' + id + '" data-drag="' + id + '" data-kind="shapes" aria-label="' + id + '">' +
+      '<i class="pix ' + id + '"></i></button>'
+  )).join('');
+  return '<p class="toy-hint">把积木放进一样的洞。</p><div class="play-board"><div class="wood-box">' + holes + '</div><div class="toy-tray">' + blocks + '</div></div>';
+}
+
+function levelBody(state) {
+  return '<ul class="plain">' + LEVELS.map((level) => {
+    const have = state.candles?.includes(level.candle);
+    const note = !level.implemented ? '还没到' : have ? '蜡烛已点亮' : '可以去';
+    return '<li><b>' + level.age + ' 岁 · ' + esc(level.title) + '</b> ' + esc(level.subtitle) + ' · ' + note + '</li>';
+  }).join('') + '</ul>';
 }
 
 function dialogue(state) {
@@ -234,13 +328,18 @@ function menuBody(state) {
       '<button class="btn btn-ghost" data-act="toggleSound">' + (soundOn() ? '关掉声音' : '打开声音') + '</button>' +
       '<button class="btn btn-ghost" data-act="openHelp">怎么走</button>' +
       (state.flags.ending ? '<button class="btn btn-ghost" data-act="showEndingCard">再看一遍结局</button>' : '') +
+      '<button class="btn btn-ghost" data-act="openLevels">五次生日</button>' +
       '<button class="btn btn-ghost" data-act="askRestart">重新开始</button>' +
     '</div>'
   );
 }
 
 function journalBody(state) {
-  if (!state.journal.length) return '<p>还没有记下什么。先去看看挂毯和青铜碑。</p>';
+  if (!state.journal.length) {
+    return state.roomId === 'nursery'
+      ? '<p>还没有记下什么。先在房间里找一找躲起来的玩具。</p>'
+      : '<p>还没有记下什么。先去看看挂毯和青铜碑。</p>';
+  }
   const chunks = [];
   for (const tag of TAGS) {
     const items = state.journal.filter((entry) => entry.tag === tag);

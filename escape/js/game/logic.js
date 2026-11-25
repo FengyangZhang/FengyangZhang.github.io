@@ -105,6 +105,9 @@ export function doorMessage(state, exit) {
   if (exit.lock === 'candleDoor') {
     return '东门还是暗的。四支烛的次序没对，它不认你。';
   }
+  if (exit.lock === 'grownDoor') {
+    return '这扇门要等第一支生日蜡烛。两岁的下午还没玩完。';
+  }
   if (exit.lock === 'libraryDoor') {
     const tooth = state.inv.includes('key_tooth');
     const handle = state.inv.includes('key_handle');
@@ -113,6 +116,27 @@ export function doorMessage(state, exit) {
     return '北门锁着。它要一枚完整的铜钥：一截齿，再加一截柄。';
   }
   return '这扇门还关着。';
+}
+
+export const SEEK_IDS = ['blanket', 'chest', 'curtain', 'crib', 'shelf'];
+export const COLOR_IDS = ['red', 'blue', 'yellow', 'green'];
+export const SHAPE_IDS = ['circle', 'square', 'triangle', 'star'];
+
+export function seekCount(flags) {
+  return SEEK_IDS.filter((id) => flags?.['seek_' + id]).length;
+}
+
+export function seekDone(flags) {
+  return seekCount(flags) === SEEK_IDS.length;
+}
+
+/** placed maps basket/hole id -> item id. Each item must land in the matching slot. */
+export function colorsDone(placed) {
+  return COLOR_IDS.every((id) => placed?.[id] === id);
+}
+
+export function shapesDone(placed) {
+  return SHAPE_IDS.every((id) => placed?.[id] === id);
 }
 
 /** What the cauldron shows when the recipe is wrong. Fair feedback, not the answer. */

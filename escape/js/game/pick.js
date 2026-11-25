@@ -42,7 +42,8 @@ export function pickProp(props, cam, sx, sy) {
   for (const prop of props) {
     const pt = propAnchor(prop, cam);
     const dist = Math.hypot(sx - pt.x, sy - pt.y);
-    if (dist > radius) continue;
+    const reach = radius + (prop.reach || 0) * cam.scale;
+    if (dist > reach) continue;
     const score = dist - (prop.pick || 0) * 14;
     if (score < bestScore) {
       bestScore = score;
